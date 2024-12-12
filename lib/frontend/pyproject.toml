@@ -1,0 +1,22 @@
+[build-system]
+requires = ['setuptools >= 61.0.0', 'wheel']
+build-backend = 'setuptools.build_meta'
+
+[project]
+name = 'famm-frontend'
+version = '1.0.0'
+authors = [
+    { name = 'Fedor' },
+    { name = 'Alena' },
+    { name = 'Misha' },
+    { name = 'Maxim' },
+]
+description = 'lexer, parser, ast tree for famm language'
+readme = 'README.md'
+requires-python = '>= 3.10'
+dependencies = [
+    'antlr4-python3-runtime'
+]
+
+[tool.setuptools.packages]
+find = { }
