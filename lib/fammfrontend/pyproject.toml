@@ -12,11 +12,10 @@ authors = [
     { name = 'Maxim' },
 ]
 description = 'lexer, parser, ast tree for famm language'
-readme = 'README.md'
 requires-python = '>= 3.10'
 dependencies = [
     'antlr4-python3-runtime'
 ]
 
 [tool.setuptools.packages]
-find = { }
+find = { where = ["gen", "src"] }
