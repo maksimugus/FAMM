@@ -1,0 +1,6 @@
+add_library(lexer FAMMLexer.cpp)
+add_library(parser FAMMParser.cpp)
+add_library(listener FAMMListener.cpp)
+add_library(base_listener FAMMBaseListener.cpp)
+find_package(antlr4-runtime)
+target_link_libraries(${PROJECT_NAME} PRIVATE antlr4-runtime)
