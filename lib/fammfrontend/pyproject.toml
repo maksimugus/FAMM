@@ -11,11 +11,11 @@ authors = [
     { name = 'Misha' },
     { name = 'Maxim' },
 ]
-description = 'lexer, parser, ast tree for famm language'
-requires-python = '>= 3.10'
+description = 'Lexer, Parser, and AST for the FAMM language.'
+requires-python = '>=3.10'
 dependencies = [
     'antlr4-python3-runtime'
 ]
 
 [tool.setuptools.packages]
-find = { where = ["gen", "src"] }
+find = { include = ["fammfrontend*"] }
