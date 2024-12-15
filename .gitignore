@@ -33,3 +33,6 @@
 
 .idea
 /cmake-build-debug/
+/lib/fammfrontend/.venv/
+/lib/fammfrontend/antlr4/
+/lib/fammfrontend/fammfrontend.egg-info/
