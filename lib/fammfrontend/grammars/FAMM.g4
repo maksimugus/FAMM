@@ -2,21 +2,43 @@ grammar FAMM;
 
 program: line* EOF;
 
-line: (statement | ifBlock | whileBlock) ';';
+impline: (
+    statement
+    | ifBlock
+    | whileBlock
+    | forBlock
+    | functionBlock
+    |
+    ) ';';
 
-statement: declaration | definition | functionCall;
+statement
+    : variableDeclaration
+    | variableDefinition
+    | functionCall;
 
-ifBlock: 'if' '(' expression ')' block ('else' block);
+ifBlock: 'if' '(' expression ')' block ('else' block)?;
 
-whileBlock: 'while' '(' expression ')' block;
+whileBlock: 'while' '(' expression ')' '=' block;
+
+forBlock: 'for' '(' 'var' IDENTIFIER ':' type '=' expression '->' expression ',' expression ')' '=' block;
+
+functionBlock: 'func' IDENTIFIER '(' parameterList? ')' ':' returnType '=' block;
+
+parameterList: parameter (',' parameter)*;
+
+parameter: IDENTIFIER ':' type;
+
+returnType: type | 'nih';
 
 block: '{' line* '}';
 
-declaration: 'var' IDENTIFIER ':' type '=' expression;
+variableDeclaration: 'var' IDENTIFIER ':' type ('=' expression)?;
 
-definition: IDENTIFIER assignmentOp expression;
+variableDefinition: IDENTIFIER assignmentOp expression;
 
-functionCall: IDENTIFIER '(' (expression (',' expression)*)? ')';
+functionCall: IDENTIFIER '(' argumentList? ')';
+
+argumentList: expression (',' expression)*;
 
 expression
     : constant
@@ -47,7 +69,7 @@ boolOp: 'and' | 'or';
 
 type: 'int' | 'float' | 'string' | 'bool';
 
-constant: INTEGER_LIT | FLOAT_LIT | STRING_LIT | BOOL_LIT | NIH_LIT;
+constant: INTEGER_LIT | FLOAT_LIT | STRING_LIT | BOOL_LIT;
 
 IDENTIFIER: [a-zA-Z_][a-zA-Z0-9_]*;
 
@@ -55,6 +77,7 @@ INTEGER_LIT: [0-9]+;
 FLOAT_LIT: [0-9]+ '.' [0-9]* | '.' [0-9]+;
 STRING_LIT: '"' ( ~["\\\r\n] | '\\' . )* '"';
 BOOL_LIT: 'true' | 'false';
-NIH_LIT: 'nih';
+
+COMMENT: '#' ~[\r\n]* -> skip;
 
 WS: [ \t\r\n]+ -> skip;

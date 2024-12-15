@@ -1,0 +1,22 @@
+func abas (a: int, b: int): nih = {
+	var c: int = 1 + a;
+};
+
+var i: int;
+
+i = 5;
+
+while (i < 5) = {
+    i += 1;
+};
+
+if (i == 5) {
+    i = 0;
+} else {
+    i = 1;
+};
+
+for (var i: float = 100. -> 1., step) = {
+};
+
+test(a, b);

@@ -53,6 +53,51 @@ class FAMMListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by FAMMParser#forBlock.
+    def enterForBlock(self, ctx:FAMMParser.ForBlockContext):
+        pass
+
+    # Exit a parse tree produced by FAMMParser#forBlock.
+    def exitForBlock(self, ctx:FAMMParser.ForBlockContext):
+        pass
+
+
+    # Enter a parse tree produced by FAMMParser#functionBlock.
+    def enterFunctionBlock(self, ctx:FAMMParser.FunctionBlockContext):
+        pass
+
+    # Exit a parse tree produced by FAMMParser#functionBlock.
+    def exitFunctionBlock(self, ctx:FAMMParser.FunctionBlockContext):
+        pass
+
+
+    # Enter a parse tree produced by FAMMParser#parameterList.
+    def enterParameterList(self, ctx:FAMMParser.ParameterListContext):
+        pass
+
+    # Exit a parse tree produced by FAMMParser#parameterList.
+    def exitParameterList(self, ctx:FAMMParser.ParameterListContext):
+        pass
+
+
+    # Enter a parse tree produced by FAMMParser#parameter.
+    def enterParameter(self, ctx:FAMMParser.ParameterContext):
+        pass
+
+    # Exit a parse tree produced by FAMMParser#parameter.
+    def exitParameter(self, ctx:FAMMParser.ParameterContext):
+        pass
+
+
+    # Enter a parse tree produced by FAMMParser#returnType.
+    def enterReturnType(self, ctx:FAMMParser.ReturnTypeContext):
+        pass
+
+    # Exit a parse tree produced by FAMMParser#returnType.
+    def exitReturnType(self, ctx:FAMMParser.ReturnTypeContext):
+        pass
+
+
     # Enter a parse tree produced by FAMMParser#block.
     def enterBlock(self, ctx:FAMMParser.BlockContext):
         pass
@@ -62,21 +107,21 @@ class FAMMListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by FAMMParser#declaration.
-    def enterDeclaration(self, ctx:FAMMParser.DeclarationContext):
+    # Enter a parse tree produced by FAMMParser#variableDeclaration.
+    def enterVariableDeclaration(self, ctx:FAMMParser.VariableDeclarationContext):
         pass
 
-    # Exit a parse tree produced by FAMMParser#declaration.
-    def exitDeclaration(self, ctx:FAMMParser.DeclarationContext):
+    # Exit a parse tree produced by FAMMParser#variableDeclaration.
+    def exitVariableDeclaration(self, ctx:FAMMParser.VariableDeclarationContext):
         pass
 
 
-    # Enter a parse tree produced by FAMMParser#definition.
-    def enterDefinition(self, ctx:FAMMParser.DefinitionContext):
+    # Enter a parse tree produced by FAMMParser#variableDefinition.
+    def enterVariableDefinition(self, ctx:FAMMParser.VariableDefinitionContext):
         pass
 
-    # Exit a parse tree produced by FAMMParser#definition.
-    def exitDefinition(self, ctx:FAMMParser.DefinitionContext):
+    # Exit a parse tree produced by FAMMParser#variableDefinition.
+    def exitVariableDefinition(self, ctx:FAMMParser.VariableDefinitionContext):
         pass
 
 
@@ -86,6 +131,15 @@ class FAMMListener(ParseTreeListener):
 
     # Exit a parse tree produced by FAMMParser#functionCall.
     def exitFunctionCall(self, ctx:FAMMParser.FunctionCallContext):
+        pass
+
+
+    # Enter a parse tree produced by FAMMParser#argumentList.
+    def enterArgumentList(self, ctx:FAMMParser.ArgumentListContext):
+        pass
+
+    # Exit a parse tree produced by FAMMParser#argumentList.
+    def exitArgumentList(self, ctx:FAMMParser.ArgumentListContext):
         pass
 
 

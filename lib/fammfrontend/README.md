@@ -18,6 +18,10 @@ docker run --rm -v ${PWD}:/work antlr/antlr4 -Dlanguage=Python3 /work/grammars/F
 ```
 
 ```shell
+docker run --rm -v ${PWD}:/work antlr/antlr4 -Dlanguage=Cpp /work/grammars/FAMM.g4 -o /work/fammfrontend-cpp
+```
+
+```shell
 python -m venv .venv
 ```
 
