@@ -15,7 +15,11 @@ docker run --rm -v ${PWD}:/work antlr/antlr4 -Dlanguage=Python3 /work/grammars/F
 ```
 
 ```shell
-python3 -m venv .venv
+python -m venv .venv
 .\.venv\Scripts\activate
 pip install -e .
+```
+
+```shell
+python scripts/Driver.py
 ```

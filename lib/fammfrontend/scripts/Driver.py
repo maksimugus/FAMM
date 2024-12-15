@@ -9,7 +9,7 @@ def main():
     stream = CommonTokenStream(lexer)
     parser = FAMMParser(stream)
     tree = parser.program()  # Создаём дерево разбора.
-    print(tree)
+    print(tree.toStringTree(recog=parser))
     # visitor = VisitorInterp()  # Создаём экземпляр посетителя.
     # visitor.visit(tree)  # Обходим дерево.
 
