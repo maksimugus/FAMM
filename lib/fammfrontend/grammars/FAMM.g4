@@ -1,225 +1,60 @@
 grammar FAMM;
 
-program
-    : (varDecl | funcDef | statement)*
-    ;
+program: line* EOF;
 
-varDecl
-    : VAR IDENTIFIER COLON type ASSIGN expression SEMICOLON
-    ;
+line: (statement | ifBlock | whileBlock) ';';
 
-funcDef
-    : FUNC IDENTIFIER ( LPAREN parameters? RPAREN )? COLON returnType ASSIGN LBRACE statements RBRACE
-    ;
+statement: declaration | definition | functionCall;
 
-parameters
-    : parameter ( COMMA parameter )*
-    ;
+ifBlock: 'if' '(' expression ')' block ('else' block);
 
-parameter
-    : IDENTIFIER COLON type
-    ;
+whileBlock: 'while' '(' expression ')' block;
 
-returnType
-    : NIL
-    | type
-    ;
+block: '{' line* '}';
 
-statements
-    : statement*
-    ;
+declaration: 'var' IDENTIFIER ':' type '=' expression;
 
-statement
-    : varDecl
-    | assignment
-    | ifStatement
-    | whileLoop
-    | forLoop
-    | expressionStatement
-    | returnStatement
-    | SEMICOLON
-    ;
+definition: IDENTIFIER assignmentOp expression;
 
-assignment
-    : (IDENTIFIER | arrayAccess) assignmentOperator expression SEMICOLON
-    ;
-
-assignmentOperator
-    : PLUS_ASSIGN
-    | MINUS_ASSIGN
-    | MULT_ASSIGN
-    | DIV_ASSIGN
-    | INT_DIV_ASSIGN
-    | MOD_ASSIGN
-    | ASSIGN
-    ;
-
-ifStatement
-    : IF LPAREN expression RPAREN LBRACE statements RBRACE
-    ;
-
-whileLoop
-    : WHILE LPAREN expression RPAREN ASSIGN LBRACE statements RBRACE
-    ;
-
-forLoop
-    : FOR LPAREN VAR IDENTIFIER COLON type ASSIGN expression ARROW expression ( COMMA expression )? RPAREN LBRACE statements RBRACE
-    ;
-
-returnStatement
-    : RETURN expression? SEMICOLON
-    ;
-
-expressionStatement
-    : expression SEMICOLON
-    ;
+functionCall: IDENTIFIER '(' (expression (',' expression)*)? ')';
 
 expression
-    : logicalOrExpression
-    ;
-
-logicalOrExpression
-    : logicalOrExpression OR logicalAndExpression
-    | logicalAndExpression
-    ;
-
-logicalAndExpression
-    : logicalAndExpression AND equalityExpression
-    | equalityExpression
-    ;
-
-equalityExpression
-    : equalityExpression (EQUAL | NOT_EQUAL) comparisonExpression
-    | comparisonExpression
-    ;
-
-comparisonExpression
-    : comparisonExpression (LT | GT | LTE | GTE) additiveExpression
-    | additiveExpression
-    ;
-
-additiveExpression
-    : additiveExpression (PLUS | MINUS) multiplicativeExpression
-    | multiplicativeExpression
-    ;
-
-multiplicativeExpression
-    : multiplicativeExpression (MULTIPLY | DIVIDE | INT_DIVIDE | MODULO) unaryExpression
-    | unaryExpression
-    ;
-
-unaryExpression
-    : (NOT | MINUS) unaryExpression
-    | primaryExpression
-    ;
-
-primaryExpression
-    : LPAREN expression RPAREN
-    | functionCall
-    | typeCast
-    | arrayAccess
+    : constant
     | IDENTIFIER
-    | literal
+    | functionCall
+    | '(' expression ')'
+    | '!' expression
+    | expression multOp expression
+    | expression addOp expression
+    | expression compareOp expression
+    | expression boolOp expression
     ;
 
-functionCall
-    : IDENTIFIER LPAREN argumentList? RPAREN
+assignmentOp
+    : '='
+    | '+='
+    | '-='
+    | '*='
+    | '/='
+    | '//='
+    | '%='
     ;
 
-argumentList
-    : expression ( COMMA expression )*
-    ;
+multOp: '*' | '/' | '//' | '%';
+addOp: '+' | '-';
+compareOp: '==' | '!=' | '>' | '<' | '>=' | '<=';
+boolOp: 'and' | 'or';
 
-typeCast
-    : type LPAREN expression RPAREN
-    ;
+type: 'int' | 'float' | 'string' | 'bool';
 
-arrayAccess
-    : IDENTIFIER LBRACKET expression RBRACKET
-    ;
-
-literal
-    : INT_LITERAL
-    | FLOAT_LITERAL
-    | STRING_LITERAL
-    | BOOLEAN_LITERAL
-    | arrayLiteral
-    ;
-
-arrayLiteral
-    : LBRACKET expressionList? RBRACKET
-    ;
-
-expressionList
-    : expression ( COMMA expression )*
-    ;
-
-type
-    : INT_TYPE
-    | FLOAT_TYPE
-    | BOOL_TYPE
-    | STRING_TYPE
-    | LBRACKET type RBRACKET
-    ;
-
-VAR: 'var';
-FUNC: 'func';
-RETURN: 'return';
-IF: 'if';
-ELSE: 'else';
-WHILE: 'while';
-FOR: 'for';
-NIL: 'nih';
-
-ASSIGN: '=';
-PLUS_ASSIGN: '+=' ;
-MINUS_ASSIGN: '-=' ;
-MULT_ASSIGN: '*=' ;
-DIV_ASSIGN: '/=' ;
-INT_DIV_ASSIGN: '//' '=' ;
-MOD_ASSIGN: '%=' ;
-
-PLUS: '+';
-MINUS: '-';
-MULTIPLY: '*';
-DIVIDE: '/';
-INT_DIVIDE: '//';
-MODULO: '%';
-
-EQUAL: '==';
-NOT_EQUAL: '!=';
-GT: '>';
-LT: '<';
-GTE: '>=';
-LTE: '<=';
-
-AND: '&';
-OR: '|';
-NOT: '!';
-
-LPAREN: '(';
-RPAREN: ')';
-LBRACE: '{';
-RBRACE: '}';
-LBRACKET: '[';
-RBRACKET: ']';
-COLON: ':';
-COMMA: ',';
-SEMICOLON: ';';
-ARROW: '->';
-
-INT_TYPE: 'int';
-FLOAT_TYPE: 'float';
-BOOL_TYPE: 'bool';
-STRING_TYPE: 'string';
-
-BOOLEAN_LITERAL: 'true' | 'false';
+constant: INTEGER_LIT | FLOAT_LIT | STRING_LIT | BOOL_LIT | NIH_LIT;
 
 IDENTIFIER: [a-zA-Z_][a-zA-Z0-9_]*;
 
-INT_LITERAL: [0-9]+;
-FLOAT_LITERAL: [0-9]+ '.' [0-9]* | '.' [0-9]+;
-STRING_LITERAL: '"' ( ~["\\\r\n] | '\\' . )* '"';
+INTEGER_LIT: [0-9]+;
+FLOAT_LIT: [0-9]+ '.' [0-9]* | '.' [0-9]+;
+STRING_LIT: '"' ( ~["\\\r\n] | '\\' . )* '"';
+BOOL_LIT: 'true' | 'false';
+NIH_LIT: 'nih';
 
 WS: [ \t\r\n]+ -> skip;
-COMMENT: '#' ~[\r\n]* -> skip;

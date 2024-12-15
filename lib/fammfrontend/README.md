@@ -5,6 +5,9 @@
 
 ```shell
 git clone https://github.com/antlr/antlr4.git
+```
+
+```shell
 docker build -t antlr/antlr4 --platform linux/amd64 -f antlr4/docker/Dockerfile antlr4
 ```
 
@@ -16,10 +19,12 @@ docker run --rm -v ${PWD}:/work antlr/antlr4 -Dlanguage=Python3 /work/grammars/F
 
 ```shell
 python -m venv .venv
-.\.venv\Scripts\activate
-pip install -e .
 ```
 
 ```shell
-python scripts/Driver.py
+.\.venv\Scripts\activate
+```
+
+```shell
+pip install -e .
 ```

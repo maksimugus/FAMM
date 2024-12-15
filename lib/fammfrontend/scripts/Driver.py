@@ -4,7 +4,7 @@ from fammfrontend.gen.FAMMParser import FAMMParser
 # from fammfrontend.VisitorInterp import VisitorInterp
 
 def main():
-    input_stream = InputStream("var a: int = 5;")
+    input_stream = FileStream('../test.famm')
     lexer = FAMMLexer(input_stream)
     stream = CommonTokenStream(lexer)
     parser = FAMMParser(stream)
