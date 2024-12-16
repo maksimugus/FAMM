@@ -1,6 +1,6 @@
 add_library(lexer FammLexer.cpp)
 add_library(parser FammParser.cpp)
-add_library(listener FammBaseListener.cpp)
+add_library(listener FammListener.cpp)
 add_library(base_listener FammBaseListener.cpp)
 
 target_include_directories(lexer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
