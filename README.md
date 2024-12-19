@@ -2,8 +2,14 @@
 
 Source code of the beautiful programming language FAMM.
 
-## Installation dependencies
+## Run
 
+To install dependencies (and generate lexer, ...)
 ```shell
 make
+```
+
+To generate new lexer, parser, listener:
+```shell
+make generate
 ```

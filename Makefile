@@ -8,7 +8,7 @@ DOCKER_IMAGE := antlr/antlr4
 GEN_DIR := ${CURDIR}/lib/frontend
 
 .PHONY: all
-all: docker-build
+all: docker-build generate
 
 .PHONY: clone-antlr
 clone-antlr:
