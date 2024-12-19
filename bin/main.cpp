@@ -1,10 +1,12 @@
+#include <antlr4-runtime.h>
+
 #include <iostream>
 #include <sstream>
-#include <antlr4-runtime.h>
-#include "FAMMLexer.h"
-#include "FAMMParser.h"
+
 #include "FAMMBaseListener.h"
+#include "FAMMLexer.h"
 #include "FAMMListener.h"
+#include "FAMMParser.h"
 
 using namespace antlr4;
 using namespace std;
@@ -18,7 +20,7 @@ int main() {
 
   ANTLRInputStream input(input_string);
 
-  FAMMLexer lexer(&input); // todo make not abstract
+  FAMMLexer lexer(&input);
 
   CommonTokenStream tokens(&lexer);
 

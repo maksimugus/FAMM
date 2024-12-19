@@ -4,8 +4,8 @@ project(FAMMCompiler)
 set(CMAKE_CXX_STANDARD 20)
 
 # Указываем директорию с ANTLR4
-set(ANTLR_RUNTIME_DIR ${CMAKE_SOURCE_DIR}/third_party/antlr4-cpp-runtime)
-set(LLVM_DIR ${CMAKE_SOURCE_DIR}/third_party/llvm)
+set(ANTLR_RUNTIME_DIR ${CMAKE_SOURCE_DIR}/third_party/antlr4/runtime/Cpp)
+#set(LLVM_DIR ${CMAKE_SOURCE_DIR}/third_party/llvm)
 
 # Добавляем подкаталог ANTLR4
 add_subdirectory(${ANTLR_RUNTIME_DIR} EXCLUDE_FROM_ALL)
@@ -41,10 +41,11 @@ include_directories(${LLVM_DIR}/include)
 add_executable(famm_compiler bin/main.cpp)
 
 # Линкуем с библиотеками
-target_link_libraries(famm_compiler frontend backend)
+#target_link_libraries(famm_compiler frontend backend)
+target_link_libraries(famm_compiler frontend)
 
 # Линкуем с библиотекой ANTLR4
-target_link_libraries(famm_compiler antlr4_cpp_runtime)
+#target_link_libraries(famm_compiler antlr4_cpp_runtime)
 
 # Линкуем с библиотекой LLVM
-target_link_libraries(famm_compiler LLVM)
+#target_link_libraries(famm_compiler LLVM)
