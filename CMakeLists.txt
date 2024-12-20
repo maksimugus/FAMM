@@ -3,14 +3,13 @@ project(FAMMCompiler)
 
 set(CMAKE_CXX_STANDARD 20)
 
-# Указываем директорию с ANTLR4
+# Define the directory containing ANTLR4
 set(ANTLR_RUNTIME_DIR ${CMAKE_SOURCE_DIR}/third_party/antlr4/runtime/Cpp)
-#set(LLVM_DIR ${CMAKE_SOURCE_DIR}/third_party/llvm)
 
-# Добавляем подкаталог ANTLR4
+# Add the ANTLR4 runtime subdirectory
 add_subdirectory(${ANTLR_RUNTIME_DIR} EXCLUDE_FROM_ALL)
 
-# Подключаем нужные исходники для frontend
+# Include necessary directories for frontend
 add_library(frontend
         lib/frontend/gen/FAMM.tokens
         lib/frontend/gen/FAMMBaseListener.cpp
@@ -25,27 +24,19 @@ add_library(frontend
         lib/frontend/gen/FAMMLexer.interp
 )
 
-# Включаем директории для frontend
+# Include directories for frontend and ANTLR4 runtime
 include_directories(lib/frontend/gen)
-
-# Включаем директории для ANTLR4
 include_directories(${ANTLR_RUNTIME_DIR}/runtime/src)
 
-# Добавляем библиотеку backend (если необходимо)
-# add_library(backend lib/backend/...)
-
-# Включаем директории для LLVM
-include_directories(${LLVM_DIR}/include)
-
-# Создаем исполняемый файл
+# Create the executable
 add_executable(famm_compiler bin/main.cpp)
 
-# Линкуем с библиотеками
-#target_link_libraries(famm_compiler frontend backend)
+# Link the frontend library
 target_link_libraries(famm_compiler frontend)
 
-# Линкуем с библиотекой ANTLR4
-#target_link_libraries(famm_compiler antlr4_cpp_runtime)
+# Link with the ANTLR4 runtime library (static or dynamic)
+target_link_libraries(famm_compiler antlr4_static)  # If you want static linkage
+# target_link_libraries(famm_compiler antlr4)      # Uncomment for dynamic linkage (shared)
 
-# Линкуем с библиотекой LLVM
-#target_link_libraries(famm_compiler LLVM)
+# If using LLVM, link it as needed (if required for your project)
+# target_link_libraries(famm_compiler LLVM)
