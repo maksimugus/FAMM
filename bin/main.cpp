@@ -11,13 +11,23 @@
 using namespace antlr4;
 using namespace std;
 
-int main() {
-  string input_string = R"(
-    while (i < 5) {
-        i += 1;
-    };
-    )";
+int main(int argc, const char *argv[]) {
+  if (argc < 2) {
+    cerr << "Usage: " << argv[0] << " <file.famm>" << endl;
+    return 1;
+  }
 
+  string filename = argv[1];
+  ifstream file(filename);
+  if (!file.is_open()) {
+    cerr << "Error opening file: " << filename << endl;
+    return 1;
+  }
+
+  stringstream buffer;
+  buffer << file.rdbuf();
+  string input_string = buffer.str();
+  file.close();
   ANTLRInputStream input(input_string);
 
   FAMMLexer lexer(&input);
