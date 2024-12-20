@@ -1,16 +1,6 @@
 #
 Запускать всё нужно в папке, где находится этот README
 
-Соберём образ antlr4
-
-```shell
-git clone https://github.com/antlr/antlr4.git
-```
-
-```shell
-docker build -t antlr/antlr4 --platform linux/amd64 -f antlr4/docker/Dockerfile antlr4
-```
-
 Создадим парсер и лексер
 
 ```shell

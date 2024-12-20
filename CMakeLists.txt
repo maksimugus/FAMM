@@ -33,10 +33,7 @@ add_executable(famm_compiler bin/main.cpp)
 
 # Link the frontend library
 target_link_libraries(famm_compiler frontend)
-
-# Link with the ANTLR4 runtime library (static or dynamic)
-target_link_libraries(famm_compiler antlr4_static)  # If you want static linkage
-# target_link_libraries(famm_compiler antlr4)      # Uncomment for dynamic linkage (shared)
+target_link_libraries(famm_compiler antlr4_static)
 
 # If using LLVM, link it as needed (if required for your project)
 # target_link_libraries(famm_compiler LLVM)
