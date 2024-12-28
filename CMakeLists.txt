@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.2)
 project(FAMMCompiler)
 
-
-#set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
 set(CMAKE_CXX_STANDARD 20)
 
 # Определяем директорию ANTLR
@@ -14,9 +12,6 @@ add_subdirectory(${ANTLR_RUNTIME_DIR} EXCLUDE_FROM_ALL)
 # Подключаем директорию lib/frontend
 add_subdirectory(lib/frontend)
 
-# Создаем исполняемый файл
-add_executable(famm_compiler bin/main.cpp)
+add_subdirectory(bin)
 
-# Линкуем frontend и antlr4_static к исполняемому файлу
-target_link_libraries(famm_compiler frontend)
-target_link_libraries(famm_compiler antlr4_static)
+
