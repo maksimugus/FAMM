@@ -2,15 +2,13 @@ grammar FAMM;
 
 program: line* EOF;
 
-line: (expression | statement | ifBlock | whileBlock | forBlock) ';';
+line: (statement | ifBlock | whileBlock) ';';
 
 statement: declaration | definition | functionCall;
 
-ifBlock: 'if' '(' expression ')' block ('else' block)?;
+ifBlock: 'if' '(' expression ')' block ('else' block);
 
 whileBlock: 'while' '(' expression ')' block;
-
-forBlock: 'for' '(' declaration '->' expression 'by' expression ')' block;
 
 block: '{' line* '}';
 
