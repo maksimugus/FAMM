@@ -2,7 +2,7 @@ grammar FAMM;
 
 program: line* EOF;
 
-line: (expression | statement | ifBlock | whileBlock | forBlock) ';';
+line: (expression | statement | ifBlock | whileBlock | forBlock | functionDefinition) ';';
 
 statement: declaration | definition | functionCall;
 
@@ -10,26 +10,30 @@ ifBlock: 'if' '(' expression ')' block ('else' block)?;
 
 whileBlock: 'while' '(' expression ')' block;
 
-forBlock: 'for' '(' declaration '->' expression 'by' expression ')' block;
+forBlock: 'for' '(' declarationWithDefinition '->' expression 'by' expression ')' block;
 
 block: '{' line* '}';
 
-declaration: 'var' IDENTIFIER ':' type '=' expression;
-
+declaration: declarationWithoutDefinition | declarationWithDefinition;
+declarationWithDefinition: 'var' IDENTIFIER ':' type '=' expression;
+declarationWithoutDefinition: 'var' IDENTIFIER (',' IDENTIFIER)* ':' type;
 definition: IDENTIFIER assignmentOp expression;
 
 functionCall: IDENTIFIER '(' (expression (',' expression)*)? ')';
+functionDefinition: 'func' IDENTIFIER '(' parameterList? ')' ':' type block;
+parameterList: parameter (',' parameter)*;
+parameter: IDENTIFIER ':' type;
 
 expression
-    : constant
-    | IDENTIFIER
-    | functionCall
-    | '(' expression ')'
-    | '!' expression
-    | expression multOp expression
-    | expression addOp expression
-    | expression compareOp expression
-    | expression boolOp expression
+    : expression boolOp expression    # BoolExpression
+    | expression compareOp expression # CompareExpression
+    | expression addOp expression     # AddSubExpression
+    | expression multOp expression    # MulDivExpression
+    | '!' expression                  # NegationExpression
+    | '(' expression ')'              # ParenExpression
+    | constant                        # ConstantExpression
+    | functionCall                    # FunctionCallExpression
+    | IDENTIFIER                      # IdentifierExpression
     ;
 
 assignmentOp
@@ -60,3 +64,5 @@ BOOL_LIT: 'true' | 'false';
 NIH_LIT: 'nih';
 
 WS: [ \t\r\n]+ -> skip;
+
+COMMENT: '#' ~[\r\n]* -> skip;
