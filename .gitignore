@@ -33,3 +33,7 @@
 
 .idea
 /cmake-build-debug/
+/third_party/
+/dist
+.qodo
+/cmake-build-debug-wsl/
