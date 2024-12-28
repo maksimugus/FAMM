@@ -17,16 +17,17 @@ public:
     T__14 = 15, T__15 = 16, T__16 = 17, T__17 = 18, T__18 = 19, T__19 = 20, 
     T__20 = 21, T__21 = 22, T__22 = 23, T__23 = 24, T__24 = 25, T__25 = 26, 
     T__26 = 27, T__27 = 28, T__28 = 29, T__29 = 30, T__30 = 31, T__31 = 32, 
-    T__32 = 33, T__33 = 34, T__34 = 35, T__35 = 36, T__36 = 37, IDENTIFIER = 38, 
-    INTEGER_LIT = 39, FLOAT_LIT = 40, STRING_LIT = 41, BOOL_LIT = 42, NIH_LIT = 43, 
-    WS = 44
+    T__32 = 33, T__33 = 34, T__34 = 35, T__35 = 36, T__36 = 37, T__37 = 38, 
+    T__38 = 39, T__39 = 40, IDENTIFIER = 41, INTEGER_LIT = 42, FLOAT_LIT = 43, 
+    STRING_LIT = 44, BOOL_LIT = 45, NIH_LIT = 46, WS = 47
   };
 
   enum {
     RuleProgram = 0, RuleLine = 1, RuleStatement = 2, RuleIfBlock = 3, RuleWhileBlock = 4, 
-    RuleBlock = 5, RuleDeclaration = 6, RuleDefinition = 7, RuleFunctionCall = 8, 
-    RuleExpression = 9, RuleAssignmentOp = 10, RuleMultOp = 11, RuleAddOp = 12, 
-    RuleCompareOp = 13, RuleBoolOp = 14, RuleType = 15, RuleConstant = 16
+    RuleForBlock = 5, RuleBlock = 6, RuleDeclaration = 7, RuleDefinition = 8, 
+    RuleFunctionCall = 9, RuleExpression = 10, RuleAssignmentOp = 11, RuleMultOp = 12, 
+    RuleAddOp = 13, RuleCompareOp = 14, RuleBoolOp = 15, RuleType = 16, 
+    RuleConstant = 17
   };
 
   explicit FAMMParser(antlr4::TokenStream *input);
@@ -51,6 +52,7 @@ public:
   class StatementContext;
   class IfBlockContext;
   class WhileBlockContext;
+  class ForBlockContext;
   class BlockContext;
   class DeclarationContext;
   class DefinitionContext;
@@ -83,9 +85,11 @@ public:
   public:
     LineContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
+    ExpressionContext *expression();
     StatementContext *statement();
     IfBlockContext *ifBlock();
     WhileBlockContext *whileBlock();
+    ForBlockContext *forBlock();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -137,6 +141,22 @@ public:
   };
 
   WhileBlockContext* whileBlock();
+
+  class  ForBlockContext : public antlr4::ParserRuleContext {
+  public:
+    ForBlockContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    DeclarationContext *declaration();
+    std::vector<ExpressionContext *> expression();
+    ExpressionContext* expression(size_t i);
+    BlockContext *block();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  ForBlockContext* forBlock();
 
   class  BlockContext : public antlr4::ParserRuleContext {
   public:

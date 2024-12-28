@@ -31,6 +31,9 @@ public:
   virtual void enterWhileBlock(FAMMParser::WhileBlockContext * /*ctx*/) override { }
   virtual void exitWhileBlock(FAMMParser::WhileBlockContext * /*ctx*/) override { }
 
+  virtual void enterForBlock(FAMMParser::ForBlockContext * /*ctx*/) override { }
+  virtual void exitForBlock(FAMMParser::ForBlockContext * /*ctx*/) override { }
+
   virtual void enterBlock(FAMMParser::BlockContext * /*ctx*/) override { }
   virtual void exitBlock(FAMMParser::BlockContext * /*ctx*/) override { }
 

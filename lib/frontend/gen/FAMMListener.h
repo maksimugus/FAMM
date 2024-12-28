@@ -29,6 +29,9 @@ public:
   virtual void enterWhileBlock(FAMMParser::WhileBlockContext *ctx) = 0;
   virtual void exitWhileBlock(FAMMParser::WhileBlockContext *ctx) = 0;
 
+  virtual void enterForBlock(FAMMParser::ForBlockContext *ctx) = 0;
+  virtual void exitForBlock(FAMMParser::ForBlockContext *ctx) = 0;
+
   virtual void enterBlock(FAMMParser::BlockContext *ctx) = 0;
   virtual void exitBlock(FAMMParser::BlockContext *ctx) = 0;
 

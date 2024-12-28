@@ -1,4 +1,5 @@
-
-for (var i: float = 100. -> 1., .000001) = {
-    i + .1;
+var i: float = 1;
+i;
+for (var i: float = 100. -> 1. by .000001) {
+    i;
 };
