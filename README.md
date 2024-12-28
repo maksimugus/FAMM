@@ -11,5 +11,11 @@ make
 
 To generate new lexer, parser, listener:
 ```shell
-make generate
+make gen
+```
+
+Setup wsl
+```bash
+sudo apt update && sudo apt upgrade
+sudo apt install build-essential cmake gdb
 ```

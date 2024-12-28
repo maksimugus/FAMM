@@ -8,7 +8,7 @@ DOCKER_IMAGE := antlr/antlr4
 GEN_DIR := ${CURDIR}/lib/frontend
 
 .PHONY: all
-all: docker-build generate
+all: docker-build gen
 
 .PHONY: clone-antlr
 clone-antlr:
@@ -20,8 +20,8 @@ docker-build: clone-antlr
 	@echo "Building Docker image $(DOCKER_IMAGE)..."
 	@cd $(ANTLR_DIR) && docker build -t $(DOCKER_IMAGE) --platform linux/amd64 -f docker/Dockerfile .
 
-.PHONY: generate
-generate:
+.PHONY: gen
+gen:
 	@echo "Generating Parser, Lexer, Listener in ${GEN_DIR}/gen"
 	@docker run --rm -v ${GEN_DIR}:/work antlr/antlr4 -Dlanguage=Cpp /work/grammars/FAMM.g4 -o /work/gen
 
