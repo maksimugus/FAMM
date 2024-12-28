@@ -40,14 +40,53 @@ public:
   virtual void enterDeclaration(FAMMParser::DeclarationContext * /*ctx*/) override { }
   virtual void exitDeclaration(FAMMParser::DeclarationContext * /*ctx*/) override { }
 
+  virtual void enterDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext * /*ctx*/) override { }
+  virtual void exitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext * /*ctx*/) override { }
+
+  virtual void enterDeclarationWithoutDefinition(FAMMParser::DeclarationWithoutDefinitionContext * /*ctx*/) override { }
+  virtual void exitDeclarationWithoutDefinition(FAMMParser::DeclarationWithoutDefinitionContext * /*ctx*/) override { }
+
   virtual void enterDefinition(FAMMParser::DefinitionContext * /*ctx*/) override { }
   virtual void exitDefinition(FAMMParser::DefinitionContext * /*ctx*/) override { }
 
   virtual void enterFunctionCall(FAMMParser::FunctionCallContext * /*ctx*/) override { }
   virtual void exitFunctionCall(FAMMParser::FunctionCallContext * /*ctx*/) override { }
 
-  virtual void enterExpression(FAMMParser::ExpressionContext * /*ctx*/) override { }
-  virtual void exitExpression(FAMMParser::ExpressionContext * /*ctx*/) override { }
+  virtual void enterFunctionDefinition(FAMMParser::FunctionDefinitionContext * /*ctx*/) override { }
+  virtual void exitFunctionDefinition(FAMMParser::FunctionDefinitionContext * /*ctx*/) override { }
+
+  virtual void enterParameterList(FAMMParser::ParameterListContext * /*ctx*/) override { }
+  virtual void exitParameterList(FAMMParser::ParameterListContext * /*ctx*/) override { }
+
+  virtual void enterParameter(FAMMParser::ParameterContext * /*ctx*/) override { }
+  virtual void exitParameter(FAMMParser::ParameterContext * /*ctx*/) override { }
+
+  virtual void enterAddSubExpression(FAMMParser::AddSubExpressionContext * /*ctx*/) override { }
+  virtual void exitAddSubExpression(FAMMParser::AddSubExpressionContext * /*ctx*/) override { }
+
+  virtual void enterConstantExpression(FAMMParser::ConstantExpressionContext * /*ctx*/) override { }
+  virtual void exitConstantExpression(FAMMParser::ConstantExpressionContext * /*ctx*/) override { }
+
+  virtual void enterParenExpression(FAMMParser::ParenExpressionContext * /*ctx*/) override { }
+  virtual void exitParenExpression(FAMMParser::ParenExpressionContext * /*ctx*/) override { }
+
+  virtual void enterCompareExpression(FAMMParser::CompareExpressionContext * /*ctx*/) override { }
+  virtual void exitCompareExpression(FAMMParser::CompareExpressionContext * /*ctx*/) override { }
+
+  virtual void enterNegationExpression(FAMMParser::NegationExpressionContext * /*ctx*/) override { }
+  virtual void exitNegationExpression(FAMMParser::NegationExpressionContext * /*ctx*/) override { }
+
+  virtual void enterFunctionCallExpression(FAMMParser::FunctionCallExpressionContext * /*ctx*/) override { }
+  virtual void exitFunctionCallExpression(FAMMParser::FunctionCallExpressionContext * /*ctx*/) override { }
+
+  virtual void enterIdentifierExpression(FAMMParser::IdentifierExpressionContext * /*ctx*/) override { }
+  virtual void exitIdentifierExpression(FAMMParser::IdentifierExpressionContext * /*ctx*/) override { }
+
+  virtual void enterBoolExpression(FAMMParser::BoolExpressionContext * /*ctx*/) override { }
+  virtual void exitBoolExpression(FAMMParser::BoolExpressionContext * /*ctx*/) override { }
+
+  virtual void enterMulDivExpression(FAMMParser::MulDivExpressionContext * /*ctx*/) override { }
+  virtual void exitMulDivExpression(FAMMParser::MulDivExpressionContext * /*ctx*/) override { }
 
   virtual void enterAssignmentOp(FAMMParser::AssignmentOpContext * /*ctx*/) override { }
   virtual void exitAssignmentOp(FAMMParser::AssignmentOpContext * /*ctx*/) override { }
