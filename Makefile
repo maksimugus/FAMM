@@ -25,3 +25,8 @@ gen:
 	@echo "Generating Parser, Lexer, Listener in ${GEN_DIR}/gen"
 	@docker run --rm -v ${GEN_DIR}:/work antlr/antlr4 -Dlanguage=Cpp /work/grammars/FAMM.g4 -o /work/gen
 
+
+#.PHONY: llvm #TODO
+#llvm:
+#	@echo "Installing llvm"
+#	@
