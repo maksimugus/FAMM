@@ -1,42 +1,44 @@
-#include <antlr4-runtime.h>
+#include "FAMMLexer.h"
+#include "FAMMParser.h"
+#include "Nothing.h"  // Make sure this is included
 
 #include <iostream>
+#include <fstream>
 #include <sstream>
-
-#include "FAMMBaseListener.h"
-#include "FAMMLexer.h"
-#include "FAMMListener.h"
-#include "FAMMParser.h"
+#include <antlr4-runtime.h>
 
 using namespace antlr4;
-using namespace std;
 
 int main(int argc, const char *argv[]) {
   if (argc < 2) {
-    cerr << "Usage: " << argv[0] << " <file.famm>" << endl;
+    std::cerr << "Usage: " << argv[0] << " <file.famm>" << std::endl;
     return 1;
   }
 
-  string filename = argv[1];
-  ifstream file(filename);
+  // Open the input file
+  std::ifstream file(argv[1]);
   if (!file.is_open()) {
-    cerr << "Error opening file: " << filename << endl;
+    std::cerr << "Error opening file: " << argv[1] << std::endl;
     return 1;
   }
 
-  stringstream buffer;
+  std::stringstream buffer;
   buffer << file.rdbuf();
-  string input_string = buffer.str();
-  file.close();
+  std::string input_string = buffer.str();
+
+  // Set up ANTLR input and lexer
   ANTLRInputStream input(input_string);
-
   FAMMLexer lexer(&input);
-
   CommonTokenStream tokens(&lexer);
-
   FAMMParser parser(&tokens);
+
+  // Parse the program
   tree::ParseTree *tree = parser.program();
-  cout << tree->toStringTree(&parser) << endl;
+  std::cout << "Parse tree: " << tree->toStringTree(&parser) << std::endl;
+
+  // Generate LLVM module using the backend
+  LLVMModuleGenerator llvmGenerator;
+  llvmGenerator.generateModule();
 
   return 0;
 }

@@ -11,10 +11,12 @@ include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
 # Собираем исходные файлы в backend/src
-file(GLOB_RECURSE BACKEND_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+#file(GLOB_RECURSE BACKEND_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
 # Создаем библиотеку backend
-add_library(backend STATIC ${BACKEND_SOURCES})
+add_library(backend STATIC
+        src/FAMMVisiter.cpp
+        src/FAMMVisiter.h)
 
 # Указываем компоненты LLVM, которые вам нужны
 set(LLVM_COMPONENTS
@@ -32,7 +34,8 @@ target_link_libraries(backend ${LLVM_LIBS})
 # Добавляем директории включения и определения компилятора
 target_include_directories(backend PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/logic
         ${LLVM_INCLUDE_DIRS}
 )
 target_compile_definitions(backend PUBLIC ${LLVM_DEFINITIONS})
+
+target_link_libraries(backend frontend)
