@@ -341,60 +341,6 @@ public:
     using antlr4::ParserRuleContext::copyFrom;
 
     virtual size_t getRuleIndex() const override;
-
-    // Пример методов для получения компонентов выражения
-    antlr4::tree::TerminalNode* constant() {
-      // Попробуйте получить один из возможных типов констант
-      if (auto node = getToken(FAMMParser::INTEGER_LIT, 0)) {
-          return node;
-      }
-      if (auto node = getToken(FAMMParser::FLOAT_LIT, 0)) {
-          return node;
-      }
-      if (auto node = getToken(FAMMParser::STRING_LIT, 0)) {
-          return node;
-      }
-      if (auto node = getToken(FAMMParser::BOOL_LIT, 0)) {
-          return node;
-      }
-      if (auto node = getToken(FAMMParser::NIH_LIT, 0)) {
-          return node;
-      }
-      return nullptr; // Если ни один из типов не найден
-  }
-
-    antlr4::tree::TerminalNode* variable() {
-        // Реализация для получения узла переменной
-        return getToken(FAMMParser::IDENTIFIER, 0);
-    }
-
-    antlr4::tree::TerminalNode* binaryOp() {
-    // Попробуйте получить один из возможных бинарных операторов
-    if (auto node = getToken(FAMMParser::PLUS, 0)) {
-        return node;
-    }
-    if (auto node = getToken(FAMMParser::MINUS, 0)) {
-        return node;
-    }
-    if (auto node = getToken(FAMMParser::MULT, 0)) {
-        return node;
-    }
-    if (auto node = getToken(FAMMParser::DIV, 0)) {
-        return node;
-    }
-    if (auto node = getToken(FAMMParser::FLOOR_DIV, 0)) {
-        return node;
-    }
-    if (auto node = getToken(FAMMParser::MOD, 0)) {
-        return node;
-    }
-    return nullptr; // Если ни один из операторов не найден
-}
-
-antlr4::tree::TerminalNode* functionCall() {
-    // Вызов функции определяется через идентификатор и скобки
-    return getToken(FAMMParser::IDENTIFIER, 0);
-}
 };
 
   class  AddSubExpressionContext : public ExpressionContext {

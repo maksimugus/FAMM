@@ -30,16 +30,18 @@ add_definitions(${LLVM_DEFINITIONS})
 
 # Создаем библиотеку backend
 add_library(backend STATIC
-        lib/backend/src/FAMMIRGenerator.cpp
-        lib/backend/src/FAMMIRGenerator.h
         lib/backend/src/Visitors/Visitor.cpp
-        lib/backend/src/Visitors/Visitor.h)
+        lib/backend/src/Visitors/Visitor.h
+)
 
 # Указываем компоненты LLVM, которые вам нужны
 set(LLVM_COMPONENTS
         Core
         Support
-        # Добавьте другие необходимые компоненты LLVM
+        IRReader
+        Analysis
+        ExecutionEngine
+        Target
 )
 
 # Преобразуем компоненты LLVM в имена библиотек

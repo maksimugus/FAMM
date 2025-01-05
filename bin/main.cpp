@@ -7,6 +7,7 @@
 #include "FAMMLexer.h"
 #include "FAMMListener.h"
 #include "FAMMParser.h"
+#include "lib/backend/src/Visitors/Visitor.h"
 
 using namespace antlr4;
 using namespace std;
@@ -36,7 +37,8 @@ int main(int argc, const char *argv[]) {
 
   FAMMParser parser(&tokens);
   tree::ParseTree *tree = parser.program();
-  cout << tree->toStringTree(&parser) << endl;
+  auto visitor = LLVMIRGenerator();
+  visitor.visit(tree);
 
   return 0;
 }
