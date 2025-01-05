@@ -298,18 +298,38 @@ public:
 
   ParameterContext* parameter();
 
-  class  ExpressionContext : public antlr4::ParserRuleContext {
-  public:
-    ExpressionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-   
+  class ExpressionContext : public antlr4::ParserRuleContext {
+public:
+    ExpressionContext(antlr4::ParserRuleContext *parent, size_t invokingState)
+        : antlr4::ParserRuleContext(parent, invokingState) {}
+
     ExpressionContext() = default;
     void copyFrom(ExpressionContext *context);
     using antlr4::ParserRuleContext::copyFrom;
 
     virtual size_t getRuleIndex() const override;
 
-   
-  };
+    // Пример методов для получения компонентов выражения
+    antlr4::tree::TerminalNode* constant() {
+        // Реализация для получения узла константы
+        return getToken(FAMMParser::T, 0);
+    }
+
+    antlr4::tree::TerminalNode* variable() {
+        // Реализация для получения узла переменной
+        return getToken(MyParser::VARIABLE, 0);
+    }
+
+    antlr4::tree::TerminalNode* binaryOp() {
+        // Реализация для получения узла бинарной операции
+        return getToken(MyParser::BINARY_OP, 0);
+    }
+
+    antlr4::tree::TerminalNode* functionCall() {
+        // Реализация для получения узла вызова функции
+        return getToken(MyParser::FUNCTION_CALL, 0);
+    }
+};
 
   class  AddSubExpressionContext : public ExpressionContext {
   public:
