@@ -1,41 +1,32 @@
-cmake_minimum_required(VERSION 3.2)
-
-# Поиск LLVM
 find_package(LLVM REQUIRED CONFIG)
 
-message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+if (NOT LLVM_FOUND)
+    message(FATAL_ERROR "LLVM not found. Please install LLVM or set the path correctly.")
+endif()
 
-# Добавляем определения и директории LLVM
-include_directories(${LLVM_INCLUDE_DIRS})
-add_definitions(${LLVM_DEFINITIONS})
+# Specify the LLVM components you need
+llvm_map_components_to_libnames(LLVM_LIBS Core)
 
-# Собираем исходные файлы в backend/src
-#file(GLOB_RECURSE BACKEND_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
-
-# Создаем библиотеку backend
-add_library(backend STATIC
-        src/FAMMVisiter.cpp
-        src/FAMMVisiter.h)
-
-# Указываем компоненты LLVM, которые вам нужны
-set(LLVM_COMPONENTS
-        Core
-        Support
-        # Добавьте другие необходимые компоненты LLVM
+# Specify the source files for the backend library
+set(SOURCE_FILES
+        src/Nothing.cpp
 )
 
-# Преобразуем компоненты LLVM в имена библиотек
-llvm_map_components_to_libnames(LLVM_LIBS ${LLVM_COMPONENTS})
+# Create the static backend library
+add_library(backend STATIC ${SOURCE_FILES})
 
-# Линкуем библиотеку backend с библиотеками LLVM
-target_link_libraries(backend ${LLVM_LIBS})
-
-# Добавляем директории включения и определения компилятора
+# Include LLVM headers
 target_include_directories(backend PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${LLVM_INCLUDE_DIRS}
 )
-target_compile_definitions(backend PUBLIC ${LLVM_DEFINITIONS})
+
+# Include LLVM definitions
+target_compile_definitions(backend PRIVATE ${LLVM_DEFINITIONS})
+
+# Link the backend library to the correct LLVM libraries
+target_link_libraries(backend PRIVATE
+        ${LLVM_LIBS}
+)
 
 target_link_libraries(backend frontend)

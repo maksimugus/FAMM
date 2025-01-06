@@ -1,38 +1,38 @@
 #include "FAMMLexer.h"
 #include "FAMMParser.h"
-#include "Nothing.h"  // Make sure this is included
+#include "Nothing.h"
 
 #include <iostream>
-#include <fstream>
 #include <sstream>
-#include <antlr4-runtime.h>
+
 
 using namespace antlr4;
+using namespace std;
 
 int main(int argc, const char *argv[]) {
   if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " <file.famm>" << std::endl;
+    cerr << "Usage: " << argv[0] << " <file.famm>" << endl;
     return 1;
   }
 
-  // Open the input file
-  std::ifstream file(argv[1]);
+  string filename = argv[1];
+  ifstream file(filename);
   if (!file.is_open()) {
-    std::cerr << "Error opening file: " << argv[1] << std::endl;
+    cerr << "Error opening file: " << filename << endl;
     return 1;
   }
 
-  std::stringstream buffer;
+  stringstream buffer;
   buffer << file.rdbuf();
-  std::string input_string = buffer.str();
-
-  // Set up ANTLR input and lexer
+  string input_string = buffer.str();
+  file.close();
   ANTLRInputStream input(input_string);
-  FAMMLexer lexer(&input);
-  CommonTokenStream tokens(&lexer);
-  FAMMParser parser(&tokens);
 
-  // Parse the program
+  FAMMLexer lexer(&input);
+
+  CommonTokenStream tokens(&lexer);
+
+  FAMMParser parser(&tokens);
   tree::ParseTree *tree = parser.program();
   std::cout << "Parse tree: " << tree->toStringTree(&parser) << std::endl;
 
