@@ -37,3 +37,5 @@
 /dist
 .qodo
 /cmake-build-debug-wsl/
+.vscode
+/build
