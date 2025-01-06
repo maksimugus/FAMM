@@ -1,5 +1,1 @@
-var i: float = 1;
-i;
-for (var i: float = 100. -> 1. by .000001) {
-    i;
-};
+var i: float = 1 - 3;
