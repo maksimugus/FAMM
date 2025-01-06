@@ -24,5 +24,11 @@ sudo apt install -y libedit-dev zlib1g-dev libzstd-dev libcurl4-openssl-dev
 ```bash
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
-./llvm.sh 18
+sudo ./llvm.sh 18
+```
+
+
+```bash
+sudo mv /usr/include/llvm-18/llvm/ /usr/include/
+
 ```
