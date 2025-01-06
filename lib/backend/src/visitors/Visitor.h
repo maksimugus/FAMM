@@ -74,25 +74,49 @@ public:
 
         throw std::runtime_error("Unknown constant type");
     }
+
+    llvm::Value* visitAddSubExpression(FAMMParser::AddSubExpressionContext* addSubCtx) {
+        llvm::Value* left = visitExpression(addSubCtx->expression(0));
+        llvm::Value* right = visitExpression(addSubCtx->expression(1));
+        if (addSubCtx->addOp()->PLUS()) {
+            return builder.CreateAdd(left, right, "addtmp");
+        }
+        
+        if (addSubCtx->addOp()->MINUS()) {
+            return builder.CreateSub(left, right, "subtmp");
+        }
+
+        throw RuntimeException("Invalid operation. Posible operations: + or -");
+    }
+
+    llvm::Value* visitMulDivExpression(FAMMParser::MulDivExpressionContext* mulDivCtx) {
+        llvm::Value* left = visitExpression(mulDivCtx->expression(0));
+        llvm::Value* right = visitExpression(mulDivCtx->expression(1));
+
+        if (mulDivCtx->multOp()->MULT()) {
+            return builder.CreateMul(left, right, "multmp");
+        }
+
+        if (mulDivCtx->multOp()->DIV()) {
+            return builder.CreateSDiv(left, right, "divtmp");
+        }
+
+        if (mulDivCtx->multOp()->MOD()) {
+            return builder.CreateSRem(left, right, "modtmp");
+        }
+
+        if (mulDivCtx->multOp()->FLOOR_DIV()) {
+            return nullptr; // TODO
+        }
+
+        throw RuntimeException("Invalid operation. Posible operations: + or -");
+    }
+
     llvm::Value* visitExpression(FAMMParser::ExpressionContext* expressionContext) {
         if (const auto addSubCtx = dynamic_cast<FAMMParser::AddSubExpressionContext*>(expressionContext)) {
-            llvm::Value* left = visitExpression(addSubCtx->expression(0));
-            llvm::Value* right = visitExpression(addSubCtx->expression(1));
-            if (addSubCtx->addOp()->PLUS()) {
-                return builder.CreateAdd(left, right, "addtmp");
-            } else if (addSubCtx->addOp()->MINUS()) {
-                return builder.CreateSub(left, right, "subtmp");
-            }
+            visitAddSubExpression(addSubCtx);
         } else if (const auto mulDivCtx = dynamic_cast<FAMMParser::MulDivExpressionContext*>(expressionContext)) {
-            llvm::Value* left = visitExpression(mulDivCtx->expression(0));
-            llvm::Value* right = visitExpression(mulDivCtx->expression(1));
-            if (mulDivCtx->multOp()->MULT()) {
-                return builder.CreateMul(left, right, "multmp");
-            } else if (mulDivCtx->multOp()->DIV()) {
-                return builder.CreateSDiv(left, right, "divtmp");
-            } else if (mulDivCtx->multOp()->MOD()) {
-                return builder.CreateSRem(left, right, "modtmp");
-            }
+            
         } else if (const auto constCtx = dynamic_cast<FAMMParser::ConstantExpressionContext*>(expressionContext)) {
             return visitConstant(constCtx->constant());
         } /*else if (auto parenCtx = dynamic_cast<FAMMParser::ParenExpressionContext*>(expressionContext)) {
@@ -116,6 +140,8 @@ public:
 
         throw std::runtime_error("Unknown expression type");
     }
+
+
     llvm::Type* getLLVMType(const std::string& typeStr) {
       if (typeStr == "int") {
         return llvm::Type::getInt32Ty(context);
@@ -165,7 +191,7 @@ public:
     std::any visitDeclaration(FAMMParser::DeclarationContext* node) {
         if (node->declarationWithDefinition()) {
             visitDeclarationWithDefinition(node->declarationWithDefinition());
-        }
+        } // without тоже надо бы
 
         return nullptr;
     }
