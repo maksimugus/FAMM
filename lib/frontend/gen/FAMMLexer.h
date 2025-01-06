@@ -12,15 +12,15 @@
 class  FAMMLexer : public antlr4::Lexer {
 public:
   enum {
-    T__0 = 1, T__1 = 2, T__2 = 3, T__3 = 4, T__4 = 5, T__5 = 6, T__6 = 7, 
-    T__7 = 8, T__8 = 9, T__9 = 10, T__10 = 11, T__11 = 12, T__12 = 13, T__13 = 14, 
-    T__14 = 15, T__15 = 16, T__16 = 17, T__17 = 18, T__18 = 19, T__19 = 20, 
-    T__20 = 21, T__21 = 22, T__22 = 23, T__23 = 24, T__24 = 25, T__25 = 26, 
-    T__26 = 27, T__27 = 28, T__28 = 29, T__29 = 30, T__30 = 31, T__31 = 32, 
-    T__32 = 33, T__33 = 34, T__34 = 35, T__35 = 36, T__36 = 37, T__37 = 38, 
-    T__38 = 39, T__39 = 40, T__40 = 41, IDENTIFIER = 42, INTEGER_LIT = 43, 
-    FLOAT_LIT = 44, STRING_LIT = 45, BOOL_LIT = 46, NIH_LIT = 47, WS = 48, 
-    COMMENT = 49
+    VAR = 1, FUNC = 2, IF = 3, ELSE = 4, WHILE = 5, FOR = 6, BY = 7, ARROW = 8, 
+    NOT = 9, ASSIGNMENT = 10, PLUS_ASSIGNMENT = 11, MINUS_ASSIGNMENT = 12, 
+    MULT_ASSIGNMENT = 13, DIV_ASSIGNMENT = 14, FLOOR_DIV_ASSIGNMENT = 15, 
+    MOD_ASSIGNMENT = 16, MULT = 17, DIV = 18, FLOOR_DIV = 19, MOD = 20, 
+    PLUS = 21, MINUS = 22, EQ = 23, NEQ = 24, GT = 25, LT = 26, GE = 27, 
+    LE = 28, AND = 29, OR = 30, LPAR = 31, RPAR = 32, LBRACE = 33, RBRACE = 34, 
+    SEMICOLON = 35, COLON = 36, COMMA = 37, INT = 38, FLOAT = 39, STRING = 40, 
+    BOOL = 41, INTEGER_LIT = 42, FLOAT_LIT = 43, STRING_LIT = 44, BOOL_LIT = 45, 
+    NIH_LIT = 46, TRUE = 47, FALSE = 48, IDENTIFIER = 49, WS = 50, COMMENT = 51
   };
 
   explicit FAMMLexer(antlr4::CharStream *input);

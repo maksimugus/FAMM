@@ -33,9 +33,10 @@
 
 .idea
 /cmake-build-debug/
-/third_party/
-/dist
-.qodo
 /cmake-build-debug-wsl/
 /cmake-build-debug-mingw/
+/third_party/
+/dist
 /build
+.qodo
+.vscode
