@@ -74,17 +74,23 @@ public:
   virtual void enterNegationExpression(FAMMParser::NegationExpressionContext *ctx) = 0;
   virtual void exitNegationExpression(FAMMParser::NegationExpressionContext *ctx) = 0;
 
+  virtual void enterArrayAccessExpression(FAMMParser::ArrayAccessExpressionContext *ctx) = 0;
+  virtual void exitArrayAccessExpression(FAMMParser::ArrayAccessExpressionContext *ctx) = 0;
+
   virtual void enterFunctionCallExpression(FAMMParser::FunctionCallExpressionContext *ctx) = 0;
   virtual void exitFunctionCallExpression(FAMMParser::FunctionCallExpressionContext *ctx) = 0;
 
   virtual void enterIdentifierExpression(FAMMParser::IdentifierExpressionContext *ctx) = 0;
   virtual void exitIdentifierExpression(FAMMParser::IdentifierExpressionContext *ctx) = 0;
 
-  virtual void enterBoolExpression(FAMMParser::BoolExpressionContext *ctx) = 0;
-  virtual void exitBoolExpression(FAMMParser::BoolExpressionContext *ctx) = 0;
+  virtual void enterNegativeExpression(FAMMParser::NegativeExpressionContext *ctx) = 0;
+  virtual void exitNegativeExpression(FAMMParser::NegativeExpressionContext *ctx) = 0;
 
   virtual void enterMulDivExpression(FAMMParser::MulDivExpressionContext *ctx) = 0;
   virtual void exitMulDivExpression(FAMMParser::MulDivExpressionContext *ctx) = 0;
+
+  virtual void enterBoolExpression(FAMMParser::BoolExpressionContext *ctx) = 0;
+  virtual void exitBoolExpression(FAMMParser::BoolExpressionContext *ctx) = 0;
 
   virtual void enterAssignmentOp(FAMMParser::AssignmentOpContext *ctx) = 0;
   virtual void exitAssignmentOp(FAMMParser::AssignmentOpContext *ctx) = 0;
@@ -104,8 +110,17 @@ public:
   virtual void enterType(FAMMParser::TypeContext *ctx) = 0;
   virtual void exitType(FAMMParser::TypeContext *ctx) = 0;
 
+  virtual void enterArrayType(FAMMParser::ArrayTypeContext *ctx) = 0;
+  virtual void exitArrayType(FAMMParser::ArrayTypeContext *ctx) = 0;
+
+  virtual void enterBaseType(FAMMParser::BaseTypeContext *ctx) = 0;
+  virtual void exitBaseType(FAMMParser::BaseTypeContext *ctx) = 0;
+
   virtual void enterConstant(FAMMParser::ConstantContext *ctx) = 0;
   virtual void exitConstant(FAMMParser::ConstantContext *ctx) = 0;
+
+  virtual void enterArrayLiteral(FAMMParser::ArrayLiteralContext *ctx) = 0;
+  virtual void exitArrayLiteral(FAMMParser::ArrayLiteralContext *ctx) = 0;
 
 
 };

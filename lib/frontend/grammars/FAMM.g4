@@ -15,9 +15,9 @@ forBlock: FOR LPAR declarationWithDefinition ARROW expression BY expression RPAR
 block: LBRACE line* RBRACE;
 
 declaration: declarationWithoutDefinition | declarationWithDefinition;
-declarationWithDefinition: VAR IDENTIFIER COLON type ASSIGNMENT expression;
-declarationWithoutDefinition: VAR IDENTIFIER (COMMA IDENTIFIER)* COLON type;
-definition: IDENTIFIER assignmentOp expression;
+declarationWithDefinition: VAR IDENTIFIER COLON type ASSIGNMENT expression; // var i: int = 2;
+declarationWithoutDefinition: VAR IDENTIFIER (COMMA IDENTIFIER)* COLON type; // var i: int;
+definition: IDENTIFIER assignmentOp expression; // a += 3, a = 3
 
 functionCall: IDENTIFIER LPAR (expression (COMMA expression)*)? RPAR;
 functionDefinition: FUNC IDENTIFIER LPAR parameterList? RPAR COLON type block;
@@ -25,25 +25,27 @@ parameterList: parameter (COMMA parameter)*;
 parameter: IDENTIFIER COLON type;
 
 expression
-    : expression boolOp expression    # BoolExpression
-    | expression compareOp expression # CompareExpression
-    | expression addOp expression     # AddSubExpression
-    | expression multOp expression    # MulDivExpression
-    | NOT expression                  # NegationExpression
-    | LPAR expression RPAR            # ParenExpression
-    | constant                        # ConstantExpression
-    | functionCall                    # FunctionCallExpression
-    | IDENTIFIER                      # IdentifierExpression
+    : constant                                 # ConstantExpression // константа
+    | functionCall                             # FunctionCallExpression // вызов функции
+    | IDENTIFIER                               # IdentifierExpression // переменная
+    | expression LBRACKET expression RBRACKET  # ArrayAccessExpression // обращение к массиву
+    | LPAR expression RPAR                     # ParenExpression // в скобочках выражение
+    | NOT expression                           # NegationExpression // отрицание
+    | MINUS expression                         # NegativeExpression // унарный минус
+    | expression multOp expression             # MulDivExpression // умножение
+    | expression addOp expression              # AddSubExpression // сложение
+    | expression compareOp expression          # CompareExpression // сравнение
+    | expression boolOp expression             # BoolExpression // булевы операции
     ;
 
-assignmentOp
+assignmentOp // =, += и подобные
     : ASSIGNMENT
-    | PLUS_ASSIGNMENT
-    | MINUS_ASSIGNMENT
     | MULT_ASSIGNMENT
     | DIV_ASSIGNMENT
     | FLOOR_DIV_ASSIGNMENT
     | MOD_ASSIGNMENT
+    | PLUS_ASSIGNMENT
+    | MINUS_ASSIGNMENT
     ;
 
 multOp: MULT | DIV | FLOOR_DIV | MOD;
@@ -51,9 +53,29 @@ addOp: PLUS | MINUS;
 compareOp: EQ | NEQ | GT | LT | GE | LE;
 boolOp: AND | OR;
 
-type: INT | FLOAT | STRING | BOOL;
+type : baseType | arrayType;
 
-constant: INTEGER_LIT | FLOAT_LIT | STRING_LIT | BOOL_LIT | NIH_LIT;
+arrayType : LBRACKET type RBRACKET;
+
+baseType
+    : INT
+    | FLOAT
+    | STRING
+    | BOOL
+    ;
+
+constant
+    : INTEGER_LIT
+    | FLOAT_LIT
+    | STRING_LIT
+    | BOOL_LIT
+    | NIH_LIT
+    | arrayLiteral
+    ;
+
+arrayLiteral
+    : LBRACKET (expression (COMMA expression)*)? RBRACKET
+    ;
 
 VAR: 'var';
 FUNC: 'func';
@@ -93,6 +115,8 @@ RBRACE: '}';
 SEMICOLON: ';';
 COLON: ':';
 COMMA: ',';
+LBRACKET: '[';
+RBRACKET: ']';
 
 INT: 'int';
 FLOAT: 'float';
@@ -101,7 +125,7 @@ BOOL: 'bool';
 
 INTEGER_LIT: [0-9]+;
 FLOAT_LIT: [0-9]+ '.' [0-9]* | '.' [0-9]+;
-STRING_LIT: '"' ( ~["\\\r\n] | '\\' . )* '"';
+STRING_LIT: '"' ( ~["\\] | '\\' . )* '"';
 BOOL_LIT: TRUE | FALSE;
 NIH_LIT: 'nih';
 

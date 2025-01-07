@@ -1,1 +1,1 @@
-var i: float = 1 - 3;
+var i: int = 1. + 2;

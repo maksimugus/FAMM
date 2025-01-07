@@ -1,18 +1,16 @@
-#include <antlr4-runtime.h>
-
-#include <iostream>
-#include <sstream>
-
 #include "FAMMBaseListener.h"
 #include "FAMMLexer.h"
 #include "FAMMListener.h"
 #include "FAMMParser.h"
 #include "lib/backend/src/Visitors/Visitor.h"
+#include <antlr4-runtime.h>
+#include <iostream>
+#include <sstream>
 
 using namespace antlr4;
 using namespace std;
 
-int main(int argc, const char *argv[]) {
+int main(int argc, const char* argv[]) {
     if (argc < 2) {
         cerr << "Usage: " << argv[0] << " <file.famm>" << endl;
         return 1;
@@ -36,7 +34,10 @@ int main(int argc, const char *argv[]) {
     CommonTokenStream tokens(&lexer);
 
     FAMMParser parser(&tokens);
-    tree::ParseTree *tree = parser.program();
+    tree::ParseTree* tree = parser.program();
+
+
+
     auto visitor = LLVMIRGenerator();
     visitor.visit(tree);
 

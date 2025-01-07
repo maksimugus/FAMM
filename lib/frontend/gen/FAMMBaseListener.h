@@ -76,17 +76,23 @@ public:
   virtual void enterNegationExpression(FAMMParser::NegationExpressionContext * /*ctx*/) override { }
   virtual void exitNegationExpression(FAMMParser::NegationExpressionContext * /*ctx*/) override { }
 
+  virtual void enterArrayAccessExpression(FAMMParser::ArrayAccessExpressionContext * /*ctx*/) override { }
+  virtual void exitArrayAccessExpression(FAMMParser::ArrayAccessExpressionContext * /*ctx*/) override { }
+
   virtual void enterFunctionCallExpression(FAMMParser::FunctionCallExpressionContext * /*ctx*/) override { }
   virtual void exitFunctionCallExpression(FAMMParser::FunctionCallExpressionContext * /*ctx*/) override { }
 
   virtual void enterIdentifierExpression(FAMMParser::IdentifierExpressionContext * /*ctx*/) override { }
   virtual void exitIdentifierExpression(FAMMParser::IdentifierExpressionContext * /*ctx*/) override { }
 
-  virtual void enterBoolExpression(FAMMParser::BoolExpressionContext * /*ctx*/) override { }
-  virtual void exitBoolExpression(FAMMParser::BoolExpressionContext * /*ctx*/) override { }
+  virtual void enterNegativeExpression(FAMMParser::NegativeExpressionContext * /*ctx*/) override { }
+  virtual void exitNegativeExpression(FAMMParser::NegativeExpressionContext * /*ctx*/) override { }
 
   virtual void enterMulDivExpression(FAMMParser::MulDivExpressionContext * /*ctx*/) override { }
   virtual void exitMulDivExpression(FAMMParser::MulDivExpressionContext * /*ctx*/) override { }
+
+  virtual void enterBoolExpression(FAMMParser::BoolExpressionContext * /*ctx*/) override { }
+  virtual void exitBoolExpression(FAMMParser::BoolExpressionContext * /*ctx*/) override { }
 
   virtual void enterAssignmentOp(FAMMParser::AssignmentOpContext * /*ctx*/) override { }
   virtual void exitAssignmentOp(FAMMParser::AssignmentOpContext * /*ctx*/) override { }
@@ -106,8 +112,17 @@ public:
   virtual void enterType(FAMMParser::TypeContext * /*ctx*/) override { }
   virtual void exitType(FAMMParser::TypeContext * /*ctx*/) override { }
 
+  virtual void enterArrayType(FAMMParser::ArrayTypeContext * /*ctx*/) override { }
+  virtual void exitArrayType(FAMMParser::ArrayTypeContext * /*ctx*/) override { }
+
+  virtual void enterBaseType(FAMMParser::BaseTypeContext * /*ctx*/) override { }
+  virtual void exitBaseType(FAMMParser::BaseTypeContext * /*ctx*/) override { }
+
   virtual void enterConstant(FAMMParser::ConstantContext * /*ctx*/) override { }
   virtual void exitConstant(FAMMParser::ConstantContext * /*ctx*/) override { }
+
+  virtual void enterArrayLiteral(FAMMParser::ArrayLiteralContext * /*ctx*/) override { }
+  virtual void exitArrayLiteral(FAMMParser::ArrayLiteralContext * /*ctx*/) override { }
 
 
   virtual void enterEveryRule(antlr4::ParserRuleContext * /*ctx*/) override { }
