@@ -47,6 +47,7 @@ public:
     std::any visitDeclaration(FAMMParser::DeclarationContext* node);
     std::any visitStatement(FAMMParser::StatementContext* node);
     std::any visitFunctionDefinition(FAMMParser::FunctionDefinitionContext* node);
+    std::any visitReturnStatement(FAMMParser::ReturnStatementContext* returnCtx);
     std::any visitLine(FAMMParser::LineContext* node);
 
 private:

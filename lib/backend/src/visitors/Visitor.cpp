@@ -407,6 +407,22 @@ std::any LLVMIRGenerator::visitDeclaration(FAMMParser::DeclarationContext* node)
     return nullptr;
 }
 
+std::any LLVMIRGenerator::visitReturnStatement(FAMMParser::ReturnStatementContext* returnCtx) {
+    llvm::Function* currentFunction = builder.GetInsertBlock()->getParent();
+    llvm::Type* returnType = currentFunction->getReturnType();
+
+    if (returnCtx->expression()) {
+        llvm::Value* returnValue = visitExpression(returnCtx->expression());
+        EnsureTypeEq(returnType, returnValue->getType());
+        return builder.CreateRet(returnValue);
+    } else {
+        if (!returnType->isVoidTy()) {
+            throw std::runtime_error("Function must return a value, but return statement is empty.");
+        }
+        return builder.CreateRetVoid();
+    }
+}
+
 std::any LLVMIRGenerator::visitStatement(FAMMParser::StatementContext* node) {
     if (node->declaration()) {
         // Обработка объявления
@@ -417,13 +433,53 @@ std::any LLVMIRGenerator::visitStatement(FAMMParser::StatementContext* node) {
     } */else if (node->functionCall()) {
         // Обработка вызова функции
         return visitFunctionCall(node->functionCall());
+    } else if (node->returnStatement()) {
+        // Обработка ретурна
+        return visitReturnStatement(node->returnStatement());
     }
     // Если ни одно из условий не выполнено, можно выбросить исключение или вернуть nullptr
     throw std::runtime_error("Unknown statement context");
 }
 
 std::any LLVMIRGenerator::visitFunctionDefinition(FAMMParser::FunctionDefinitionContext* node) {
-    return {};
+    std::string functionName = node->IDENTIFIER()->getText();
+    llvm::Type* returnType = getLLVMType(visitType(node->type()));
+
+    // Create a vector of parameter types
+    std::vector<llvm::Type*> paramTypes;
+    for (auto* parameter : node->parameterList()->parameter()) {
+        // Получаем тип параметра через visitType
+        llvm::Type* paramType = getLLVMType(visitType(parameter->type()));
+        paramTypes.push_back(paramType);
+    }
+
+    // Create the function
+    llvm::FunctionType* functionType = llvm::FunctionType::get(returnType, paramTypes, false);
+    llvm::Function* function = llvm::Function::Create(
+        functionType, llvm::Function::ExternalLinkage, functionName, &module);
+
+    // Create a new basic block to start insertion into
+    llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
+    builder.SetInsertPoint(basicBlock);
+
+    // Handle function parameters
+    unsigned idx = 0;
+    for (auto& arg : function->args()) {
+        arg.setName(node->parameterList()->parameter(idx)->getText());
+        llvm::AllocaInst* alloca = builder.CreateAlloca(arg.getType(), nullptr, arg.getName());
+        builder.CreateStore(&arg, alloca);
+        scopeStack.back().variables.insert({arg.getName().str(), alloca});
+
+        idx++;
+    }
+
+    // Visit the function body (block)
+    visit(node->block());
+
+    // Validate the generated code
+    llvm::verifyFunction(*function);
+
+    return function;
 }
 
 std::any LLVMIRGenerator::visitLine(FAMMParser::LineContext* node) {
@@ -432,20 +488,20 @@ std::any LLVMIRGenerator::visitLine(FAMMParser::LineContext* node) {
     } else if (node->functionDefinition()) {
         // Обработка определения функции
         return visitFunctionDefinition(node->functionDefinition());
-    } /*else if (node->expression()) {
-            return visitExpression(node->expression());
-        } else if (node->ifBlock()) {
-            return visitIfBlock(node->ifBlock());
-        } else if (node->whileBlock()) {
-            // Обработка блока while
-            return visitWhileBlock(node->whileBlock());
-        } else if (node->forBlock()) {
-            // Обработка блока for
-            return visitForBlock(node->forBlock());
-        } else if (node->SEMICOLON()) {
-            // Пустая строка или просто ';'
-            return nullptr;
-        }
+    } else if (node->expression()) {
+        return visitExpression(node->expression());
+    } /*else if (node->ifBlock()) {
+        return visitIfBlock(node->ifBlock());
+    } else if (node->whileBlock()) {
+        // Обработка блока while
+        return visitWhileBlock(node->whileBlock());
+    } else if (node->forBlock()) {
+        // Обработка блока for
+        return visitForBlock(node->forBlock());
+    } else if (node->SEMICOLON()) {
+        // Пустая строка или просто ';'
+        return nullptr;
+    }
     Если ни одно из условий не выполнено, можно выбросить исключение или вернуть nullptr */
     throw std::runtime_error("Unknown line context");
 }
