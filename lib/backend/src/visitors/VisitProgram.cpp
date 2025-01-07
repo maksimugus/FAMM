@@ -40,12 +40,21 @@ std::any LLVMIRGenerator::visitLine(FAMMParser::LineContext* node) {
     if (node->whileBlock()) {
         return visitWhileBlock(node->whileBlock());
     }
-    if (node->forBlock()) {
-        return visitForBlock(node->forBlock());
-    }
+    // if (node->forBlock()) {
+    //     return visitForBlock(node->forBlock());
+    // }
     if (node->SEMICOLON()) {
         return nullptr;
     }
 
     throw std::runtime_error("Unknown line context");
+}
+
+std::any LLVMIRGenerator::visitBlock(FAMMParser::BlockContext* block) {
+    enterScope();
+    for (const auto line : block->line()) {
+        visitLine(line);
+    }
+    exitScope();
+    return nullptr;
 }

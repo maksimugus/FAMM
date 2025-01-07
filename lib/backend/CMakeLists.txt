@@ -17,7 +17,7 @@ set(SOURCE_FILES
         src/visitors/VisitType.cpp
         src/visitors/VisitDeclarationDefinition.cpp
         src/visitors/VisitIfBlock.cpp
-        src/visitors/VisitWhileBlock.cpp
+        src/visitors/VisitLoopBlock.cpp
         src/visitors/VisitFunction.cpp
         src/visitors/VisitProgram.cpp)
 

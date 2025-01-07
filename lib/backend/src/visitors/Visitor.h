@@ -49,10 +49,12 @@ public:
     std::any visitStatement(FAMMParser::StatementContext* node);
     std::any visitFunctionDefinition(FAMMParser::FunctionDefinitionContext* node);
     std::any visitReturnStatement(FAMMParser::ReturnStatementContext* returnCtx);
+    std::any visitBlock(FAMMParser::BlockContext* block);
     std::any visitLine(FAMMParser::LineContext* node);
     llvm::Value* visitIfBlock(FAMMParser::IfBlockContext* ifBlockCtx);
-    llvm::Value* visitWhileBlock(FAMMParser::WhileBlockContext* ifBlockCtx);
+    std::any visitWhileBlock(FAMMParser::WhileBlockContext* ifBlockCtx);
     std::any visitDefinition(FAMMParser::DefinitionContext* node);
+    std::any visitForLoop(FAMMParser::ForBlockContext* forBlockCtx);
 private:
     llvm::LLVMContext context;
     llvm::IRBuilder<> builder;
