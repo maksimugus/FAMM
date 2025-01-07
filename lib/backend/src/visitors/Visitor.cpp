@@ -58,8 +58,8 @@ llvm::Value* LLVMIRGenerator::visitConstant(FAMMParser::ConstantContext* constan
         // Convert the boolean literal text to a boolean value
         bool boolValue = (constantContext->BOOL_LIT()->getText() == "true");
         return llvm::ConstantInt::get(llvm::Type::getInt1Ty(context), boolValue, false);
-    }
-
+    } // TODO: не хватает массива
+    llvm::ConstantArray
     throw std::runtime_error("Unknown constant type");
 }
 
@@ -240,9 +240,7 @@ llvm::Type* LLVMIRGenerator::getLLVMType(const std::string& typeStr) {
     } else if (typeStr == "float") {
         return llvm::Type::getFloatTy(context);
     } else if (typeStr == "string") {
-        // TODO НЕПОНЯТНО ЧТО ДЕЛАТЬ С УКАЗАТЕЛЕМ НА ЧАРИК
-        //  return llvm::Type::getInt8PtrTy(context);
-        return nullptr;
+        return llvm::PointerType::getInt8Ty(context);
     } else if (typeStr == "bool") {
         return llvm::Type::getInt1Ty(context); // Boolean as a 1-bit integer
     } else {
