@@ -1,4 +1,5 @@
 #include "Visitor.h"
+
 #include <stdexcept>
 
 
@@ -8,7 +9,7 @@ void LLVMIRGenerator::printIR() const {
     module.print(llvm::outs(), nullptr);
 }
 
-std::any LLVMIRGenerator::visit(tree::ParseTree *node) {
+std::any LLVMIRGenerator::visit(tree::ParseTree* node) {
     if (const auto program = dynamic_cast<FAMMParser::ProgramContext*>(node)) {
         return visitProgram(program);
     }
@@ -63,7 +64,7 @@ llvm::Value* LLVMIRGenerator::visitConstant(FAMMParser::ConstantContext* constan
 }
 
 llvm::Value* LLVMIRGenerator::visitAddSubExpression(FAMMParser::AddSubExpressionContext* addSubCtx) {
-    llvm::Value* left = visitExpression(addSubCtx->expression(0));
+    llvm::Value* left  = visitExpression(addSubCtx->expression(0));
     llvm::Value* right = visitExpression(addSubCtx->expression(1));
     if (addSubCtx->addOp()->PLUS()) {
         return builder.CreateAdd(left, right, "addtmp");
@@ -76,7 +77,7 @@ llvm::Value* LLVMIRGenerator::visitAddSubExpression(FAMMParser::AddSubExpression
 }
 
 llvm::Value* LLVMIRGenerator::visitMulDivExpression(FAMMParser::MulDivExpressionContext* mulDivCtx) {
-    llvm::Value* left = visitExpression(mulDivCtx->expression(0));
+    llvm::Value* left  = visitExpression(mulDivCtx->expression(0));
     llvm::Value* right = visitExpression(mulDivCtx->expression(1));
 
     if (mulDivCtx->multOp()->MULT()) {
@@ -98,7 +99,8 @@ llvm::Value* LLVMIRGenerator::visitMulDivExpression(FAMMParser::MulDivExpression
     throw RuntimeException("Invalid operation. Possible operations: + or -");
 }
 
-llvm::Value* LLVMIRGenerator::createIntComparison(FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right) {
+llvm::Value* LLVMIRGenerator::createIntComparison(
+    FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right) {
     if (compareCtx->compareOp()->EQ()) {
         return builder.CreateICmpEQ(left, right, "eqtmp");
     }
@@ -121,7 +123,8 @@ llvm::Value* LLVMIRGenerator::createIntComparison(FAMMParser::CompareExpressionC
     throw std::runtime_error("Invalid comparison operation for integers.");
 }
 
-llvm::Value* LLVMIRGenerator::createFloatComparison(FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right) {
+llvm::Value* LLVMIRGenerator::createFloatComparison(
+    FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right) {
     if (compareCtx->compareOp()->EQ()) {
         return builder.CreateFCmpUEQ(left, right, "feqtmp");
     }
@@ -144,7 +147,8 @@ llvm::Value* LLVMIRGenerator::createFloatComparison(FAMMParser::CompareExpressio
     throw std::runtime_error("Invalid comparison operation for floats.");
 }
 
-llvm::Value* LLVMIRGenerator::createBoolComparison(FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right) {
+llvm::Value* LLVMIRGenerator::createBoolComparison(
+    FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right) {
     if (compareCtx->compareOp()->EQ()) {
         return builder.CreateICmpEQ(left, right, "booleqtmp");
     }
@@ -156,10 +160,10 @@ llvm::Value* LLVMIRGenerator::createBoolComparison(FAMMParser::CompareExpression
 }
 
 llvm::Value* LLVMIRGenerator::visitCompareExpression(FAMMParser::CompareExpressionContext* compareCtx) {
-    llvm::Value* left = visitExpression(compareCtx->expression(0));
+    llvm::Value* left  = visitExpression(compareCtx->expression(0));
     llvm::Value* right = visitExpression(compareCtx->expression(1));
 
-    llvm::Type* leftType = left->getType();
+    llvm::Type* leftType  = left->getType();
     llvm::Type* rightType = right->getType();
 
     if (leftType != rightType) {
@@ -207,43 +211,65 @@ llvm::Value* LLVMIRGenerator::visitExpression(FAMMParser::ExpressionContext* exp
 }
 
 llvm::Type* LLVMIRGenerator::getLLVMType(const std::string& typeStr) {
+    if (typeStr.find("array") == 0) {
+        size_t start = typeStr.find('<') + 1;
+        size_t end = typeStr.find('>');
+        std::string elementType = typeStr.substr(start, end - start);
+        llvm::Type* elementLLVMType = getLLVMType(elementType);
+        return llvm::ArrayType::get(elementLLVMType, 0 /*arraySize*/); // TODO: НУЖНО ПРИДУМАТЬ КАК ДОБЫВАТЬ РАЗМЕР МАССИВА
+    }
+
     if (typeStr == "int") {
-    return llvm::Type::getInt32Ty(context);
+        return llvm::Type::getInt32Ty(context);
     } else if (typeStr == "float") {
-    return llvm::Type::getFloatTy(context);
+        return llvm::Type::getFloatTy(context);
     } else if (typeStr == "string") {
-    // чета не то я хз нет чара пиздец
-    return llvm::Type::getInt8Ty(context);
+        // TODO НЕПОНЯТНО ЧТО ДЕЛАТЬ С УКАЗАТЕЛЕМ НА ЧАРИК
+        //  return llvm::Type::getInt8PtrTy(context);
+        return nullptr;
     } else if (typeStr == "bool") {
-    return llvm::Type::getInt1Ty(context); // Boolean as a 1-bit integer
+        return llvm::Type::getInt1Ty(context); // Boolean as a 1-bit integer
     } else {
-    throw std::runtime_error("Unknown type string: " + typeStr);
+        throw std::runtime_error("Unknown type string: " + typeStr);
     }
 }
 
 std::string LLVMIRGenerator::visitType(FAMMParser::TypeContext* typeContext) {
-    if (typeContext->INT()) {
-        return "int";
+    if (auto baseType = typeContext->baseType()) {
+        return visitBaseType(baseType);
     }
-    if (typeContext->FLOAT()) {
-        return "float";
+
+    if (auto arrayType = typeContext->arrayType()) {
+        return "array<" + visitBaseType(arrayType->type()->baseType()) + ">";
     }
-    if (typeContext->STRING()) {
-        return "string";
-    }
-    if (typeContext->BOOL()) {
-        return "bool";
-    }
+
     throw std::runtime_error("Unknown type in TypeContext");
 }
 
+std::string LLVMIRGenerator::visitBaseType(FAMMParser::BaseTypeContext* baseTypeContext) {
+    if (baseTypeContext->INT())
+        return "int";
+
+    if (baseTypeContext->FLOAT())
+        return "float";
+
+    if (baseTypeContext->STRING())
+        return "string";
+
+    if (baseTypeContext->BOOL())
+        return "bool";
+
+    throw std::runtime_error("Unknown type in BaseTypeContext");
+}
+
+
 void LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node) {
-    std::string variableName = node->IDENTIFIER()->getText();
-    auto typeContext = node->type();
-    std::string variableType = visitType(typeContext);
-    auto expressionContext = node->expression();
+    std::string variableName  = node->IDENTIFIER()->getText();
+    auto typeContext          = node->type();
+    std::string variableType  = visitType(typeContext);
+    auto expressionContext    = node->expression();
     llvm::Value* initialValue = visitExpression(expressionContext);
-    llvm::Type* llvmType = getLLVMType(variableType);
+    llvm::Type* llvmType      = getLLVMType(variableType);
 
     llvm::Function* currentFunction = builder.GetInsertBlock()->getParent();
     llvm::IRBuilder<> tempBuilder(&currentFunction->getEntryBlock(), currentFunction->getEntryBlock().begin());
@@ -277,7 +303,7 @@ std::any LLVMIRGenerator::visitStatement(FAMMParser::StatementContext* node) {
 
 std::any LLVMIRGenerator::visitLine(FAMMParser::LineContext* node) {
     if (node->statement()) {
-    return visitStatement(node->statement());
+        return visitStatement(node->statement());
     }
     //    } else if (node->expression()) {
     //        return visitExpression(node->expression());

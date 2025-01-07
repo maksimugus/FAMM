@@ -31,6 +31,7 @@ public:
 
     llvm::Type* getLLVMType(const std::string& typeStr);
     std::string visitType(FAMMParser::TypeContext* typeContext);
+    std::string visitBaseType(FAMMParser::BaseTypeContext* baseTypeContext);
 
     void visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node);
     std::any visitDeclaration(FAMMParser::DeclarationContext* node);
