@@ -211,29 +211,39 @@ llvm::Value* LLVMIRGenerator::visitExpression(FAMMParser::ExpressionContext* exp
 }
 
 llvm::Type* LLVMIRGenerator::getLLVMType(const std::string& typeStr) {
+    
     if (typeStr.find("array") == 0) {
-        const size_t start            = typeStr.find('<') + 1;
-        const size_t end              = typeStr.find('>');
-        const std::string elementType = typeStr.substr(start, end - start);
-        llvm::Type* elementLLVMType   = getLLVMType(elementType);
+        // это попец какой-то...
+        // const size_t start            = typeStr.find('[') + 1;
+        // const size_t end              = typeStr.find(']');
+        // const std::string elementType = typeStr.substr(start, end - start);
 
-        return llvm::ArrayType::get(
-            elementLLVMType, 0 /*arraySize*/); // TODO: НУЖНО ПРИДУМАТЬ КАК ДОБЫВАТЬ РАЗМЕР МАССИВА
-    }
+        // llvm::Type* elementLLVMType   = getLLVMType(elementType);
+        // const size_t arraySize = 
 
+        // TODO: НУЖНО ПРИДУМАТЬ КАК ДОБЫВАТЬ РАЗМЕР МАССИВА
+        // return llvm::ArrayType::get(elementLLVMType, 0 /*arraySize*/);
+    } 
+    
     if (typeStr == "int") {
         return llvm::Type::getInt32Ty(context);
-    } else if (typeStr == "float") {
+    }
+    
+    if (typeStr == "float") {
         return llvm::Type::getFloatTy(context);
-    } else if (typeStr == "string") {
+    }
+
+    if (typeStr == "string") {
         // TODO НЕПОНЯТНО ЧТО ДЕЛАТЬ С УКАЗАТЕЛЕМ НА ЧАРИК
         //  return llvm::Type::getInt8PtrTy(context);
         return nullptr;
-    } else if (typeStr == "bool") {
+    } 
+
+    if (typeStr == "bool") {
         return llvm::Type::getInt1Ty(context); // Boolean as a 1-bit integer
-    } else {
-        throw std::runtime_error("Unknown type string: " + typeStr);
-    }
+    } 
+    
+    throw std::runtime_error("Unknown type string: " + typeStr);
 }
 
 std::string LLVMIRGenerator::visitType(FAMMParser::TypeContext* typeContext) {
