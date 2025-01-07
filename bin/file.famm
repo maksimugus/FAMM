@@ -1,1 +1,7 @@
-var i: int = 1. + 2;
+var i: int = 1;
+var j: int = -5;
+func abas (a: int, b: int): int = {
+  var c: int = 1 + a;
+  return c + b;
+};
+var c: int = abas(i, j);

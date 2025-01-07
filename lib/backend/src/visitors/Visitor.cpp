@@ -247,10 +247,8 @@ llvm::Value* LLVMIRGenerator::visitNegationExpression(FAMMParser::NegationExpres
     throw std::runtime_error("Unsupported type of value in bool operation.");
 }
 
-llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCallExpressionContext* funcCallCtx) {
-    FAMMParser::FunctionCallContext* callCtx = funcCallCtx->functionCall();
-
-    std::string funcName = callCtx->IDENTIFIER()->getText();
+llvm::Value* LLVMIRGenerator::visitFunctionCall(FAMMParser::FunctionCallContext* node) {
+    std::string funcName = node->IDENTIFIER()->getText();
 
     llvm::Function* function = module.getFunction(funcName);
     if (!function) {
@@ -258,7 +256,7 @@ llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCa
     }
 
     std::vector<llvm::Value*> args;
-    for (auto exprCtx : callCtx->expression()) {
+    for (auto exprCtx : node->expression()) {
         llvm::Value* arg = visitExpression(exprCtx);
         if (!arg) {
             throw std::runtime_error("Error processing function argument " + funcName);
@@ -273,19 +271,33 @@ llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCa
     return builder.CreateCall(function, args, funcName + "_call");
 }
 
+llvm::AllocaInst* LLVMIRGenerator::findVariable(const std::string& name) {
+    for (auto it = scopeStack.rbegin(); it != scopeStack.rend(); ++it) {
+        auto& variables = it->variables;
+        if (variables.find(name) != variables.end()) {
+            return variables[name];
+        }
+    }
+    throw std::runtime_error("Variable '" + name + "' not found in any active scope.");
+}
+
 llvm::Value* LLVMIRGenerator::visitIdentifierExpression(FAMMParser::IdentifierExpressionContext* identCtx) {
     std::string varName = identCtx->IDENTIFIER()->getText();
 
-    for (auto it = scopeStack.rbegin(); it != scopeStack.rend(); ++it) {
-        auto& variables = it->variables;
-        auto varIter = variables.find(varName);
-        if (varIter != variables.end()) {
-            llvm::AllocaInst* alloca = varIter->second;
-            return builder.CreateLoad(alloca->getAllocatedType(), alloca, varName + "_load");
-        }
-    }
+    llvm::AllocaInst* alloca = findVariable(varName);
+    return builder.CreateLoad(alloca->getAllocatedType(), alloca, varName + "_load");
+}
 
-    throw std::runtime_error("Variable " + varName + " not found in the current scope.");
+llvm::Value* LLVMIRGenerator::visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx) {
+    llvm::Value* exprValue = visitExpression(negativeCtx->expression());
+
+    if (exprValue->getType()->isIntegerTy()) {
+        return builder.CreateNeg(exprValue, "negtmp");
+    } else if (exprValue->getType()->isFloatingPointTy()) {
+        return builder.CreateFNeg(exprValue, "negtmp");
+    } else {
+        throw std::runtime_error("Unsupported type for negation in visitNegativeExpression");
+    }
 }
 
 llvm::Value* LLVMIRGenerator::visitExpression(FAMMParser::ExpressionContext* expressionContext) {
@@ -304,9 +316,11 @@ llvm::Value* LLVMIRGenerator::visitExpression(FAMMParser::ExpressionContext* exp
     } else if (auto negationCtx = dynamic_cast<FAMMParser::NegationExpressionContext*>(expressionContext)) {
         return visitNegationExpression(negationCtx);
     } else if (auto funcCallCtx = dynamic_cast<FAMMParser::FunctionCallExpressionContext*>(expressionContext)) {
-        return visitFunctionCallExpression(funcCallCtx);
+        return visitFunctionCall(funcCallCtx->functionCall());
     } else if (auto identCtx = dynamic_cast<FAMMParser::IdentifierExpressionContext*>(expressionContext)) {
         return visitIdentifierExpression(identCtx);
+    } else if (auto negativeCtx = dynamic_cast<FAMMParser::NegativeExpressionContext*>(expressionContext)) {
+        return visitNegativeExpression(negativeCtx);
     }
 
     throw std::runtime_error("Unknown expression type");
@@ -400,35 +414,38 @@ std::any LLVMIRGenerator::visitStatement(FAMMParser::StatementContext* node) {
     } /*else if (node->definition()) {
         // Обработка определения
         return visitDefinition(node->definition());
-    } else if (node->functionCall()) {
+    } */else if (node->functionCall()) {
         // Обработка вызова функции
         return visitFunctionCall(node->functionCall());
-    }*/
+    }
     // Если ни одно из условий не выполнено, можно выбросить исключение или вернуть nullptr
     throw std::runtime_error("Unknown statement context");
+}
+
+std::any LLVMIRGenerator::visitFunctionDefinition(FAMMParser::FunctionDefinitionContext* node) {
+    return {};
 }
 
 std::any LLVMIRGenerator::visitLine(FAMMParser::LineContext* node) {
     if (node->statement()) {
         return visitStatement(node->statement());
-    }
-    //    } else if (node->expression()) {
-    //        return visitExpression(node->expression());
-    //    } else if (node->ifBlock()) {
-    //        return visitIfBlock(node->ifBlock());
-    //    } else if (node->whileBlock()) {
-    //        // Обработка блока while
-    //        return visitWhileBlock(node->whileBlock());
-    //    } else if (node->forBlock()) {
-    //        // Обработка блока for
-    //        return visitForBlock(node->forBlock());
-    //    } else if (node->functionDefinition()) {
-    //        // Обработка определения функции
-    //        return visitFunctionDefinition(node->functionDefinition());
-    //    } else if (node->SEMICOLON()) {
-    //        // Пустая строка или просто ';'
-    //        return nullptr;
-    //    }
-    // Если ни одно из условий не выполнено, можно выбросить исключение или вернуть nullptr
+    } else if (node->functionDefinition()) {
+        // Обработка определения функции
+        return visitFunctionDefinition(node->functionDefinition());
+    } /*else if (node->expression()) {
+            return visitExpression(node->expression());
+        } else if (node->ifBlock()) {
+            return visitIfBlock(node->ifBlock());
+        } else if (node->whileBlock()) {
+            // Обработка блока while
+            return visitWhileBlock(node->whileBlock());
+        } else if (node->forBlock()) {
+            // Обработка блока for
+            return visitForBlock(node->forBlock());
+        } else if (node->SEMICOLON()) {
+            // Пустая строка или просто ';'
+            return nullptr;
+        }
+    Если ни одно из условий не выполнено, можно выбросить исключение или вернуть nullptr */
     throw std::runtime_error("Unknown line context");
 }

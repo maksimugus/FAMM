@@ -33,8 +33,10 @@ public:
     llvm::Value* visitCompareExpression(FAMMParser::CompareExpressionContext* compareCtx);
     llvm::Value* visitBoolExpression(FAMMParser::BoolExpressionContext* boolCtx);
     llvm::Value* visitNegationExpression(FAMMParser::NegationExpressionContext* negationCtx);
-    llvm::Value* visitFunctionCallExpression(FAMMParser::FunctionCallExpressionContext* funcCallCtx);
+    llvm::Value* visitFunctionCall(FAMMParser::FunctionCallContext* node);
+    llvm::AllocaInst* findVariable(const std::string& name);
     llvm::Value* visitIdentifierExpression(FAMMParser::IdentifierExpressionContext* identCtx);
+    llvm::Value* visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx);
     llvm::Value* visitExpression(FAMMParser::ExpressionContext* expressionContext);
 
     llvm::Type* getLLVMType(const std::string& typeStr);
@@ -44,6 +46,7 @@ public:
     void visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node);
     std::any visitDeclaration(FAMMParser::DeclarationContext* node);
     std::any visitStatement(FAMMParser::StatementContext* node);
+    std::any visitFunctionDefinition(FAMMParser::FunctionDefinitionContext* node);
     std::any visitLine(FAMMParser::LineContext* node);
 
 private:
