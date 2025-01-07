@@ -101,6 +101,7 @@ llvm::Value* LLVMIRGenerator::visitAddSubExpression(FAMMParser::AddSubExpression
 
     EnsureTypeEq(left->getType(), right->getType());
 
+    // TODO че делать со стрингами ёлы палы
     if (addSubCtx->addOp()->PLUS()) {
         return builder.CreateAdd(left, right, "addtmp");
     }
@@ -116,7 +117,7 @@ llvm::Value* LLVMIRGenerator::visitMulDivExpression(FAMMParser::MulDivExpression
     llvm::Value* right = visitExpression(mulDivCtx->expression(1));
 
     EnsureTypeEq(left->getType(), right->getType());
-
+    // TODO че делать со стрингами ёлы палы
     if (mulDivCtx->multOp()->MULT()) {
         return builder.CreateMul(left, right, "multmp");
     }
