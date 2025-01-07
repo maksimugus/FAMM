@@ -86,7 +86,7 @@ std::string getTypeName(llvm::Type* type) {
     return rso.str();
 }
 
-void EnsureTypeEq(llvm::Type* firstType, llvm::Type* secondType) {
+void LLVMIRGenerator::EnsureTypeEq(llvm::Type* firstType, llvm::Type* secondType) {
     if (firstType != secondType) {
         std::string firstTypeName = getTypeName(firstType);
         std::string secondTypeName = getTypeName(secondType);
@@ -376,7 +376,17 @@ std::string LLVMIRGenerator::visitBaseType(FAMMParser::BaseTypeContext* baseType
     throw std::runtime_error("Unknown type in BaseTypeContext");
 }
 
-void LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node) {
+std::any LLVMIRGenerator::visitDeclaration(FAMMParser::DeclarationContext* node) {
+    if (node->declarationWithDefinition()) {
+        return visitDeclarationWithDefinition(node->declarationWithDefinition());
+    }
+//    if (node->declarationWithoutDefinition()) {
+//        return visitDeclarationWithoutDefinition(node->declarationWithoutDefinition());
+//    }
+    return nullptr;
+}
+
+std::any LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node) {
     std::string variableName  = node->IDENTIFIER()->getText();
     auto typeContext          = node->type();
     std::string variableType  = visitType(typeContext);
@@ -397,12 +407,22 @@ void LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::DeclarationWith
     }
 
     builder.CreateStore(initialValue, alloca);
+    return nullptr;
 }
 
-std::any LLVMIRGenerator::visitDeclaration(FAMMParser::DeclarationContext* node) {
-    if (node->declarationWithDefinition()) {
-        visitDeclarationWithDefinition(node->declarationWithDefinition());
-    } // without тоже надо бы
+std::any LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* node) {
+    std::string variableName = node->IDENTIFIER()->getText();
+
+    // Пытаемся найти переменную в скопах
+    llvm::AllocaInst* alloca = findVariable(variableName);
+
+    llvm::Value* newValue = visitExpression(node->expression());
+
+    // Убедимся что с типом всё ок
+    llvm::Type* variableType = alloca->getAllocatedType();
+    EnsureTypeEq(variableType, newValue->getType());
+
+    builder.CreateStore(newValue, alloca);
 
     return nullptr;
 }
@@ -425,19 +445,18 @@ std::any LLVMIRGenerator::visitReturnStatement(FAMMParser::ReturnStatementContex
 
 std::any LLVMIRGenerator::visitStatement(FAMMParser::StatementContext* node) {
     if (node->declaration()) {
-        // Обработка объявления
         return visitDeclaration(node->declaration());
-    } /*else if (node->definition()) {
-        // Обработка определения
+    }
+    if (node->definition()) {
         return visitDefinition(node->definition());
-    } */else if (node->functionCall()) {
-        // Обработка вызова функции
+    }
+    if (node->functionCall()) {
         return visitFunctionCall(node->functionCall());
     } else if (node->returnStatement()) {
         // Обработка ретурна
         return visitReturnStatement(node->returnStatement());
     }
-    // Если ни одно из условий не выполнено, можно выбросить исключение или вернуть nullptr
+
     throw std::runtime_error("Unknown statement context");
 }
 
@@ -510,14 +529,50 @@ llvm::Value* LLVMIRGenerator::visitIfBlock(FAMMParser::IfBlockContext* ifBlockCt
     builder.SetInsertPoint(elseBlock);
     enterScope(); // Входим в новую область видимости
     if (ifBlockCtx->ELSE()) {
-        for (auto block : ifBlockCtx->block(1)->line()) {
-            visitLine(block);
+        for (auto line : ifBlockCtx->block(1)->line()) {
+            visitLine(line);
         }
     }
     exitScope(); // Выходим из области видимости
     builder.CreateBr(mergeBlock);
 
     builder.SetInsertPoint(mergeBlock);
+
+    return nullptr;
+}
+
+llvm::Value* LLVMIRGenerator::visitWhileBlock(FAMMParser::WhileBlockContext* whileBlockCtx) {
+    llvm::Function* currentFunction = builder.GetInsertBlock()->getParent();
+
+    // Создаем базовые блоки для условия, тела цикла и выхода из цикла
+    llvm::BasicBlock* conditionBlock = llvm::BasicBlock::Create(context, "whilecond", currentFunction);
+    llvm::BasicBlock* loopBlock = llvm::BasicBlock::Create(context, "whileloop", currentFunction);
+    llvm::BasicBlock* afterLoopBlock = llvm::BasicBlock::Create(context, "afterwhile", currentFunction);
+
+    // Переход к блоку условия
+    builder.CreateBr(conditionBlock);
+    builder.SetInsertPoint(conditionBlock);
+
+    // Оцениваем условие цикла
+    llvm::Value* condition = visitExpression(whileBlockCtx->expression());
+    if (!condition->getType()->isIntegerTy(1)) {
+        throw std::runtime_error("Condition in while statement must be a boolean expression.");
+    }
+
+    // Создаем условный переход
+    builder.CreateCondBr(condition, loopBlock, afterLoopBlock);
+
+    // Генерируем тело цикла
+    builder.SetInsertPoint(loopBlock);
+    enterScope(); // Входим в новую область видимости
+    for (auto line : whileBlockCtx->block()->line()) {
+        visitLine(line);
+    }
+    exitScope(); // Выходим из области видимости
+    builder.CreateBr(conditionBlock);
+
+    // Устанавливаем точку вставки в блок после цикла
+    builder.SetInsertPoint(afterLoopBlock);
 
     return nullptr;
 }
@@ -534,15 +589,15 @@ std::any LLVMIRGenerator::visitLine(FAMMParser::LineContext* node) {
     }
     if (node->ifBlock()) {
         return visitIfBlock(node->ifBlock());
-//    } else if (node->whileBlock()) {
-//        // Обработка блока while
+    }
+//    if (node->whileBlock()) {
 //        return visitWhileBlock(node->whileBlock());
 //    } else if (node->forBlock()) {
-//        // Обработка блока for
+//         Обработка блока for
 //        return visitForBlock(node->forBlock());
-    } else if (node->SEMICOLON()) {
-        return nullptr;
-    }
+//    } else if (node->SEMICOLON()) {
+//        return nullptr;
+//    }
 
     throw std::runtime_error("Unknown line context");
 }

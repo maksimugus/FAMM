@@ -21,6 +21,7 @@ public:
 
     void enterScope();
     void exitScope();
+    void EnsureTypeEq(llvm::Type* firstType, llvm::Type* secondType);
 
     std::any visit(tree::ParseTree *node) override;
     std::any visitProgram(FAMMParser::ProgramContext* node);
@@ -43,13 +44,15 @@ public:
     std::string visitType(FAMMParser::TypeContext* typeContext);
     std::string visitBaseType(FAMMParser::BaseTypeContext* baseTypeContext);
 
-    void visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node);
+    std::any visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node);
     std::any visitDeclaration(FAMMParser::DeclarationContext* node);
     std::any visitStatement(FAMMParser::StatementContext* node);
     std::any visitFunctionDefinition(FAMMParser::FunctionDefinitionContext* node);
     std::any visitReturnStatement(FAMMParser::ReturnStatementContext* returnCtx);
     std::any visitLine(FAMMParser::LineContext* node);
     llvm::Value* visitIfBlock(FAMMParser::IfBlockContext* ifBlockCtx);
+    llvm::Value* visitWhileBlock(FAMMParser::WhileBlockContext* ifBlockCtx);
+    std::any visitDefinition(FAMMParser::DefinitionContext* node);
 private:
     llvm::LLVMContext context;
     llvm::IRBuilder<> builder;
