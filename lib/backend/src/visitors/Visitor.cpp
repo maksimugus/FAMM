@@ -183,6 +183,25 @@ llvm::Value* LLVMIRGenerator::visitCompareExpression(FAMMParser::CompareExpressi
     throw std::runtime_error("Unsupported type in comparison operation.");
 }
 
+llvm::Value* LLVMIRGenerator::visitBoolExpression(FAMMParser::BoolExpressionContext* boolCtx) {
+    llvm::Value* left = visitExpression(boolCtx->expression(0));
+    llvm::Value* right = visitExpression(boolCtx->expression(1));
+
+    if (boolCtx->boolOp()->AND()) {
+        return builder.CreateAnd(left, right, "andtmp");
+    }
+    if (boolCtx->boolOp()->OR()) {
+        return builder.CreateOr(left, right, "ortmp");
+    }
+
+    throw std::runtime_error("Unsupported type in bool operation.");
+}
+
+llvm::Value* LLVMIRGenerator::visitNegationExpression(FAMMParser::NegationExpressionContext* negationCtx) {
+    llvm::Value* value = visitExpression(negationCtx->expression());
+    return builder.CreateNot(value, "nottmp");
+}
+
 llvm::Value* LLVMIRGenerator::visitExpression(FAMMParser::ExpressionContext* expressionContext) {
     if (const auto addSubCtx = dynamic_cast<FAMMParser::AddSubExpressionContext*>(expressionContext)) {
         return visitAddSubExpression(addSubCtx);
@@ -194,14 +213,11 @@ llvm::Value* LLVMIRGenerator::visitExpression(FAMMParser::ExpressionContext* exp
         return visitExpression(parenCtx->expression());
     } else if (auto compareCtx = dynamic_cast<FAMMParser::CompareExpressionContext*>(expressionContext)) {
         return visitCompareExpression(compareCtx);
-    } /*else if (auto boolCtx = dynamic_cast<FAMMParser::BoolExpressionContext*>(expressionContext)) {
-        llvm::Value* left = visitExpression(boolCtx->expression(0));
-        llvm::Value* right = visitExpression(boolCtx->expression(1));
-        return visitBoolOp(boolCtx->boolOp(), left, right);
+    } else if (auto boolCtx = dynamic_cast<FAMMParser::BoolExpressionContext*>(expressionContext)) {
+        return visitBoolExpression(boolCtx);
     } else if (auto negationCtx = dynamic_cast<FAMMParser::NegationExpressionContext*>(expressionContext)) {
-        llvm::Value* value = visitExpression(negationCtx->expression());
-        return builder.CreateNot(value, "nottmp");
-    } else if (auto funcCallCtx = dynamic_cast<FAMMParser::FunctionCallExpressionContext*>(expressionContext)) {
+        return visitNegationExpression(negationCtx);
+    } /*else if (auto funcCallCtx = dynamic_cast<FAMMParser::FunctionCallExpressionContext*>(expressionContext)) {
         return visitFunctionCall(funcCallCtx->functionCall());
     } else if (auto identCtx = dynamic_cast<FAMMParser::IdentifierExpressionContext*>(expressionContext)) {
         return visitIdentifier(identCtx->IDENTIFIER());
