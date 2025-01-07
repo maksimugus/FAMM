@@ -58,8 +58,8 @@ llvm::Value* LLVMIRGenerator::visitConstant(FAMMParser::ConstantContext* constan
         // Convert the boolean literal text to a boolean value
         bool boolValue = (constantContext->BOOL_LIT()->getText() == "true");
         return llvm::ConstantInt::get(llvm::Type::getInt1Ty(context), boolValue, false);
-    }
-
+    } // TODO: не хватает массива
+    llvm::ConstantArray
     throw std::runtime_error("Unknown constant type");
 }
 
@@ -183,6 +183,25 @@ llvm::Value* LLVMIRGenerator::visitCompareExpression(FAMMParser::CompareExpressi
     throw std::runtime_error("Unsupported type in comparison operation.");
 }
 
+llvm::Value* LLVMIRGenerator::visitBoolExpression(FAMMParser::BoolExpressionContext* boolCtx) {
+    llvm::Value* left = visitExpression(boolCtx->expression(0));
+    llvm::Value* right = visitExpression(boolCtx->expression(1));
+
+    if (boolCtx->boolOp()->AND()) {
+        return builder.CreateAnd(left, right, "andtmp");
+    }
+    if (boolCtx->boolOp()->OR()) {
+        return builder.CreateOr(left, right, "ortmp");
+    }
+
+    throw std::runtime_error("Unsupported type in bool operation.");
+}
+
+llvm::Value* LLVMIRGenerator::visitNegationExpression(FAMMParser::NegationExpressionContext* negationCtx) {
+    llvm::Value* value = visitExpression(negationCtx->expression());
+    return builder.CreateNot(value, "nottmp");
+}
+
 llvm::Value* LLVMIRGenerator::visitExpression(FAMMParser::ExpressionContext* expressionContext) {
     if (const auto addSubCtx = dynamic_cast<FAMMParser::AddSubExpressionContext*>(expressionContext)) {
         return visitAddSubExpression(addSubCtx);
@@ -194,14 +213,11 @@ llvm::Value* LLVMIRGenerator::visitExpression(FAMMParser::ExpressionContext* exp
         return visitExpression(parenCtx->expression());
     } else if (auto compareCtx = dynamic_cast<FAMMParser::CompareExpressionContext*>(expressionContext)) {
         return visitCompareExpression(compareCtx);
-    } /*else if (auto boolCtx = dynamic_cast<FAMMParser::BoolExpressionContext*>(expressionContext)) {
-        llvm::Value* left = visitExpression(boolCtx->expression(0));
-        llvm::Value* right = visitExpression(boolCtx->expression(1));
-        return visitBoolOp(boolCtx->boolOp(), left, right);
+    } else if (auto boolCtx = dynamic_cast<FAMMParser::BoolExpressionContext*>(expressionContext)) {
+        return visitBoolExpression(boolCtx);
     } else if (auto negationCtx = dynamic_cast<FAMMParser::NegationExpressionContext*>(expressionContext)) {
-        llvm::Value* value = visitExpression(negationCtx->expression());
-        return builder.CreateNot(value, "nottmp");
-    } else if (auto funcCallCtx = dynamic_cast<FAMMParser::FunctionCallExpressionContext*>(expressionContext)) {
+        return visitNegationExpression(negationCtx);
+    } /*else if (auto funcCallCtx = dynamic_cast<FAMMParser::FunctionCallExpressionContext*>(expressionContext)) {
         return visitFunctionCall(funcCallCtx->functionCall());
     } else if (auto identCtx = dynamic_cast<FAMMParser::IdentifierExpressionContext*>(expressionContext)) {
         return visitIdentifier(identCtx->IDENTIFIER());
@@ -224,9 +240,7 @@ llvm::Type* LLVMIRGenerator::getLLVMType(const std::string& typeStr) {
     } else if (typeStr == "float") {
         return llvm::Type::getFloatTy(context);
     } else if (typeStr == "string") {
-        // TODO НЕПОНЯТНО ЧТО ДЕЛАТЬ С УКАЗАТЕЛЕМ НА ЧАРИК
-        //  return llvm::Type::getInt8PtrTy(context);
-        return nullptr;
+        return llvm::PointerType::getInt8Ty(context);
     } else if (typeStr == "bool") {
         return llvm::Type::getInt1Ty(context); // Boolean as a 1-bit integer
     } else {
@@ -262,6 +276,22 @@ std::string LLVMIRGenerator::visitBaseType(FAMMParser::BaseTypeContext* baseType
     throw std::runtime_error("Unknown type in BaseTypeContext");
 }
 
+std::string getTypeName(llvm::Type* type) {
+    std::string typeName;
+    llvm::raw_string_ostream rso(typeName);
+    type->print(rso);
+    return rso.str();
+}
+
+void EnsureTypeEq(llvm::Type* firstType, llvm::Type* secondType) {
+    if (firstType != secondType) {
+        std::string firstTypeName = getTypeName(firstType);
+        std::string secondTypeName = getTypeName(secondType);
+
+        throw std::runtime_error("Type mismatch: first value of type '" + firstTypeName +
+                                 "' cannot be compared or assigned to second value of type '" + secondTypeName + "'.");
+    }
+}
 
 void LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node) {
     std::string variableName  = node->IDENTIFIER()->getText();
@@ -270,6 +300,8 @@ void LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::DeclarationWith
     auto expressionContext    = node->expression();
     llvm::Value* initialValue = visitExpression(expressionContext);
     llvm::Type* llvmType      = getLLVMType(variableType);
+
+    EnsureTypeEq(llvmType, initialValue->getType());
 
     llvm::Function* currentFunction = builder.GetInsertBlock()->getParent();
     llvm::IRBuilder<> tempBuilder(&currentFunction->getEntryBlock(), currentFunction->getEntryBlock().begin());

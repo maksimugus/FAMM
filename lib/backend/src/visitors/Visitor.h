@@ -27,6 +27,8 @@ public:
     llvm::Value* createFloatComparison(FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
     llvm::Value* createBoolComparison(FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
     llvm::Value* visitCompareExpression(FAMMParser::CompareExpressionContext* compareCtx);
+    llvm::Value* visitBoolExpression(FAMMParser::BoolExpressionContext* boolCtx);
+    llvm::Value* visitNegationExpression(FAMMParser::NegationExpressionContext* negationCtx);
     llvm::Value* visitExpression(FAMMParser::ExpressionContext* expressionContext);
 
     llvm::Type* getLLVMType(const std::string& typeStr);
