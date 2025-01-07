@@ -36,12 +36,12 @@ int main(int argc, const char* argv[]) {
     FAMMParser parser(&tokens);
     tree::ParseTree* tree = parser.program();
 
+    cout << tree->toStringTree(&parser) << endl;
 
-
-    auto visitor = LLVMIRGenerator();
-    visitor.visit(tree);
-
-    visitor.printIR();
+    // auto visitor = LLVMIRGenerator();
+    // visitor.visit(tree);
+    //
+    // visitor.printIR();
 
 
     return 0;

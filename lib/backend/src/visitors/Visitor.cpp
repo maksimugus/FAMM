@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 
-LLVMIRGenerator::LLVMIRGenerator() : context(), builder(context), module("my_module", context) {}
+LLVMIRGenerator::LLVMIRGenerator() : builder(context), module("my_module", context) {}
 
 void LLVMIRGenerator::printIR() const {
     module.print(llvm::outs(), nullptr);
@@ -212,11 +212,13 @@ llvm::Value* LLVMIRGenerator::visitExpression(FAMMParser::ExpressionContext* exp
 
 llvm::Type* LLVMIRGenerator::getLLVMType(const std::string& typeStr) {
     if (typeStr.find("array") == 0) {
-        size_t start = typeStr.find('<') + 1;
-        size_t end = typeStr.find('>');
-        std::string elementType = typeStr.substr(start, end - start);
-        llvm::Type* elementLLVMType = getLLVMType(elementType);
-        return llvm::ArrayType::get(elementLLVMType, 0 /*arraySize*/); // TODO: НУЖНО ПРИДУМАТЬ КАК ДОБЫВАТЬ РАЗМЕР МАССИВА
+        const size_t start            = typeStr.find('<') + 1;
+        const size_t end              = typeStr.find('>');
+        const std::string elementType = typeStr.substr(start, end - start);
+        llvm::Type* elementLLVMType   = getLLVMType(elementType);
+
+        return llvm::ArrayType::get(
+            elementLLVMType, 0 /*arraySize*/); // TODO: НУЖНО ПРИДУМАТЬ КАК ДОБЫВАТЬ РАЗМЕР МАССИВА
     }
 
     if (typeStr == "int") {
@@ -247,17 +249,21 @@ std::string LLVMIRGenerator::visitType(FAMMParser::TypeContext* typeContext) {
 }
 
 std::string LLVMIRGenerator::visitBaseType(FAMMParser::BaseTypeContext* baseTypeContext) {
-    if (baseTypeContext->INT())
+    if (baseTypeContext->INT()) {
         return "int";
+    }
 
-    if (baseTypeContext->FLOAT())
+    if (baseTypeContext->FLOAT()) {
         return "float";
+    }
 
-    if (baseTypeContext->STRING())
+    if (baseTypeContext->STRING()) {
         return "string";
+    }
 
-    if (baseTypeContext->BOOL())
+    if (baseTypeContext->BOOL()) {
         return "bool";
+    }
 
     throw std::runtime_error("Unknown type in BaseTypeContext");
 }
