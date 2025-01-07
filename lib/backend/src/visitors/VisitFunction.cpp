@@ -33,7 +33,7 @@ std::any LLVMIRGenerator::visitFunctionDefinition(FAMMParser::FunctionDefinition
     }
 
     // Visit the function body (block)
-    visit(node->block());
+    visit(node->block()); // TODO
 
     // Validate the generated code
     llvm::verifyFunction(*function);
