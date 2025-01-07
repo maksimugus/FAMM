@@ -6,6 +6,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Verifier.h"
+#include "Scope.h"
 
 #include "antlr4-runtime.h"
 #include "FAMMParser.h"
@@ -18,6 +19,9 @@ public:
 
     void printIR() const;
 
+    void enterScope();
+    void exitScope();
+
     std::any visit(tree::ParseTree *node) override;
     std::any visitProgram(FAMMParser::ProgramContext* node);
     llvm::Value* visitConstant(FAMMParser::ConstantContext* constantContext);
@@ -29,6 +33,8 @@ public:
     llvm::Value* visitCompareExpression(FAMMParser::CompareExpressionContext* compareCtx);
     llvm::Value* visitBoolExpression(FAMMParser::BoolExpressionContext* boolCtx);
     llvm::Value* visitNegationExpression(FAMMParser::NegationExpressionContext* negationCtx);
+    llvm::Value* visitFunctionCallExpression(FAMMParser::FunctionCallExpressionContext* funcCallCtx);
+    llvm::Value* visitIdentifierExpression(FAMMParser::IdentifierExpressionContext* identCtx);
     llvm::Value* visitExpression(FAMMParser::ExpressionContext* expressionContext);
 
     llvm::Type* getLLVMType(const std::string& typeStr);
@@ -44,4 +50,5 @@ private:
     llvm::LLVMContext context;
     llvm::IRBuilder<> builder;
     llvm::Module module;
+    std::vector<Scope> scopeStack;
 };

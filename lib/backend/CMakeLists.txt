@@ -12,7 +12,7 @@ set(SOURCE_FILES
         src/Nothing.cpp
         src/visitors/Visitor.cpp
         src/visitors/Visitor.h
-)
+        src/visitors/Scope.h)
 
 # Create the static backend library
 add_library(backend STATIC ${SOURCE_FILES})

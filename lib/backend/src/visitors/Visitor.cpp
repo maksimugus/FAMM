@@ -9,6 +9,18 @@ void LLVMIRGenerator::printIR() const {
     module.print(llvm::outs(), nullptr);
 }
 
+void LLVMIRGenerator::enterScope() {
+    scopeStack.push_back(Scope());
+}
+
+void LLVMIRGenerator::exitScope() {
+    if (!scopeStack.empty()) {
+        scopeStack.pop_back();
+    } else {
+        throw std::runtime_error("Attempted to exit a scope when none exists.");
+    }
+}
+
 std::any LLVMIRGenerator::visit(tree::ParseTree* node) {
     if (const auto program = dynamic_cast<FAMMParser::ProgramContext*>(node)) {
         return visitProgram(program);
@@ -17,6 +29,8 @@ std::any LLVMIRGenerator::visit(tree::ParseTree* node) {
 }
 
 std::any LLVMIRGenerator::visitProgram(FAMMParser::ProgramContext* node) {
+    enterScope(); // Enter global scope
+
     // Create the main function: int main()
     llvm::FunctionType* mainType = llvm::FunctionType::get(llvm::Type::getInt32Ty(context), false);
     llvm::Function* mainFunction = llvm::Function::Create(mainType, llvm::Function::ExternalLinkage, "main", module);
@@ -35,6 +49,8 @@ std::any LLVMIRGenerator::visitProgram(FAMMParser::ProgramContext* node) {
 
     // Verify the function
     llvm::verifyFunction(*mainFunction);
+
+    exitScope();
 
     return nullptr;
 }
@@ -59,13 +75,33 @@ llvm::Value* LLVMIRGenerator::visitConstant(FAMMParser::ConstantContext* constan
         bool boolValue = (constantContext->BOOL_LIT()->getText() == "true");
         return llvm::ConstantInt::get(llvm::Type::getInt1Ty(context), boolValue, false);
     } // TODO: не хватает массива
-    llvm::ConstantArray
+//    llvm::ConstantArray
     throw std::runtime_error("Unknown constant type");
+}
+
+std::string getTypeName(llvm::Type* type) {
+    std::string typeName;
+    llvm::raw_string_ostream rso(typeName);
+    type->print(rso);
+    return rso.str();
+}
+
+void EnsureTypeEq(llvm::Type* firstType, llvm::Type* secondType) {
+    if (firstType != secondType) {
+        std::string firstTypeName = getTypeName(firstType);
+        std::string secondTypeName = getTypeName(secondType);
+
+        throw std::runtime_error("Type mismatch: first value of type '" + firstTypeName +
+                                 "' cannot be compared or assigned to second value of type '" + secondTypeName + "'.");
+    }
 }
 
 llvm::Value* LLVMIRGenerator::visitAddSubExpression(FAMMParser::AddSubExpressionContext* addSubCtx) {
     llvm::Value* left  = visitExpression(addSubCtx->expression(0));
     llvm::Value* right = visitExpression(addSubCtx->expression(1));
+
+    EnsureTypeEq(left->getType(), right->getType());
+
     if (addSubCtx->addOp()->PLUS()) {
         return builder.CreateAdd(left, right, "addtmp");
     }
@@ -79,6 +115,8 @@ llvm::Value* LLVMIRGenerator::visitAddSubExpression(FAMMParser::AddSubExpression
 llvm::Value* LLVMIRGenerator::visitMulDivExpression(FAMMParser::MulDivExpressionContext* mulDivCtx) {
     llvm::Value* left  = visitExpression(mulDivCtx->expression(0));
     llvm::Value* right = visitExpression(mulDivCtx->expression(1));
+
+    EnsureTypeEq(left->getType(), right->getType());
 
     if (mulDivCtx->multOp()->MULT()) {
         return builder.CreateMul(left, right, "multmp");
@@ -166,9 +204,7 @@ llvm::Value* LLVMIRGenerator::visitCompareExpression(FAMMParser::CompareExpressi
     llvm::Type* leftType  = left->getType();
     llvm::Type* rightType = right->getType();
 
-    if (leftType != rightType) {
-        throw std::runtime_error("Type mismatch in comparison operation.");
-    }
+    EnsureTypeEq(leftType, rightType);
 
     if (leftType->isIntegerTy(32)) {
         return createIntComparison(compareCtx, left, right);
@@ -187,6 +223,12 @@ llvm::Value* LLVMIRGenerator::visitBoolExpression(FAMMParser::BoolExpressionCont
     llvm::Value* left = visitExpression(boolCtx->expression(0));
     llvm::Value* right = visitExpression(boolCtx->expression(1));
 
+    EnsureTypeEq(left->getType(), right->getType());
+
+    if (!left->getType()->isIntegerTy(1) or !right->getType()->isIntegerTy(1)) {
+        throw std::runtime_error("Unsupported type of value in bool operation.");
+    }
+
     if (boolCtx->boolOp()->AND()) {
         return builder.CreateAnd(left, right, "andtmp");
     }
@@ -199,7 +241,51 @@ llvm::Value* LLVMIRGenerator::visitBoolExpression(FAMMParser::BoolExpressionCont
 
 llvm::Value* LLVMIRGenerator::visitNegationExpression(FAMMParser::NegationExpressionContext* negationCtx) {
     llvm::Value* value = visitExpression(negationCtx->expression());
-    return builder.CreateNot(value, "nottmp");
+    if (value->getType()->isIntegerTy(1)) {
+        return builder.CreateNot(value, "nottmp");
+    }
+    throw std::runtime_error("Unsupported type of value in bool operation.");
+}
+
+llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCallExpressionContext* funcCallCtx) {
+    FAMMParser::FunctionCallContext* callCtx = funcCallCtx->functionCall();
+
+    std::string funcName = callCtx->IDENTIFIER()->getText();
+
+    llvm::Function* function = module.getFunction(funcName);
+    if (!function) {
+        throw std::runtime_error("Function " + funcName + " not found in module");
+    }
+
+    std::vector<llvm::Value*> args;
+    for (auto exprCtx : callCtx->expression()) {
+        llvm::Value* arg = visitExpression(exprCtx);
+        if (!arg) {
+            throw std::runtime_error("Error processing function argument " + funcName);
+        }
+        args.push_back(arg);
+    }
+
+    if (args.size() != function->arg_size()) {
+        throw std::runtime_error("Inconsistency in the number of arguments in a function call " + funcName);
+    }
+
+    return builder.CreateCall(function, args, funcName + "_call");
+}
+
+llvm::Value* LLVMIRGenerator::visitIdentifierExpression(FAMMParser::IdentifierExpressionContext* identCtx) {
+    std::string varName = identCtx->IDENTIFIER()->getText();
+
+    for (auto it = scopeStack.rbegin(); it != scopeStack.rend(); ++it) {
+        auto& variables = it->variables;
+        auto varIter = variables.find(varName);
+        if (varIter != variables.end()) {
+            llvm::AllocaInst* alloca = varIter->second;
+            return builder.CreateLoad(alloca->getAllocatedType(), alloca, varName + "_load");
+        }
+    }
+
+    throw std::runtime_error("Variable " + varName + " not found in the current scope.");
 }
 
 llvm::Value* LLVMIRGenerator::visitExpression(FAMMParser::ExpressionContext* expressionContext) {
@@ -217,11 +303,11 @@ llvm::Value* LLVMIRGenerator::visitExpression(FAMMParser::ExpressionContext* exp
         return visitBoolExpression(boolCtx);
     } else if (auto negationCtx = dynamic_cast<FAMMParser::NegationExpressionContext*>(expressionContext)) {
         return visitNegationExpression(negationCtx);
-    } /*else if (auto funcCallCtx = dynamic_cast<FAMMParser::FunctionCallExpressionContext*>(expressionContext)) {
-        return visitFunctionCall(funcCallCtx->functionCall());
+    } else if (auto funcCallCtx = dynamic_cast<FAMMParser::FunctionCallExpressionContext*>(expressionContext)) {
+        return visitFunctionCallExpression(funcCallCtx);
     } else if (auto identCtx = dynamic_cast<FAMMParser::IdentifierExpressionContext*>(expressionContext)) {
-        return visitIdentifier(identCtx->IDENTIFIER());
-    }*/
+        return visitIdentifierExpression(identCtx);
+    }
 
     throw std::runtime_error("Unknown expression type");
 }
@@ -276,23 +362,6 @@ std::string LLVMIRGenerator::visitBaseType(FAMMParser::BaseTypeContext* baseType
     throw std::runtime_error("Unknown type in BaseTypeContext");
 }
 
-std::string getTypeName(llvm::Type* type) {
-    std::string typeName;
-    llvm::raw_string_ostream rso(typeName);
-    type->print(rso);
-    return rso.str();
-}
-
-void EnsureTypeEq(llvm::Type* firstType, llvm::Type* secondType) {
-    if (firstType != secondType) {
-        std::string firstTypeName = getTypeName(firstType);
-        std::string secondTypeName = getTypeName(secondType);
-
-        throw std::runtime_error("Type mismatch: first value of type '" + firstTypeName +
-                                 "' cannot be compared or assigned to second value of type '" + secondTypeName + "'.");
-    }
-}
-
 void LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node) {
     std::string variableName  = node->IDENTIFIER()->getText();
     auto typeContext          = node->type();
@@ -306,6 +375,12 @@ void LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::DeclarationWith
     llvm::Function* currentFunction = builder.GetInsertBlock()->getParent();
     llvm::IRBuilder<> tempBuilder(&currentFunction->getEntryBlock(), currentFunction->getEntryBlock().begin());
     llvm::AllocaInst* alloca = tempBuilder.CreateAlloca(llvmType, nullptr, variableName);
+
+    if (!scopeStack.empty()) {
+        scopeStack.back().variables[variableName] = alloca;
+    } else {
+        throw std::runtime_error("No active scope to declare variable.");
+    }
 
     builder.CreateStore(initialValue, alloca);
 }
