@@ -48,7 +48,7 @@ public:
     std::any visitStatement(FAMMParser::StatementContext* node);
     std::any visitFunctionDefinition(FAMMParser::FunctionDefinitionContext* node);
     std::any visitLine(FAMMParser::LineContext* node);
-
+    llvm::Value* visitIfBlock(FAMMParser::IfBlockContext* ifBlockCtx);
 private:
     llvm::LLVMContext context;
     llvm::IRBuilder<> builder;
