@@ -12,16 +12,16 @@
 class  FAMMParser : public antlr4::Parser {
 public:
   enum {
-    VAR = 1, FUNC = 2, IF = 3, ELSE = 4, WHILE = 5, FOR = 6, BY = 7, ARROW = 8, 
-    NOT = 9, ASSIGNMENT = 10, PLUS_ASSIGNMENT = 11, MINUS_ASSIGNMENT = 12, 
-    MULT_ASSIGNMENT = 13, DIV_ASSIGNMENT = 14, FLOOR_DIV_ASSIGNMENT = 15, 
-    MOD_ASSIGNMENT = 16, MULT = 17, DIV = 18, FLOOR_DIV = 19, MOD = 20, 
-    PLUS = 21, MINUS = 22, EQ = 23, NEQ = 24, GT = 25, LT = 26, GE = 27, 
-    LE = 28, AND = 29, OR = 30, LPAR = 31, RPAR = 32, LBRACE = 33, RBRACE = 34, 
-    SEMICOLON = 35, COLON = 36, COMMA = 37, LBRACKET = 38, RBRACKET = 39, 
-    INT = 40, FLOAT = 41, STRING = 42, BOOL = 43, INTEGER_LIT = 44, FLOAT_LIT = 45, 
-    STRING_LIT = 46, BOOL_LIT = 47, NIH_LIT = 48, TRUE = 49, FALSE = 50, 
-    IDENTIFIER = 51, WS = 52, COMMENT = 53
+    VAR = 1, FUNC = 2, IF = 3, ELSE = 4, WHILE = 5, FOR = 6, BY = 7, RETURN = 8, 
+    ARROW = 9, NOT = 10, ASSIGNMENT = 11, PLUS_ASSIGNMENT = 12, MINUS_ASSIGNMENT = 13, 
+    MULT_ASSIGNMENT = 14, DIV_ASSIGNMENT = 15, FLOOR_DIV_ASSIGNMENT = 16, 
+    MOD_ASSIGNMENT = 17, MULT = 18, DIV = 19, FLOOR_DIV = 20, MOD = 21, 
+    PLUS = 22, MINUS = 23, EQ = 24, NEQ = 25, GT = 26, LT = 27, GE = 28, 
+    LE = 29, AND = 30, OR = 31, LPAR = 32, RPAR = 33, LBRACE = 34, RBRACE = 35, 
+    SEMICOLON = 36, COLON = 37, COMMA = 38, LBRACKET = 39, RBRACKET = 40, 
+    INT = 41, FLOAT = 42, STRING = 43, BOOL = 44, INTEGER_LIT = 45, FLOAT_LIT = 46, 
+    STRING_LIT = 47, BOOL_LIT = 48, NIH_LIT = 49, TRUE = 50, FALSE = 51, 
+    IDENTIFIER = 52, WS = 53, COMMENT = 54
   };
 
   enum {
@@ -29,9 +29,10 @@ public:
     RuleForBlock = 5, RuleBlock = 6, RuleDeclaration = 7, RuleDeclarationWithDefinition = 8, 
     RuleDeclarationWithoutDefinition = 9, RuleDefinition = 10, RuleFunctionCall = 11, 
     RuleFunctionDefinition = 12, RuleParameterList = 13, RuleParameter = 14, 
-    RuleExpression = 15, RuleAssignmentOp = 16, RuleMultOp = 17, RuleAddOp = 18, 
-    RuleCompareOp = 19, RuleBoolOp = 20, RuleType = 21, RuleArrayType = 22, 
-    RuleBaseType = 23, RuleConstant = 24, RuleArrayLiteral = 25
+    RuleReturnStatement = 15, RuleExpression = 16, RuleAssignmentOp = 17, 
+    RuleMultOp = 18, RuleAddOp = 19, RuleCompareOp = 20, RuleBoolOp = 21, 
+    RuleType = 22, RuleArrayType = 23, RuleBaseType = 24, RuleConstant = 25, 
+    RuleArrayLiteral = 26
   };
 
   explicit FAMMParser(antlr4::TokenStream *input);
@@ -66,6 +67,7 @@ public:
   class FunctionDefinitionContext;
   class ParameterListContext;
   class ParameterContext;
+  class ReturnStatementContext;
   class ExpressionContext;
   class AssignmentOpContext;
   class MultOpContext;
@@ -119,6 +121,7 @@ public:
     DeclarationContext *declaration();
     DefinitionContext *definition();
     FunctionCallContext *functionCall();
+    ReturnStatementContext *returnStatement();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -295,6 +298,7 @@ public:
     antlr4::tree::TerminalNode *RPAR();
     antlr4::tree::TerminalNode *COLON();
     TypeContext *type();
+    antlr4::tree::TerminalNode *ASSIGNMENT();
     BlockContext *block();
     ParameterListContext *parameterList();
 
@@ -335,6 +339,20 @@ public:
   };
 
   ParameterContext* parameter();
+
+  class  ReturnStatementContext : public antlr4::ParserRuleContext {
+  public:
+    ReturnStatementContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *RETURN();
+    ExpressionContext *expression();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  ReturnStatementContext* returnStatement();
 
   class  ExpressionContext : public antlr4::ParserRuleContext {
   public:
@@ -566,6 +584,8 @@ public:
     virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *LBRACKET();
     TypeContext *type();
+    antlr4::tree::TerminalNode *COMMA();
+    antlr4::tree::TerminalNode *INTEGER_LIT();
     antlr4::tree::TerminalNode *RBRACKET();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
