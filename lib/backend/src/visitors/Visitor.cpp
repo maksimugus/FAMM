@@ -278,6 +278,22 @@ std::string LLVMIRGenerator::visitBaseType(FAMMParser::BaseTypeContext* baseType
     throw std::runtime_error("Unknown type in BaseTypeContext");
 }
 
+std::string getTypeName(llvm::Type* type) {
+    std::string typeName;
+    llvm::raw_string_ostream rso(typeName);
+    type->print(rso);
+    return rso.str();
+}
+
+void EnsureTypeEq(llvm::Type* firstType, llvm::Type* secondType) {
+    if (firstType != secondType) {
+        std::string firstTypeName = getTypeName(firstType);
+        std::string secondTypeName = getTypeName(secondType);
+
+        throw std::runtime_error("Type mismatch: first value of type '" + firstTypeName +
+                                 "' cannot be compared or assigned to second value of type '" + secondTypeName + "'.");
+    }
+}
 
 void LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node) {
     std::string variableName  = node->IDENTIFIER()->getText();
@@ -286,6 +302,8 @@ void LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::DeclarationWith
     auto expressionContext    = node->expression();
     llvm::Value* initialValue = visitExpression(expressionContext);
     llvm::Type* llvmType      = getLLVMType(variableType);
+
+    EnsureTypeEq(llvmType, initialValue->getType());
 
     llvm::Function* currentFunction = builder.GetInsertBlock()->getParent();
     llvm::IRBuilder<> tempBuilder(&currentFunction->getEntryBlock(), currentFunction->getEntryBlock().begin());
