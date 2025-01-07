@@ -40,9 +40,9 @@ std::any LLVMIRGenerator::visitLine(FAMMParser::LineContext* node) {
     if (node->whileBlock()) {
         return visitWhileBlock(node->whileBlock());
     }
-    // if (node->forBlock()) {
-    //     return visitForBlock(node->forBlock());
-    // }
+//    if (node->forBlock()) {
+//        return visitForBlock(node->forBlock());
+//    }
     if (node->SEMICOLON()) {
         return nullptr;
     }
