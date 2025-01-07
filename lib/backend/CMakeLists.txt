@@ -9,10 +9,17 @@ llvm_map_components_to_libnames(LLVM_LIBS Core)
 
 # Specify the source files for the backend library
 set(SOURCE_FILES
-        src/Nothing.cpp
         src/visitors/Visitor.cpp
         src/visitors/Visitor.h
-        src/visitors/Scope.h)
+        src/Scope.h
+        src/visitors/VisitExpression.cpp
+        src/visitors/CreateComparison.cpp
+        src/visitors/VisitType.cpp
+        src/visitors/VisitDeclarationDefinition.cpp
+        src/visitors/VisitIfBlock.cpp
+        src/visitors/VisitWhileBlock.cpp
+        src/visitors/VisitFunction.cpp
+        src/visitors/VisitProgram.cpp)
 
 # Create the static backend library
 add_library(backend STATIC ${SOURCE_FILES})

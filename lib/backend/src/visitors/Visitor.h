@@ -21,8 +21,9 @@ public:
 
     void enterScope();
     void exitScope();
-    void EnsureTypeEq(llvm::Type* firstType, llvm::Type* secondType);
+    llvm::AllocaInst* findVariable(const std::string& name);
 
+    void EnsureTypeEq(llvm::Type* firstType, llvm::Type* secondType);
     std::any visit(tree::ParseTree *node) override;
     std::any visitProgram(FAMMParser::ProgramContext* node);
     llvm::Value* visitConstant(FAMMParser::ConstantContext* constantContext);
@@ -35,7 +36,6 @@ public:
     llvm::Value* visitBoolExpression(FAMMParser::BoolExpressionContext* boolCtx);
     llvm::Value* visitNegationExpression(FAMMParser::NegationExpressionContext* negationCtx);
     llvm::Value* visitFunctionCall(FAMMParser::FunctionCallContext* node);
-    llvm::AllocaInst* findVariable(const std::string& name);
     llvm::Value* visitIdentifierExpression(FAMMParser::IdentifierExpressionContext* identCtx);
     llvm::Value* visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx);
     llvm::Value* visitExpression(FAMMParser::ExpressionContext* expressionContext);
