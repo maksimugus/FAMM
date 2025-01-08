@@ -49,11 +49,7 @@ public:
     llvm::Value* createBoolComparison(
         FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
 
-
-    llvm::Type* getLLVMType(const std::string& typeStr);
-    std::string visitType(FAMMParser::TypeContext* typeContext);
-    std::string visitBaseType(FAMMParser::BaseTypeContext* baseTypeContext);
-
+    llvm::Type* getLLVMType(FAMMParser::TypeContext* typeContext);
 
     llvm::Value* visitStatement(FAMMParser::StatementContext* node); // big if
 

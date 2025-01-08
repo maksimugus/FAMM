@@ -107,14 +107,14 @@ llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContex
     if (node->NIH_LIT()) {
         returnType = llvm::Type::getVoidTy(*context);
     } else {
-        returnType = getLLVMType(visitType(node->type()));
+        returnType = getLLVMType(node->type());
     }
 
     // Create a vector of parameter types
     std::vector<llvm::Type*> paramTypes;
     for (auto* parameter : node->parameterList()->parameter()) {
         // Получаем тип параметра через visitType
-        llvm::Type* paramType = getLLVMType(visitType(parameter->type()));
+        llvm::Type* paramType = getLLVMType(parameter->type());
         paramTypes.push_back(paramType);
     }
 
