@@ -168,7 +168,7 @@ llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContex
     builder.SetInsertPoint(prevBlock);
     exitScope();
 
-    return module.getFunction("main");;
+    return module->getFunction("main");
 }
 
 
