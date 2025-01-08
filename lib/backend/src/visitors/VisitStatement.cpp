@@ -8,8 +8,8 @@ llvm::Value* LLVMIRGenerator::visitStatement(FAMMParser::StatementContext* node)
     //     if (const auto declWithoutDef = dynamic_cast<FAMMParser::DeclarationWithoutDefinitionContext*>(node)) {
     //         return visitDeclarationWithoutDefinition(declWithoutDef);
     //     } // TODO
-    if (const auto definition = dynamic_cast<FAMMParser::DefinitionContext*>(node)) {
-        return visitDefinition(definition);
+    if (const auto definition = dynamic_cast<FAMMParser::DefinitionStatementContext*>(node)) {
+        return visitDefinition(definition->definition());
     }
 
     if (const auto returnStatement = dynamic_cast<FAMMParser::ReturnStatementContext*>(node)) {
