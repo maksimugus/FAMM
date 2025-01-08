@@ -5,8 +5,13 @@ if (NOT LLVM_FOUND)
 endif()
 
 # Specify the LLVM components you need
-llvm_map_components_to_libnames(LLVM_LIBS Core Support Target)
-
+llvm_map_components_to_libnames(LLVM_LIBS Core
+        Support
+        Target
+        TargetInfo
+#        AsmParser
+#        MMC
+)
 # Specify the source files for the backend library
 set(SOURCE_FILES
         src/visitors/Visitor.cpp
@@ -20,6 +25,7 @@ set(SOURCE_FILES
         src/visitors/VisitStatement.cpp
         src/helpers/Helpers.cpp
         src/helpers/Helpers.h
+        src/run/ObjectEmitter.h
 )
 
 # Create the static backend library

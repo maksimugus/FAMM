@@ -15,8 +15,8 @@ public:
     LLVMIRGenerator();
 
     void printIR() const;
-    llvm::Module* getModule() {
-        return &module;
+    std::unique_ptr<llvm::Module> getModule() {
+        return std::move(module);
     }
 
     void enterScope();
@@ -72,8 +72,8 @@ public:
 
 
 private:
-    llvm::LLVMContext context;
+    std::unique_ptr<llvm::LLVMContext> context;
     llvm::IRBuilder<> builder;
-    llvm::Module module;
+    std::unique_ptr<llvm::Module> module;
     std::vector<Scope> scopeStack;
 };

@@ -3,10 +3,13 @@
 #include <stdexcept>
 
 
-LLVMIRGenerator::LLVMIRGenerator() : context(), builder(context), module("my_module", context) {}
+LLVMIRGenerator::LLVMIRGenerator()
+    : context(std::make_unique<llvm::LLVMContext>()),
+      builder(*context),
+      module(std::make_unique<llvm::Module>("my_module", *context)) {}
 
 void LLVMIRGenerator::printIR() const {
-    module.print(llvm::outs(), nullptr);
+    module->print(llvm::outs(), nullptr);
 }
 
 void LLVMIRGenerator::enterScope() {

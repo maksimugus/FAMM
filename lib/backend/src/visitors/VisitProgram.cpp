@@ -5,10 +5,10 @@ llvm::Value* LLVMIRGenerator::visitProgram(FAMMParser::ProgramContext* node) {
     // TODO очень похоже на scope
     enterScope(); // Глобальный скопец
 
-    llvm::FunctionType* mainType = llvm::FunctionType::get(llvm::Type::getInt32Ty(context), false);
-    llvm::Function* mainFunction = llvm::Function::Create(mainType, llvm::Function::ExternalLinkage, "main", module);
+    llvm::FunctionType* mainType = llvm::FunctionType::get(llvm::Type::getInt32Ty(*context), false);
+    llvm::Function* mainFunction = llvm::Function::Create(mainType, llvm::Function::ExternalLinkage, "main", *module);
 
-    llvm::BasicBlock* entry = llvm::BasicBlock::Create(context, "entry", mainFunction);
+    llvm::BasicBlock* entry = llvm::BasicBlock::Create(*context, "entry", mainFunction);
     builder.SetInsertPoint(entry);
 
     for (const auto line : node->line()) {
@@ -16,7 +16,7 @@ llvm::Value* LLVMIRGenerator::visitProgram(FAMMParser::ProgramContext* node) {
     }
 
     // Return 0 from main
-    builder.CreateRet(llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0));
+    builder.CreateRet(llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context), 0));
 
     // Verify the function
     verifyFunction(*mainFunction);

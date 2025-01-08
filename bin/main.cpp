@@ -1,9 +1,9 @@
-#include "FAMMBaseListener.h"
 #include "FAMMLexer.h"
-#include "FAMMListener.h"
 #include "FAMMParser.h"
 #include "lib/backend/src/Visitors/Visitor.h"
+#include "run/ObjectEmitter.h"
 #include <antlr4-runtime.h>
+#include <llvm/Support/TargetSelect.h>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -24,17 +24,17 @@ using namespace std;
 //     return entry.get()();
 // }
 //
-// int compile(const FooLang::CLIManager& cli, FooLang::Visitor& visitor) {
-//     std::string error;
-//     FooLang::ObjectEmitter::emit(visitor.llvm_module, cli.getOptionValue("-o", "output.o"), error);
-//
-//     if (!error.empty()) {
-//         llvm::errs() << error;
-//         return 1;
-//     }
-//
-//     return 0;
-// }
+int compile(LLVMIRGenerator& visitor, const string& filename) {
+    std::string error;
+    ObjectEmitter::emit(visitor.getModule(), filename, error);
+
+    if (!error.empty()) {
+        llvm::errs() << error;
+        return 1;
+    }
+
+    return 0;
+}
 
 int main(int argc, const char* argv[]) {
     if (argc < 2) {
@@ -74,8 +74,14 @@ int main(int argc, const char* argv[]) {
     visitor.printIR();
     // visitor
 
+    llvm::InitializeAllTargetInfos();
+    llvm::InitializeAllTargets();
+    llvm::InitializeAllTargetMCs();
+    llvm::InitializeAllAsmParsers();
+    llvm::InitializeAllAsmPrinters();
+
     // if (compileMode) {
-    // compileToObjectFile(visitor.getModule(), "output.o");
+    compile(visitor, "output.o");
     // } else {
     // runJIT(visitor.getModule());
     // }

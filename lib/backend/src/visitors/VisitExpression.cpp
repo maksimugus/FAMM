@@ -149,12 +149,12 @@ llvm::Value* LLVMIRGenerator::visitConstantExpression(FAMMParser::ConstantContex
     if (constantContext->INTEGER_LIT()) {
         // Convert the integer literal text to an integer value
         const int intValue = std::stoi(constantContext->INTEGER_LIT()->getText());
-        return llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), intValue, true);
+        return llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context), intValue, true);
     }
     if (constantContext->FLOAT_LIT()) {
         // Convert the float literal text to a float value
         const float floatValue = std::stof(constantContext->FLOAT_LIT()->getText());
-        return llvm::ConstantFP::get(llvm::Type::getFloatTy(context), floatValue);
+        return llvm::ConstantFP::get(llvm::Type::getFloatTy(*context), floatValue);
     }
     if (constantContext->STRING_LIT()) {
         // Get the string literal text, assuming it is properly escaped
@@ -166,7 +166,7 @@ llvm::Value* LLVMIRGenerator::visitConstantExpression(FAMMParser::ConstantContex
     if (constantContext->BOOL_LIT()) {
         // Convert the boolean literal text to a boolean value
         const bool boolValue = (constantContext->BOOL_LIT()->getText() == "true");
-        return llvm::ConstantInt::get(llvm::Type::getInt1Ty(context), boolValue, false);
+        return llvm::ConstantInt::get(llvm::Type::getInt1Ty(*context), boolValue, false);
     }
     // TODO: не хватает массива
     //    llvm::ConstantArray
@@ -176,7 +176,7 @@ llvm::Value* LLVMIRGenerator::visitConstantExpression(FAMMParser::ConstantContex
 llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCallContext* node) {
     const std::string funcName = node->IDENTIFIER()->getText();
 
-    llvm::Function* function = module.getFunction(funcName);
+    llvm::Function* function = module->getFunction(funcName);
     if (!function) {
         throw std::runtime_error("Function " + funcName + " not found in module");
     }

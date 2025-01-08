@@ -22,9 +22,9 @@ llvm::Value* LLVMIRGenerator::visitWhileBlock(FAMMParser::WhileBlockContext* whi
     llvm::Function* currentFunction = builder.GetInsertBlock()->getParent();
 
     // Создаем базовые блоки для условия, тела цикла и выхода из цикла
-    llvm::BasicBlock* conditionBlock = llvm::BasicBlock::Create(context, "whilecond", currentFunction);
-    llvm::BasicBlock* loopBlock      = llvm::BasicBlock::Create(context, "whileloop", currentFunction);
-    llvm::BasicBlock* afterLoopBlock = llvm::BasicBlock::Create(context, "afterwhile", currentFunction);
+    llvm::BasicBlock* conditionBlock = llvm::BasicBlock::Create(*context, "whilecond", currentFunction);
+    llvm::BasicBlock* loopBlock      = llvm::BasicBlock::Create(*context, "whileloop", currentFunction);
+    llvm::BasicBlock* afterLoopBlock = llvm::BasicBlock::Create(*context, "afterwhile", currentFunction);
 
     // Переход к блоку условия
     builder.CreateBr(conditionBlock);
@@ -59,10 +59,10 @@ llvm::Value* LLVMIRGenerator::visitForBlock(FAMMParser::ForBlockContext* forBloc
     llvm::Function* currentFunction = builder.GetInsertBlock()->getParent();
 
     // Создание базовых блоков для цикла
-    llvm::BasicBlock* loopCondBB  = llvm::BasicBlock::Create(context, "loopcond", currentFunction);
-    llvm::BasicBlock* loopBodyBB  = llvm::BasicBlock::Create(context, "loopbody", currentFunction);
-    llvm::BasicBlock* loopIncBB   = llvm::BasicBlock::Create(context, "loopinc", currentFunction);
-    llvm::BasicBlock* afterLoopBB = llvm::BasicBlock::Create(context, "afterloop", currentFunction);
+    llvm::BasicBlock* loopCondBB  = llvm::BasicBlock::Create(*context, "loopcond", currentFunction);
+    llvm::BasicBlock* loopBodyBB  = llvm::BasicBlock::Create(*context, "loopbody", currentFunction);
+    llvm::BasicBlock* loopIncBB   = llvm::BasicBlock::Create(*context, "loopinc", currentFunction);
+    llvm::BasicBlock* afterLoopBB = llvm::BasicBlock::Create(*context, "afterloop", currentFunction);
 
     // Инициализация переменной цикла
     execute(forBlockCtx->declarationWithDefinition());
@@ -116,10 +116,10 @@ llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContex
     // Create the function
     llvm::FunctionType* functionType = llvm::FunctionType::get(returnType, paramTypes, false);
     llvm::Function* function =
-        llvm::Function::Create(functionType, llvm::Function::ExternalLinkage, functionName, &module);
+        llvm::Function::Create(functionType, llvm::Function::ExternalLinkage, functionName, *module);
 
     // Create a new basic block to start insertion into
-    llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
+    llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(*context, "entry", function);
     builder.SetInsertPoint(basicBlock);
 
     // Handle function parameters
@@ -152,9 +152,9 @@ llvm::Value* LLVMIRGenerator::visitIfBlock(FAMMParser::IfBlockContext* ifBlockCt
 
     llvm::Function* currentFunction = builder.GetInsertBlock()->getParent();
 
-    llvm::BasicBlock* thenBlock  = llvm::BasicBlock::Create(context, "then", currentFunction);
-    llvm::BasicBlock* elseBlock  = llvm::BasicBlock::Create(context, "else", currentFunction);
-    llvm::BasicBlock* mergeBlock = llvm::BasicBlock::Create(context, "ifcont", currentFunction);
+    llvm::BasicBlock* thenBlock  = llvm::BasicBlock::Create(*context, "then", currentFunction);
+    llvm::BasicBlock* elseBlock  = llvm::BasicBlock::Create(*context, "else", currentFunction);
+    llvm::BasicBlock* mergeBlock = llvm::BasicBlock::Create(*context, "ifcont", currentFunction);
 
     builder.CreateCondBr(condition, thenBlock, elseBlock);
 
