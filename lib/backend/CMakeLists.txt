@@ -5,8 +5,12 @@ if (NOT LLVM_FOUND)
 endif()
 
 # Specify the LLVM components you need
-llvm_map_components_to_libnames(LLVM_LIBS Core)
-
+llvm_map_components_to_libnames(LLVM_LIBS
+        Core
+        Support
+        Target
+        native
+)
 # Specify the source files for the backend library
 set(SOURCE_FILES
         src/visitors/Visitor.cpp
@@ -17,7 +21,12 @@ set(SOURCE_FILES
         src/visitors/VisitType.cpp
         src/visitors/VisitProgram.cpp
         src/visitors/VisitBlock.cpp
-        src/visitors/VisitStatement.cpp)
+        src/visitors/VisitStatement.cpp
+        src/helpers/Helpers.cpp
+        src/helpers/Helpers.h
+        src/run/ObjectEmitter.h
+        src/run/JIT.h
+)
 
 # Create the static backend library
 add_library(backend STATIC ${SOURCE_FILES})

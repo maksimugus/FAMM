@@ -3,10 +3,13 @@
 #include <stdexcept>
 
 
-LLVMIRGenerator::LLVMIRGenerator() : context(), builder(context), module("my_module", context) {}
+LLVMIRGenerator::LLVMIRGenerator()
+    : context(std::make_unique<llvm::LLVMContext>()),
+      builder(*context),
+      module(std::make_unique<llvm::Module>("my_module", *context)) {}
 
 void LLVMIRGenerator::printIR() const {
-    module.print(llvm::outs(), nullptr);
+    module->print(llvm::outs(), nullptr);
 }
 
 void LLVMIRGenerator::enterScope() {
@@ -37,6 +40,9 @@ std::any LLVMIRGenerator::visit(tree::ParseTree* node) {
     if (const auto scope = dynamic_cast<FAMMParser::ScopeContext*>(node)) {
         return visitScope(scope);
     }
+    if (const auto declWithDef = dynamic_cast<FAMMParser::DeclarationWithDefinitionContext*>(node)) {
+        return visitDeclarationWithDefinition(declWithDef);
+    }
     return nullptr;
 }
 
@@ -52,5 +58,3 @@ llvm::AllocaInst* LLVMIRGenerator::findVariable(const std::string& name) {
     }
     throw std::runtime_error("Variable '" + name + "' not found in any active scope.");
 }
-
-
