@@ -131,7 +131,7 @@ llvm::Value* LLVMIRGenerator::visitReturnStatement(FAMMParser::ReturnStatementCo
         EnsureTypeEq(returnType, returnValue->getType());
         return builder.CreateRet(returnValue);
     }
-    if (!returnType->isVoidTy()) {
+    if (!returnType->isVoidTy()) { // TODO return; когда функция nih
         throw std::runtime_error("Function must return a value, but return statement is empty.");
     }
     return builder.CreateRetVoid();

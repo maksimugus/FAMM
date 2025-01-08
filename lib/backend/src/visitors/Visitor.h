@@ -10,7 +10,7 @@
 
 using namespace antlr4;
 
-class LLVMIRGenerator : public tree::AbstractParseTreeVisitor {
+class LLVMIRGenerator final : public tree::AbstractParseTreeVisitor {
 public:
     LLVMIRGenerator();
 
