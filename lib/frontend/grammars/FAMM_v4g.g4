@@ -1,28 +1,30 @@
 grammar FAMM;
 
-program: line* EOF; // TODO подумать можно ли сделать через scope
+program: line* EOF;
 
-line: (expression | statement) SEMICOLON;
+line: (expression | statement | ifBlock | whileBlock | forBlock | functionDefinition) SEMICOLON;
 
-// любая конструкция
-statement: declarationWithDefinition | declarationWithoutDefinition | definition | returnStatement | block;
+statement: declaration | definition | functionCall | returnStatement;
 
-returnStatement: RETURN expression?;
+ifBlock: IF LPAR expression RPAR block (ELSE block)?;
 
-block : ifBlock | whileBlock | forBlock | functionBlock;
-ifBlock: IF LPAR expression RPAR scope (ELSE scope)?;
-whileBlock: WHILE LPAR expression RPAR scope;
-forBlock: FOR LPAR declarationWithDefinition ARROW expression BY expression RPAR scope;
-functionBlock: FUNC IDENTIFIER LPAR parameterList? RPAR COLON type ASSIGNMENT scope;
+whileBlock: WHILE LPAR expression RPAR block;
 
+forBlock: FOR LPAR declarationWithDefinition ARROW expression BY expression RPAR block;
+
+block: LBRACE line* RBRACE;
+
+declaration: declarationWithoutDefinition | declarationWithDefinition;
+declarationWithDefinition: VAR IDENTIFIER COLON type ASSIGNMENT expression; // var i: int = 2;
+declarationWithoutDefinition: VAR IDENTIFIER (COMMA IDENTIFIER)* COLON type; // var i: int;
+definition: IDENTIFIER assignmentOp expression; // a += 3, a = 3
+
+functionCall: IDENTIFIER LPAR (expression (COMMA expression)*)? RPAR;
+functionDefinition: FUNC IDENTIFIER LPAR parameterList? RPAR COLON type ASSIGNMENT block;
 parameterList: parameter (COMMA parameter)*;
 parameter: IDENTIFIER COLON type;
 
-scope: LBRACE line* RBRACE;
-
-definition: IDENTIFIER assignmentOp expression; // a += 3, a = 3
-declarationWithDefinition: VAR IDENTIFIER COLON type ASSIGNMENT expression; // var i: int = 2;
-declarationWithoutDefinition: VAR IDENTIFIER (COMMA IDENTIFIER)* COLON type; // var i: int;
+returnStatement: RETURN expression?;
 
 expression
     : constant                                 # ConstantExpression // константа
@@ -37,8 +39,6 @@ expression
     | expression compareOp expression          # CompareExpression // сравнение
     | expression boolOp expression             # BoolExpression // булевы операции
     ;
-
-functionCall: IDENTIFIER LPAR (expression (COMMA expression)*)? RPAR;
 
 assignmentOp // =, += и подобные
     : ASSIGNMENT
@@ -57,9 +57,8 @@ boolOp: AND | OR;
 
 type : baseType | arrayType;
 
-arrayType : LBRACKET type COMMA size RBRACKET;
+arrayType : LBRACKET type COMMA INTEGER_LIT RBRACKET;
 
-size : INTEGER_LIT;
 // var a: [int, 3] = [1,2,3]
 // var a: [[int, 1], 3] = [[1],[2],[3]]
 // var a: [[int, ?], 3] = [[1, 3],[2],[3]] # error
