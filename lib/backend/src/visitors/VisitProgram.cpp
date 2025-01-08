@@ -12,7 +12,7 @@ llvm::Value* LLVMIRGenerator::visitProgram(FAMMParser::ProgramContext* node) {
     builder.SetInsertPoint(entry);
 
     for (const auto line : node->line()) {
-        visitLine(line);
+        execute(line);
     }
 
     // Return 0 from main
