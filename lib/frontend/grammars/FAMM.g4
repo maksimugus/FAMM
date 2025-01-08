@@ -59,6 +59,10 @@ type : baseType | arrayType;
 
 arrayType : LBRACKET type COMMA INTEGER_LIT RBRACKET;
 
+// var a: [int, 3] = [1,2,3]
+// var a: [[int, 1], 3] = [[1],[2],[3]]
+// var a: [[int, ?], 3] = [[1, 3],[2],[3]] # error
+
 baseType
     : INT
     | FLOAT

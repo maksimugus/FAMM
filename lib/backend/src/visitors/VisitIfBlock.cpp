@@ -26,11 +26,7 @@ llvm::Value* LLVMIRGenerator::visitIfBlock(FAMMParser::IfBlockContext* ifBlockCt
     builder.SetInsertPoint(elseBlock);
 
     if (ifBlockCtx->ELSE()) {
-        enterScope(); // Входим в новую область видимости
-        for (auto line : ifBlockCtx->block(1)->line()) {
-            visitLine(line);
-        }
-        exitScope(); // Выходим из области видимости
+        visitBlock(ifBlockCtx->block(1));
     }
 
     builder.CreateBr(mergeBlock);
