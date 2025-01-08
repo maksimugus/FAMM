@@ -15,6 +15,9 @@ public:
     LLVMIRGenerator();
 
     void printIR() const;
+    llvm::Module* getModule() {
+        return &module;
+    }
 
     void enterScope();
     void exitScope();
@@ -22,7 +25,7 @@ public:
 
     void EnsureTypeEq(const llvm::Type* firstType, const llvm::Type* secondType);
 
-    std::any visit(tree::ParseTree* node) override;  // big if
+    std::any visit(tree::ParseTree* node) override; // big if
     llvm::Value* execute(tree::ParseTree* node); // TODO rename ? run, exec, parse, visitALl
 
     llvm::Value* visitProgram(FAMMParser::ProgramContext* node);
@@ -57,7 +60,7 @@ public:
     llvm::Value* visitReturnStatement(FAMMParser::ReturnStatementContext* returnCtx);
     llvm::Value* visitDefinition(FAMMParser::DefinitionContext* node);
 
-    llvm::Value* visitBlock(FAMMParser::BlockContext* block);  // big if
+    llvm::Value* visitBlock(FAMMParser::BlockContext* block); // big if
 
     llvm::Value* visitFunctionBlock(FAMMParser::FunctionBlockContext* node);
     llvm::Value* visitIfBlock(FAMMParser::IfBlockContext* ifBlockCtx);
@@ -65,7 +68,7 @@ public:
     llvm::Value* visitForBlock(FAMMParser::ForBlockContext* forBlockCtx);
 
     llvm::Value* visitScope(FAMMParser::ScopeContext* scope);
-    llvm::Value* visitLine(FAMMParser::LineContext* node);  // big if
+    llvm::Value* visitLine(FAMMParser::LineContext* node); // big if
 
 
 private:
