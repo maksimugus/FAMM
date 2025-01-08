@@ -11,7 +11,7 @@ llvm::Type* LLVMIRGenerator::getLLVMType(FAMMParser::TypeContext* typeContext) {
         }
 
         if (baseType->STRING()) {
-            return llvm::PointerType::getInt8Ty(*context);
+            return llvm::PointerType::get(llvm::Type::getInt8Ty(*context), 0);
         }
 
         if (baseType->BOOL()) {
