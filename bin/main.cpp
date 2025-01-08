@@ -43,6 +43,7 @@ int main(int argc, const char* argv[]) {
 
     visitor.printIR();
 
-
+    // TODO: нужны встроенные функции (хотя бы display(...))
+    // TODO: тесты на famm (можно будет сделать после добавления display() )
     return 0;
 }
