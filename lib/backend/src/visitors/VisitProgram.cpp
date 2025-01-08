@@ -1,6 +1,8 @@
 #include "Visitor.h"
+#include <llvm/IR/Verifier.h>
 
-std::any LLVMIRGenerator::visitProgram(FAMMParser::ProgramContext* node) {
+llvm::Value* LLVMIRGenerator::visitProgram(FAMMParser::ProgramContext* node) {
+    // TODO очень похоже на scope
     enterScope(); // Глобальный скопец
 
     llvm::FunctionType* mainType = llvm::FunctionType::get(llvm::Type::getInt32Ty(context), false);
@@ -17,43 +19,27 @@ std::any LLVMIRGenerator::visitProgram(FAMMParser::ProgramContext* node) {
     builder.CreateRet(llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0));
 
     // Verify the function
-    llvm::verifyFunction(*mainFunction);
+    verifyFunction(*mainFunction);
 
     exitScope();
 
     return nullptr;
 }
 
-std::any LLVMIRGenerator::visitLine(FAMMParser::LineContext* node) {
-    if (node->statement()) {
-        return visitStatement(node->statement());
+llvm::Value* LLVMIRGenerator::visitLine(FAMMParser::LineContext* node) {
+    if (const auto statement = dynamic_cast<FAMMParser::StatementLineContext*>(node)) {
+        return visitStatement(statement->statement());
     }
-    if (node->functionDefinition()) {
-        return visitFunctionDefinition(node->functionDefinition());
+    if (const auto expression = dynamic_cast<FAMMParser::ExpressionLineContext*>(node)) {
+        return visitExpression(expression->expression());
     }
-    if (node->expression()) {
-        return visitExpression(node->expression());
-    }
-    if (node->ifBlock()) {
-        return visitIfBlock(node->ifBlock());
-    }
-    if (node->whileBlock()) {
-        return visitWhileBlock(node->whileBlock());
-    }
-//    if (node->forBlock()) {
-//        return visitForBlock(node->forBlock());
-//    }
-    if (node->SEMICOLON()) {
-        return nullptr;
-    }
-
     throw std::runtime_error("Unknown line context");
 }
 
-std::any LLVMIRGenerator::visitBlock(FAMMParser::BlockContext* block) {
+llvm::Value* LLVMIRGenerator::visitScope(FAMMParser::ScopeContext* scope) {
     enterScope();
-    for (const auto line : block->line()) {
-        visitLine(line);
+    for (const auto line : scope->line()) {
+        execute(line);
     }
     exitScope();
     return nullptr;

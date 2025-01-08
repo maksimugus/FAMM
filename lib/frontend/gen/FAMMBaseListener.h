@@ -19,11 +19,26 @@ public:
   virtual void enterProgram(FAMMParser::ProgramContext * /*ctx*/) override { }
   virtual void exitProgram(FAMMParser::ProgramContext * /*ctx*/) override { }
 
-  virtual void enterLine(FAMMParser::LineContext * /*ctx*/) override { }
-  virtual void exitLine(FAMMParser::LineContext * /*ctx*/) override { }
+  virtual void enterExpressionLine(FAMMParser::ExpressionLineContext * /*ctx*/) override { }
+  virtual void exitExpressionLine(FAMMParser::ExpressionLineContext * /*ctx*/) override { }
 
-  virtual void enterStatement(FAMMParser::StatementContext * /*ctx*/) override { }
-  virtual void exitStatement(FAMMParser::StatementContext * /*ctx*/) override { }
+  virtual void enterStatementLine(FAMMParser::StatementLineContext * /*ctx*/) override { }
+  virtual void exitStatementLine(FAMMParser::StatementLineContext * /*ctx*/) override { }
+
+  virtual void enterDeclarationWithDefinitionStatement(FAMMParser::DeclarationWithDefinitionStatementContext * /*ctx*/) override { }
+  virtual void exitDeclarationWithDefinitionStatement(FAMMParser::DeclarationWithDefinitionStatementContext * /*ctx*/) override { }
+
+  virtual void enterDeclarationWithoutDefinitionStatement(FAMMParser::DeclarationWithoutDefinitionStatementContext * /*ctx*/) override { }
+  virtual void exitDeclarationWithoutDefinitionStatement(FAMMParser::DeclarationWithoutDefinitionStatementContext * /*ctx*/) override { }
+
+  virtual void enterDefinitionStatement(FAMMParser::DefinitionStatementContext * /*ctx*/) override { }
+  virtual void exitDefinitionStatement(FAMMParser::DefinitionStatementContext * /*ctx*/) override { }
+
+  virtual void enterReturnStatement(FAMMParser::ReturnStatementContext * /*ctx*/) override { }
+  virtual void exitReturnStatement(FAMMParser::ReturnStatementContext * /*ctx*/) override { }
+
+  virtual void enterBlockStatement(FAMMParser::BlockStatementContext * /*ctx*/) override { }
+  virtual void exitBlockStatement(FAMMParser::BlockStatementContext * /*ctx*/) override { }
 
   virtual void enterIfBlock(FAMMParser::IfBlockContext * /*ctx*/) override { }
   virtual void exitIfBlock(FAMMParser::IfBlockContext * /*ctx*/) override { }
@@ -34,26 +49,8 @@ public:
   virtual void enterForBlock(FAMMParser::ForBlockContext * /*ctx*/) override { }
   virtual void exitForBlock(FAMMParser::ForBlockContext * /*ctx*/) override { }
 
-  virtual void enterBlock(FAMMParser::BlockContext * /*ctx*/) override { }
-  virtual void exitBlock(FAMMParser::BlockContext * /*ctx*/) override { }
-
-  virtual void enterDeclaration(FAMMParser::DeclarationContext * /*ctx*/) override { }
-  virtual void exitDeclaration(FAMMParser::DeclarationContext * /*ctx*/) override { }
-
-  virtual void enterDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext * /*ctx*/) override { }
-  virtual void exitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext * /*ctx*/) override { }
-
-  virtual void enterDeclarationWithoutDefinition(FAMMParser::DeclarationWithoutDefinitionContext * /*ctx*/) override { }
-  virtual void exitDeclarationWithoutDefinition(FAMMParser::DeclarationWithoutDefinitionContext * /*ctx*/) override { }
-
-  virtual void enterDefinition(FAMMParser::DefinitionContext * /*ctx*/) override { }
-  virtual void exitDefinition(FAMMParser::DefinitionContext * /*ctx*/) override { }
-
-  virtual void enterFunctionCall(FAMMParser::FunctionCallContext * /*ctx*/) override { }
-  virtual void exitFunctionCall(FAMMParser::FunctionCallContext * /*ctx*/) override { }
-
-  virtual void enterFunctionDefinition(FAMMParser::FunctionDefinitionContext * /*ctx*/) override { }
-  virtual void exitFunctionDefinition(FAMMParser::FunctionDefinitionContext * /*ctx*/) override { }
+  virtual void enterFunctionBlock(FAMMParser::FunctionBlockContext * /*ctx*/) override { }
+  virtual void exitFunctionBlock(FAMMParser::FunctionBlockContext * /*ctx*/) override { }
 
   virtual void enterParameterList(FAMMParser::ParameterListContext * /*ctx*/) override { }
   virtual void exitParameterList(FAMMParser::ParameterListContext * /*ctx*/) override { }
@@ -61,8 +58,17 @@ public:
   virtual void enterParameter(FAMMParser::ParameterContext * /*ctx*/) override { }
   virtual void exitParameter(FAMMParser::ParameterContext * /*ctx*/) override { }
 
-  virtual void enterReturnStatement(FAMMParser::ReturnStatementContext * /*ctx*/) override { }
-  virtual void exitReturnStatement(FAMMParser::ReturnStatementContext * /*ctx*/) override { }
+  virtual void enterScope(FAMMParser::ScopeContext * /*ctx*/) override { }
+  virtual void exitScope(FAMMParser::ScopeContext * /*ctx*/) override { }
+
+  virtual void enterDefinition(FAMMParser::DefinitionContext * /*ctx*/) override { }
+  virtual void exitDefinition(FAMMParser::DefinitionContext * /*ctx*/) override { }
+
+  virtual void enterDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext * /*ctx*/) override { }
+  virtual void exitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext * /*ctx*/) override { }
+
+  virtual void enterDeclarationWithoutDefinition(FAMMParser::DeclarationWithoutDefinitionContext * /*ctx*/) override { }
+  virtual void exitDeclarationWithoutDefinition(FAMMParser::DeclarationWithoutDefinitionContext * /*ctx*/) override { }
 
   virtual void enterAddSubExpression(FAMMParser::AddSubExpressionContext * /*ctx*/) override { }
   virtual void exitAddSubExpression(FAMMParser::AddSubExpressionContext * /*ctx*/) override { }
@@ -97,6 +103,9 @@ public:
   virtual void enterBoolExpression(FAMMParser::BoolExpressionContext * /*ctx*/) override { }
   virtual void exitBoolExpression(FAMMParser::BoolExpressionContext * /*ctx*/) override { }
 
+  virtual void enterFunctionCall(FAMMParser::FunctionCallContext * /*ctx*/) override { }
+  virtual void exitFunctionCall(FAMMParser::FunctionCallContext * /*ctx*/) override { }
+
   virtual void enterAssignmentOp(FAMMParser::AssignmentOpContext * /*ctx*/) override { }
   virtual void exitAssignmentOp(FAMMParser::AssignmentOpContext * /*ctx*/) override { }
 
@@ -117,6 +126,9 @@ public:
 
   virtual void enterArrayType(FAMMParser::ArrayTypeContext * /*ctx*/) override { }
   virtual void exitArrayType(FAMMParser::ArrayTypeContext * /*ctx*/) override { }
+
+  virtual void enterSize(FAMMParser::SizeContext * /*ctx*/) override { }
+  virtual void exitSize(FAMMParser::SizeContext * /*ctx*/) override { }
 
   virtual void enterBaseType(FAMMParser::BaseTypeContext * /*ctx*/) override { }
   virtual void exitBaseType(FAMMParser::BaseTypeContext * /*ctx*/) override { }
