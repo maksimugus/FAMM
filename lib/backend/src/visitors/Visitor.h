@@ -66,9 +66,9 @@ public:
 
     llvm::Value* visitScope(FAMMParser::ScopeContext* scope);
     llvm::Value* visitLine(FAMMParser::LineContext* node);  // big if
-private:
+public:
     llvm::LLVMContext context;
     llvm::IRBuilder<> builder;
-    llvm::Module module;
+    std::unique_ptr<llvm::Module> module; // Изменено на unique_ptr
     std::vector<Scope> scopeStack;
 };

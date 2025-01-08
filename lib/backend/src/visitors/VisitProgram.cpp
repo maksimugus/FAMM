@@ -6,7 +6,7 @@ llvm::Value* LLVMIRGenerator::visitProgram(FAMMParser::ProgramContext* node) {
     enterScope(); // Глобальный скопец
 
     llvm::FunctionType* mainType = llvm::FunctionType::get(llvm::Type::getInt32Ty(context), false);
-    llvm::Function* mainFunction = llvm::Function::Create(mainType, llvm::Function::ExternalLinkage, "main", module);
+    llvm::Function* mainFunction = llvm::Function::Create(mainType, llvm::Function::ExternalLinkage, "main", *module);
 
     llvm::BasicBlock* entry = llvm::BasicBlock::Create(context, "entry", mainFunction);
     builder.SetInsertPoint(entry);

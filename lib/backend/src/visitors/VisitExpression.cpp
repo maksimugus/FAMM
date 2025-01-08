@@ -176,7 +176,7 @@ llvm::Value* LLVMIRGenerator::visitConstantExpression(FAMMParser::ConstantContex
 llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCallContext* node) {
     const std::string funcName = node->IDENTIFIER()->getText();
 
-    llvm::Function* function = module.getFunction(funcName);
+    llvm::Function* function = module->getFunction(funcName);
     if (!function) {
         throw std::runtime_error("Function " + funcName + " not found in module");
     }
