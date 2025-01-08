@@ -5,9 +5,9 @@ llvm::Value* LLVMIRGenerator::visitStatement(FAMMParser::StatementContext* node)
     if (const auto declWithDef = dynamic_cast<FAMMParser::DeclarationWithDefinitionStatementContext*>(node)) {
         return visitDeclarationWithDefinition(declWithDef->declarationWithDefinition());
     }
-    //     if (const auto declWithoutDef = dynamic_cast<FAMMParser::DeclarationWithoutDefinitionContext*>(node)) {
-    //         return visitDeclarationWithoutDefinition(declWithoutDef);
-    //     } // TODO
+    if (const auto declWithoutDef = dynamic_cast<FAMMParser::DeclarationWithoutDefinitionStatementContext*>(node)) {
+        return visitDeclarationWithoutDefinition(declWithoutDef->declarationWithoutDefinition());
+    }
     if (const auto definition = dynamic_cast<FAMMParser::DefinitionStatementContext*>(node)) {
         return visitDefinition(definition->definition());
     }
@@ -21,6 +21,32 @@ llvm::Value* LLVMIRGenerator::visitStatement(FAMMParser::StatementContext* node)
     }
 
     throw std::runtime_error("Unknown statement context");
+}
+
+llvm::Value* LLVMIRGenerator::visitDeclarationWithoutDefinition(FAMMParser::DeclarationWithoutDefinitionContext* node) {
+    // Extract the variable name and type
+    for (const auto identifier : node->IDENTIFIER()) {
+        std::string variableName = identifier->getText();
+
+        auto typeContext= node->type();
+        std::string variableType = visitType(typeContext);
+        llvm::Type* llvmType = getLLVMType(variableType);
+        llvm::Function* currentFunction = builder.GetInsertBlock()->getParent();
+        llvm::IRBuilder<> tempBuilder(&currentFunction->getEntryBlock(), currentFunction->getEntryBlock().begin());
+
+        llvm::AllocaInst* alloca = tempBuilder.CreateAlloca(llvmType, nullptr, variableName);
+
+        if (!scopeStack.empty()) {
+            if (!scopeStack.back().variables.contains(variableName)) {
+                scopeStack.back().variables[variableName] = alloca;
+            } else {
+                throw std::runtime_error("Variable: \'" + variableName + "\' is already exists in scope");
+            }
+        } else {
+            throw std::runtime_error("No active scope to declare variable.");
+        }
+    }
+    return nullptr;
 }
 
 llvm::Value* LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node) {

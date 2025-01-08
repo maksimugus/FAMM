@@ -54,11 +54,11 @@ public:
     llvm::Value* visitStatement(FAMMParser::StatementContext* node); // big if
 
     llvm::Value* visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node);
+    llvm::Value* visitDeclarationWithoutDefinition(FAMMParser::DeclarationWithoutDefinitionContext* node);
     llvm::Value* visitReturnStatement(FAMMParser::ReturnStatementContext* returnCtx);
     llvm::Value* visitDefinition(FAMMParser::DefinitionContext* node);
 
     llvm::Value* visitBlock(FAMMParser::BlockContext* block);  // big if
-
     llvm::Value* visitFunctionBlock(FAMMParser::FunctionBlockContext* node);
     llvm::Value* visitIfBlock(FAMMParser::IfBlockContext* ifBlockCtx);
     llvm::Value* visitWhileBlock(FAMMParser::WhileBlockContext* whileBlockCtx);
@@ -66,8 +66,6 @@ public:
 
     llvm::Value* visitScope(FAMMParser::ScopeContext* scope);
     llvm::Value* visitLine(FAMMParser::LineContext* node);  // big if
-
-
 private:
     llvm::LLVMContext context;
     llvm::IRBuilder<> builder;
