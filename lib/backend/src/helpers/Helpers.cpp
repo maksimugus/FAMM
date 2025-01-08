@@ -43,8 +43,8 @@ llvm::Value* display(const std::unique_ptr<llvm::Module>& llvm_module, llvm::IRB
     for (llvm::Value* val : values) {
         if (const llvm::Type* valTy = val->getType(); valTy->isIntegerTy(1)) {
             val = builder.CreateIntCast(val, llvm::Type::getInt32Ty(context), false);
-        } else if (valTy->isIntegerTy() && valTy->getIntegerBitWidth() < 32) {
-            val = builder.CreateIntCast(val, llvm::Type::getInt32Ty(context), false);
+        } else if (valTy->isIntegerTy() && valTy->getIntegerBitWidth() < 64) {
+            val = builder.CreateIntCast(val, llvm::Type::getInt64Ty(context), false);
         } else if (valTy->isFloatingPointTy() && valTy->getPrimitiveSizeInBits() < 64) {
             val = builder.CreateFPExt(val, llvm::Type::getDoubleTy(context));
         }

@@ -1,4 +1,5 @@
 #include "Visitor.h"
+#include "helpers/Helpers.h"
 
 llvm::Value* LLVMIRGenerator::visitExpression(FAMMParser::ExpressionContext* expressionContext) {
     if (const auto addSubCtx = dynamic_cast<FAMMParser::AddSubExpressionContext*>(expressionContext)) {
@@ -176,11 +177,6 @@ llvm::Value* LLVMIRGenerator::visitConstantExpression(FAMMParser::ConstantContex
 llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCallContext* node) {
     const std::string funcName = node->IDENTIFIER()->getText();
 
-    llvm::Function* function = module->getFunction(funcName);
-    if (!function) {
-        throw std::runtime_error("Function " + funcName + " not found in module");
-    }
-
     std::vector<llvm::Value*> args;
     for (const auto exprCtx : node->expression()) {
         llvm::Value* arg = execute(exprCtx);
@@ -188,6 +184,15 @@ llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCa
             throw std::runtime_error("Error processing function argument " + funcName);
         }
         args.push_back(arg);
+    }
+
+    if (funcName == "display") {
+        return display(module, builder, "", args);
+    }
+
+    llvm::Function* function = module->getFunction(funcName);
+    if (!function) {
+        throw std::runtime_error("Function " + funcName + " not found in module");
     }
 
     if (args.size() != function->arg_size()) {
