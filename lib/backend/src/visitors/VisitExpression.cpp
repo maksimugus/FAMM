@@ -85,7 +85,7 @@ llvm::Value* LLVMIRGenerator::visitCompareExpression(FAMMParser::CompareExpressi
     llvm::Value* left  = execute(compareCtx->expression(0));
     llvm::Value* right = execute(compareCtx->expression(1));
 
-    const llvm::Type* leftType        = left->getType();
+    const llvm::Type* leftType  = left->getType();
     const llvm::Type* rightType = right->getType();
 
     EnsureTypeEq(leftType, rightType);
@@ -151,11 +151,13 @@ llvm::Value* LLVMIRGenerator::visitConstantExpression(FAMMParser::ConstantContex
         const int intValue = std::stoi(constantContext->INTEGER_LIT()->getText());
         return llvm::ConstantInt::get(llvm::Type::getInt64Ty(*context), intValue, true);
     }
+
     if (constantContext->FLOAT_LIT()) {
         // Convert the float literal text to a float value
         const float floatValue = std::stof(constantContext->FLOAT_LIT()->getText());
         return llvm::ConstantFP::get(llvm::Type::getFloatTy(*context), floatValue);
     }
+
     if (constantContext->STRING_LIT()) {
         // Get the string literal text, assuming it is properly escaped
         std::string strValue = constantContext->STRING_LIT()->getText();
@@ -163,13 +165,34 @@ llvm::Value* LLVMIRGenerator::visitConstantExpression(FAMMParser::ConstantContex
         strValue = strValue.substr(1, strValue.length() - 2);
         return builder.CreateGlobalStringPtr(strValue, "strtmp");
     }
+
     if (constantContext->BOOL_LIT()) {
         // Convert the boolean literal text to a boolean value
-        const bool boolValue = (constantContext->BOOL_LIT()->getText() == "true");
+        const bool boolValue = constantContext->BOOL_LIT()->getText() == "true";
         return llvm::ConstantInt::get(llvm::Type::getInt1Ty(*context), boolValue, false);
     }
-    // TODO: не хватает массива
-    //    llvm::ConstantArray
+
+    if (auto *arrayLiteral = constantContext->arrayLiteral()) {
+        auto expressions = arrayLiteral->expression();
+        llvm::Value* firstElement = visitExpression(expressions[0]);
+        llvm::Type* elementType = firstElement->getType();
+
+        std::vector<llvm::Constant*> elements;
+        for (auto *expression : expressions) {
+            llvm::Value* elementValue = visitExpression(expression);
+            if (elementValue->getType() != elementType) {
+                throw std::runtime_error("Type mismatch in array elements.");
+            }
+
+            auto *constantElement = llvm::dyn_cast<llvm::Constant>(elementValue);
+
+            elements.push_back(constantElement);
+        }
+
+        auto *arrayType = llvm::ArrayType::get(elementType, elements.size());
+        return llvm::ConstantArray::get(arrayType, elements);
+    }
+
     throw std::runtime_error("Unknown constant type");
 }
 
