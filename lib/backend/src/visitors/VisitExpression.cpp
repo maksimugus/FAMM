@@ -183,7 +183,7 @@ llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCa
 
     std::vector<llvm::Value*> args;
     for (const auto exprCtx : node->expression()) {
-        llvm::Value* arg = visitExpression(exprCtx);
+        llvm::Value* arg = execute(exprCtx);
         if (!arg) {
             throw std::runtime_error("Error processing function argument " + funcName);
         }

@@ -2,6 +2,7 @@
 #include <llvm/IR/Verifier.h>
 
 llvm::Value* LLVMIRGenerator::visitProgram(FAMMParser::ProgramContext* node) {
+    // TODO очень похоже на scope
     enterScope(); // Глобальный скопец
 
     llvm::FunctionType* mainType = llvm::FunctionType::get(llvm::Type::getInt32Ty(context), false);
