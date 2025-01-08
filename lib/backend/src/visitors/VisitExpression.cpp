@@ -3,23 +3,32 @@
 llvm::Value* LLVMIRGenerator::visitExpression(FAMMParser::ExpressionContext* expressionContext) {
     if (const auto addSubCtx = dynamic_cast<FAMMParser::AddSubExpressionContext*>(expressionContext)) {
         return visitAddSubExpression(addSubCtx);
-    } else if (const auto mulDivCtx = dynamic_cast<FAMMParser::MulDivExpressionContext*>(expressionContext)) {
+    }
+    if (const auto mulDivCtx = dynamic_cast<FAMMParser::MulDivExpressionContext*>(expressionContext)) {
         return visitMulDivExpression(mulDivCtx);
-    } else if (const auto constCtx = dynamic_cast<FAMMParser::ConstantExpressionContext*>(expressionContext)) {
-        return visitConstant(constCtx->constant());
-    } else if (auto parenCtx = dynamic_cast<FAMMParser::ParenExpressionContext*>(expressionContext)) {
+    }
+    if (const auto constCtx = dynamic_cast<FAMMParser::ConstantExpressionContext*>(expressionContext)) {
+        return visitConstantExpression(constCtx->constant());
+    }
+    if (const auto parenCtx = dynamic_cast<FAMMParser::ParenExpressionContext*>(expressionContext)) {
         return visitExpression(parenCtx->expression());
-    } else if (auto compareCtx = dynamic_cast<FAMMParser::CompareExpressionContext*>(expressionContext)) {
+    }
+    if (const auto compareCtx = dynamic_cast<FAMMParser::CompareExpressionContext*>(expressionContext)) {
         return visitCompareExpression(compareCtx);
-    } else if (auto boolCtx = dynamic_cast<FAMMParser::BoolExpressionContext*>(expressionContext)) {
+    }
+    if (const auto boolCtx = dynamic_cast<FAMMParser::BoolExpressionContext*>(expressionContext)) {
         return visitBoolExpression(boolCtx);
-    } else if (auto negationCtx = dynamic_cast<FAMMParser::NegationExpressionContext*>(expressionContext)) {
+    }
+    if (const auto negationCtx = dynamic_cast<FAMMParser::NegationExpressionContext*>(expressionContext)) {
         return visitNegationExpression(negationCtx);
-    } else if (auto funcCallCtx = dynamic_cast<FAMMParser::FunctionCallExpressionContext*>(expressionContext)) {
-        return visitFunctionCall(funcCallCtx->functionCall());
-    } else if (auto identCtx = dynamic_cast<FAMMParser::IdentifierExpressionContext*>(expressionContext)) {
+    }
+    if (const auto funcCallCtx = dynamic_cast<FAMMParser::FunctionCallExpressionContext*>(expressionContext)) {
+        return visitFunctionCallExpression(funcCallCtx->functionCall());
+    }
+    if (const auto identCtx = dynamic_cast<FAMMParser::IdentifierExpressionContext*>(expressionContext)) {
         return visitIdentifierExpression(identCtx);
-    } else if (auto negativeCtx = dynamic_cast<FAMMParser::NegativeExpressionContext*>(expressionContext)) {
+    }
+    if (const auto negativeCtx = dynamic_cast<FAMMParser::NegativeExpressionContext*>(expressionContext)) {
         return visitNegativeExpression(negativeCtx);
     }
 
@@ -27,27 +36,27 @@ llvm::Value* LLVMIRGenerator::visitExpression(FAMMParser::ExpressionContext* exp
 }
 
 llvm::Value* LLVMIRGenerator::visitIdentifierExpression(FAMMParser::IdentifierExpressionContext* identCtx) {
-    std::string varName = identCtx->IDENTIFIER()->getText();
+    const std::string varName = identCtx->IDENTIFIER()->getText();
 
     llvm::AllocaInst* alloca = findVariable(varName);
     return builder.CreateLoad(alloca->getAllocatedType(), alloca, varName + "_load");
 }
 
 llvm::Value* LLVMIRGenerator::visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx) {
-    llvm::Value* exprValue = visitExpression(negativeCtx->expression());
+    llvm::Value* exprValue = execute(negativeCtx->expression());
 
     if (exprValue->getType()->isIntegerTy()) {
         return builder.CreateNeg(exprValue, "negtmp");
-    } else if (exprValue->getType()->isFloatingPointTy()) {
-        return builder.CreateFNeg(exprValue, "negtmp");
-    } else {
-        throw std::runtime_error("Unsupported type for negation in visitNegativeExpression");
     }
+    if (exprValue->getType()->isFloatingPointTy()) {
+        return builder.CreateFNeg(exprValue, "negtmp");
+    }
+    throw std::runtime_error("Unsupported type for negation in visitNegativeExpression");
 }
 
 llvm::Value* LLVMIRGenerator::visitBoolExpression(FAMMParser::BoolExpressionContext* boolCtx) {
-    llvm::Value* left = visitExpression(boolCtx->expression(0));
-    llvm::Value* right = visitExpression(boolCtx->expression(1));
+    llvm::Value* left  = execute(boolCtx->expression(0));
+    llvm::Value* right = execute(boolCtx->expression(1));
 
     EnsureTypeEq(left->getType(), right->getType());
 
@@ -66,19 +75,18 @@ llvm::Value* LLVMIRGenerator::visitBoolExpression(FAMMParser::BoolExpressionCont
 }
 
 llvm::Value* LLVMIRGenerator::visitNegationExpression(FAMMParser::NegationExpressionContext* negationCtx) {
-    llvm::Value* value = visitExpression(negationCtx->expression());
-    if (value->getType()->isIntegerTy(1)) {
+    if (llvm::Value* value = execute(negationCtx->expression()); value->getType()->isIntegerTy(1)) {
         return builder.CreateNot(value, "nottmp");
     }
     throw std::runtime_error("Unsupported type of value in bool operation.");
 }
 
 llvm::Value* LLVMIRGenerator::visitCompareExpression(FAMMParser::CompareExpressionContext* compareCtx) {
-    llvm::Value* left  = visitExpression(compareCtx->expression(0));
-    llvm::Value* right = visitExpression(compareCtx->expression(1));
+    llvm::Value* left  = execute(compareCtx->expression(0));
+    llvm::Value* right = execute(compareCtx->expression(1));
 
-    llvm::Type* leftType  = left->getType();
-    llvm::Type* rightType = right->getType();
+    const llvm::Type* leftType        = left->getType();
+    const llvm::Type* rightType = right->getType();
 
     EnsureTypeEq(leftType, rightType);
 
@@ -96,8 +104,8 @@ llvm::Value* LLVMIRGenerator::visitCompareExpression(FAMMParser::CompareExpressi
 }
 
 llvm::Value* LLVMIRGenerator::visitAddSubExpression(FAMMParser::AddSubExpressionContext* addSubCtx) {
-    llvm::Value* left  = visitExpression(addSubCtx->expression(0));
-    llvm::Value* right = visitExpression(addSubCtx->expression(1));
+    llvm::Value* left  = execute(addSubCtx->expression(0));
+    llvm::Value* right = execute(addSubCtx->expression(1));
 
     EnsureTypeEq(left->getType(), right->getType());
 
@@ -113,8 +121,8 @@ llvm::Value* LLVMIRGenerator::visitAddSubExpression(FAMMParser::AddSubExpression
 }
 
 llvm::Value* LLVMIRGenerator::visitMulDivExpression(FAMMParser::MulDivExpressionContext* mulDivCtx) {
-    llvm::Value* left  = visitExpression(mulDivCtx->expression(0));
-    llvm::Value* right = visitExpression(mulDivCtx->expression(1));
+    llvm::Value* left  = execute(mulDivCtx->expression(0));
+    llvm::Value* right = execute(mulDivCtx->expression(1));
 
     EnsureTypeEq(left->getType(), right->getType());
     // TODO че делать со стрингами ёлы палы
@@ -137,26 +145,54 @@ llvm::Value* LLVMIRGenerator::visitMulDivExpression(FAMMParser::MulDivExpression
     throw RuntimeException("Invalid operation. Possible operations: + or -");
 }
 
-llvm::Value* LLVMIRGenerator::visitConstant(FAMMParser::ConstantContext* constantContext) {
+llvm::Value* LLVMIRGenerator::visitConstantExpression(FAMMParser::ConstantContext* constantContext) {
     if (constantContext->INTEGER_LIT()) {
         // Convert the integer literal text to an integer value
-        int intValue = std::stoi(constantContext->INTEGER_LIT()->getText());
+        const int intValue = std::stoi(constantContext->INTEGER_LIT()->getText());
         return llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), intValue, true);
-    } else if (constantContext->FLOAT_LIT()) {
+    }
+    if (constantContext->FLOAT_LIT()) {
         // Convert the float literal text to a float value
-        float floatValue = std::stof(constantContext->FLOAT_LIT()->getText());
+        const float floatValue = std::stof(constantContext->FLOAT_LIT()->getText());
         return llvm::ConstantFP::get(llvm::Type::getFloatTy(context), floatValue);
-    } else if (constantContext->STRING_LIT()) {
+    }
+    if (constantContext->STRING_LIT()) {
         // Get the string literal text, assuming it is properly escaped
         std::string strValue = constantContext->STRING_LIT()->getText();
         // Remove quotes if necessary
         strValue = strValue.substr(1, strValue.length() - 2);
         return builder.CreateGlobalStringPtr(strValue, "strtmp");
-    } else if (constantContext->BOOL_LIT()) {
-        // Convert the boolean literal text to a boolean value
-        bool boolValue = (constantContext->BOOL_LIT()->getText() == "true");
-        return llvm::ConstantInt::get(llvm::Type::getInt1Ty(context), boolValue, false);
     } // TODO: не хватает массива
-//    llvm::ConstantArray
+    if (constantContext->BOOL_LIT()) {
+        // Convert the boolean literal text to a boolean value
+        const bool boolValue = (constantContext->BOOL_LIT()->getText() == "true");
+        return llvm::ConstantInt::get(llvm::Type::getInt1Ty(context), boolValue, false);
+    }
+    // TODO: не хватает массива
+    //    llvm::ConstantArray
     throw std::runtime_error("Unknown constant type");
+}
+
+llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCallContext* node) {
+    const std::string funcName = node->IDENTIFIER()->getText();
+
+    llvm::Function* function = module.getFunction(funcName);
+    if (!function) {
+        throw std::runtime_error("Function " + funcName + " not found in module");
+    }
+
+    std::vector<llvm::Value*> args;
+    for (const auto exprCtx : node->expression()) {
+        llvm::Value* arg = execute(exprCtx);
+        if (!arg) {
+            throw std::runtime_error("Error processing function argument " + funcName);
+        }
+        args.push_back(arg);
+    }
+
+    if (args.size() != function->arg_size()) {
+        throw std::runtime_error("Inconsistency in the number of arguments in a function call " + funcName);
+    }
+
+    return builder.CreateCall(function, args, funcName + "_call");
 }

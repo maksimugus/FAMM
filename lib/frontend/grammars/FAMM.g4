@@ -2,43 +2,52 @@ grammar FAMM;
 
 program: line* EOF;
 
-line: (expression | statement | ifBlock | whileBlock | forBlock | functionDefinition) SEMICOLON;
+line
+    : expression SEMICOLON     # ExpressionLine
+    | statement SEMICOLON      # StatementLine
+    ;
 
-statement: declaration | definition | functionCall | returnStatement;
+// любая конструкция
+statement
+    : declarationWithDefinition      # DeclarationWithDefinitionStatement
+    | declarationWithoutDefinition   # DeclarationWithoutDefinitionStatement
+    | definition                     # DefinitionStatement
+    | RETURN expression?             # ReturnStatement
+    | block                          # BlockStatement
+    ;
 
-ifBlock: IF LPAR expression RPAR block (ELSE block)?;
+block
+    : IF LPAR expression RPAR scope (ELSE scope)?                                    # IfBlock
+    | WHILE LPAR expression RPAR scope                                               # WhileBlock
+    | FOR LPAR declarationWithDefinition ARROW expression BY expression RPAR scope   # ForBlock
+    | FUNC IDENTIFIER LPAR parameterList? RPAR COLON type ASSIGNMENT scope           # FunctionBlock
+    ;
 
-whileBlock: WHILE LPAR expression RPAR block;
 
-forBlock: FOR LPAR declarationWithDefinition ARROW expression BY expression RPAR block;
-
-block: LBRACE line* RBRACE;
-
-declaration: declarationWithoutDefinition | declarationWithDefinition;
-declarationWithDefinition: VAR IDENTIFIER COLON type ASSIGNMENT expression; // var i: int = 2;
-declarationWithoutDefinition: VAR IDENTIFIER (COMMA IDENTIFIER)* COLON type; // var i: int;
-definition: IDENTIFIER assignmentOp expression; // a += 3, a = 3
-
-functionCall: IDENTIFIER LPAR (expression (COMMA expression)*)? RPAR;
-functionDefinition: FUNC IDENTIFIER LPAR parameterList? RPAR COLON type ASSIGNMENT block;
 parameterList: parameter (COMMA parameter)*;
 parameter: IDENTIFIER COLON type;
 
-returnStatement: RETURN expression?;
+scope: LBRACE line* RBRACE;
+
+definition: IDENTIFIER assignmentOp expression;
+declarationWithDefinition: VAR IDENTIFIER COLON type ASSIGNMENT expression;
+declarationWithoutDefinition: VAR IDENTIFIER (COMMA IDENTIFIER)* COLON type;
 
 expression
-    : constant                                 # ConstantExpression // константа
-    | functionCall                             # FunctionCallExpression // вызов функции
-    | IDENTIFIER                               # IdentifierExpression // переменная
-    | expression LBRACKET expression RBRACKET  # ArrayAccessExpression // обращение к массиву
-    | LPAR expression RPAR                     # ParenExpression // в скобочках выражение
-    | NOT expression                           # NegationExpression // отрицание
-    | MINUS expression                         # NegativeExpression // унарный минус
-    | expression multOp expression             # MulDivExpression // умножение
-    | expression addOp expression              # AddSubExpression // сложение
-    | expression compareOp expression          # CompareExpression // сравнение
-    | expression boolOp expression             # BoolExpression // булевы операции
+    : constant                                 # ConstantExpression
+    | functionCall                             # FunctionCallExpression
+    | IDENTIFIER                               # IdentifierExpression
+    | expression LBRACKET expression RBRACKET  # ArrayAccessExpression
+    | LPAR expression RPAR                     # ParenExpression
+    | NOT expression                           # NegationExpression
+    | MINUS expression                         # NegativeExpression
+    | expression multOp expression             # MulDivExpression
+    | expression addOp expression              # AddSubExpression
+    | expression compareOp expression          # CompareExpression
+    | expression boolOp expression             # BoolExpression
     ;
+
+functionCall: IDENTIFIER LPAR (expression (COMMA expression)*)? RPAR;
 
 assignmentOp // =, += и подобные
     : ASSIGNMENT
@@ -57,11 +66,8 @@ boolOp: AND | OR;
 
 type : baseType | arrayType;
 
-arrayType : LBRACKET type COMMA INTEGER_LIT RBRACKET;
-
-// var a: [int, 3] = [1,2,3]
-// var a: [[int, 1], 3] = [[1],[2],[3]]
-// var a: [[int, ?], 3] = [[1, 3],[2],[3]] # error
+arrayType: LBRACKET type COMMA size RBRACKET;
+size: INTEGER_LIT;
 
 baseType
     : INT
@@ -79,9 +85,7 @@ constant
     | arrayLiteral
     ;
 
-arrayLiteral
-    : LBRACKET (expression (COMMA expression)*)? RBRACKET
-    ;
+arrayLiteral: LBRACKET (expression (COMMA expression)*)? RBRACKET;
 
 VAR: 'var';
 FUNC: 'func';
