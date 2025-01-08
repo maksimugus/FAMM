@@ -140,6 +140,9 @@ llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContex
     llvm::Function* function =
         llvm::Function::Create(functionType, llvm::Function::ExternalLinkage, functionName, &module);
 
+    // Запомним блок
+    llvm::BasicBlock* prevBlock = builder.GetInsertBlock();
+
     // Create a new basic block to start insertion into
     llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(context, "entry", function);
     builder.SetInsertPoint(basicBlock);
@@ -150,18 +153,21 @@ llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContex
         arg.setName(node->parameterList()->parameter(idx)->IDENTIFIER()->getText());
         llvm::AllocaInst* alloca = builder.CreateAlloca(arg.getType(), nullptr, arg.getName());
         builder.CreateStore(&arg, alloca);
+        enterScope();
         scopeStack.back().variables.insert({arg.getName().str(), alloca});
 
         idx++;
     }
 
     // Visit the function body (block)
-    execute(node->scope()); // TODO
+    execute(node->scope());
 
     // Validate the generated code
     llvm::verifyFunction(*function);
 
-    return function;
+    builder.SetInsertPoint(prevBlock);
+
+    return module.getFunction("main");;
 }
 
 
