@@ -5,12 +5,11 @@ if (NOT LLVM_FOUND)
 endif()
 
 # Specify the LLVM components you need
-llvm_map_components_to_libnames(LLVM_LIBS Core
+llvm_map_components_to_libnames(LLVM_LIBS
+        Core
         Support
         Target
-        TargetInfo
-#        AsmParser
-#        MMC
+        native
 )
 # Specify the source files for the backend library
 set(SOURCE_FILES

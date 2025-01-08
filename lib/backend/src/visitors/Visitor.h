@@ -35,18 +35,19 @@ public:
     llvm::Value* visitConstantExpression(FAMMParser::ConstantContext* constantContext);
     llvm::Value* visitAddSubExpression(FAMMParser::AddSubExpressionContext* addSubCtx);
     llvm::Value* visitMulDivExpression(FAMMParser::MulDivExpressionContext* mulDivCtx);
-    llvm::Value* createIntComparison(
-        FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
-    llvm::Value* createFloatComparison(
-        FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
-    llvm::Value* createBoolComparison(
-        FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
     llvm::Value* visitCompareExpression(FAMMParser::CompareExpressionContext* compareCtx);
     llvm::Value* visitBoolExpression(FAMMParser::BoolExpressionContext* boolCtx);
     llvm::Value* visitNegationExpression(FAMMParser::NegationExpressionContext* negationCtx);
     llvm::Value* visitFunctionCallExpression(FAMMParser::FunctionCallContext* node);
     llvm::Value* visitIdentifierExpression(FAMMParser::IdentifierExpressionContext* identCtx);
     llvm::Value* visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx);
+
+    llvm::Value* createIntComparison(
+        FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
+    llvm::Value* createFloatComparison(
+        FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
+    llvm::Value* createBoolComparison(
+        FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
 
 
     llvm::Type* getLLVMType(const std::string& typeStr);

@@ -74,11 +74,9 @@ int main(int argc, const char* argv[]) {
     visitor.printIR();
     // visitor
 
-    llvm::InitializeAllTargetInfos();
-    llvm::InitializeAllTargets();
-    llvm::InitializeAllTargetMCs();
-    llvm::InitializeAllAsmParsers();
-    llvm::InitializeAllAsmPrinters();
+    llvm::InitializeNativeTarget();
+    llvm::InitializeNativeTargetAsmParser();
+    llvm::InitializeNativeTargetAsmPrinter();
 
     // if (compileMode) {
     compile(visitor, "output.o");
