@@ -62,7 +62,11 @@ llvm::Value* LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::Declara
     llvm::AllocaInst* alloca = tempBuilder.CreateAlloca(llvmType, nullptr, variableName);
 
     if (!scopeStack.empty()) {
-        scopeStack.back().variables[variableName] = alloca;
+        if (!scopeStack.back().variables.contains(variableName)) {
+            scopeStack.back().variables[variableName] = alloca;
+        } else {
+            throw std::runtime_error("Variable: \'" + variableName + "\' is already exists in scope");
+        }
     } else {
         throw std::runtime_error("No active scope to declare variable.");
     }

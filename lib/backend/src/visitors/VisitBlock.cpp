@@ -105,7 +105,7 @@ llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContex
     const std::string functionName = node->IDENTIFIER()->getText();
     llvm::Type* returnType;
     if (node->NIH_LIT()) {
-        returnType = llvm::Type::getVoidTy(context);
+        returnType = llvm::Type::getVoidTy(*context);
     } else {
         returnType = getLLVMType(visitType(node->type()));
     }
@@ -151,7 +151,7 @@ llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContex
     builder.SetInsertPoint(prevBlock);
     exitScope();
 
-    return module.getFunction("main");;
+    return module->getFunction("main");;
 }
 
 

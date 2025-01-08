@@ -79,7 +79,7 @@ int main(int argc, const char* argv[]) {
     llvm::InitializeNativeTargetAsmPrinter();
 
     // if (compileMode) {
-    compile(visitor, "output.o");
+    // compile(visitor, "output.o");
     // } else {
     // runJIT(visitor.getModule());
     // }
