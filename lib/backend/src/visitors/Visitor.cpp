@@ -37,6 +37,9 @@ std::any LLVMIRGenerator::visit(tree::ParseTree* node) {
     if (const auto scope = dynamic_cast<FAMMParser::ScopeContext*>(node)) {
         return visitScope(scope);
     }
+    if (const auto declWithDef = dynamic_cast<FAMMParser::DeclarationWithDefinitionContext*>(node)) {
+        return visitDeclarationWithDefinition(declWithDef);
+    }
     return nullptr;
 }
 
@@ -52,5 +55,3 @@ llvm::AllocaInst* LLVMIRGenerator::findVariable(const std::string& name) {
     }
     throw std::runtime_error("Variable '" + name + "' not found in any active scope.");
 }
-
-

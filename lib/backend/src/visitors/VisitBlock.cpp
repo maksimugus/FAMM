@@ -56,68 +56,46 @@ llvm::Value* LLVMIRGenerator::visitWhileBlock(FAMMParser::WhileBlockContext* whi
 
 
 llvm::Value* LLVMIRGenerator::visitForBlock(FAMMParser::ForBlockContext* forBlockCtx) {
-    // llvm::Function* currentFunction = builder.GetInsertBlock()->getParent(); // TODO
-    //
-    // // Create basic blocks for loop components
-    // llvm::BasicBlock* loopCondBB = llvm::BasicBlock::Create(context, "loopcond", currentFunction);
-    // llvm::BasicBlock* loopBodyBB = llvm::BasicBlock::Create(context, "loopbody", currentFunction);
-    // llvm::BasicBlock* loopIncBB = llvm::BasicBlock::Create(context, "loopinc", currentFunction);
-    // llvm::BasicBlock* afterLoopBB = llvm::BasicBlock::Create(context, "afterloop", currentFunction);
-    //
-    // // Generate code for initialization
-    // visitDeclarationWithDefinition(forBlockCtx->declarationWithDefinition());
-    //
-    // // Get the loop variable's name and AllocaInst
-    // std::string loopVarName = forBlockCtx->declarationWithDefinition()->IDENTIFIER()->getText();
-    // llvm::AllocaInst* loopVarAlloca = namedValues[loopVarName];
-    //
-    // // Jump to loop condition
-    // builder.CreateBr(loopCondBB);
-    //
-    // // Set insertion point to loop condition block
-    // builder.SetInsertPoint(loopCondBB);
-    //
-    // // Load the loop variable
-    // llvm::Value* loopVar = builder.CreateLoad(loopVarAlloca->getAllocatedType(), loopVarAlloca, loopVarName);
-    //
-    // // Visit the end value expression
-    // const auto endValue = std::any_cast<llvm::Value*>(visit(forBlockCtx->expression(0)));
-    //
-    // // Compare loop variable with end value
-    // llvm::Value* condVal = builder.CreateICmpSLT(loopVar, endValue, "loopcond");
-    //
-    // // Conditional branch to loop body or after loop
-    // builder.CreateCondBr(condVal, loopBodyBB, afterLoopBB);
-    //
-    // // Set insertion point to loop body block
-    // builder.SetInsertPoint(loopBodyBB);
-    //
-    // // Visit the loop body block
-    // visitBlock(forBlockCtx->block());
-    //
-    // // Branch to increment block after loop body
-    // builder.CreateBr(loopIncBB);
-    //
-    // // Set insertion point to increment block
-    // builder.SetInsertPoint(loopIncBB);
-    //
-    // // Load the loop variable again
-    // loopVar = builder.CreateLoad(loopVarAlloca->getAllocatedType(), loopVarAlloca, loopVarName);
-    //
-    // // Visit the step value expression
-    // const auto stepValue = std::any_cast<llvm::Value*>(visit(forBlockCtx->expression(1)));
-    //
-    // // Compute the new value for loop variable
-    // llvm::Value* nextValue = builder.CreateAdd(loopVar, stepValue, "nextValue");
-    //
-    // // Store the updated value back to the loop variable
-    // builder.CreateStore(nextValue, loopVarAlloca);
-    //
-    // // Branch back to loop condition
-    // builder.CreateBr(loopCondBB);
-    //
-    // // Set insertion point to the block after the loop
-    // builder.SetInsertPoint(afterLoopBB);
+    llvm::Function* currentFunction = builder.GetInsertBlock()->getParent();
+
+    // Создание базовых блоков для цикла
+    llvm::BasicBlock* loopCondBB  = llvm::BasicBlock::Create(context, "loopcond", currentFunction);
+    llvm::BasicBlock* loopBodyBB  = llvm::BasicBlock::Create(context, "loopbody", currentFunction);
+    llvm::BasicBlock* loopIncBB   = llvm::BasicBlock::Create(context, "loopinc", currentFunction);
+    llvm::BasicBlock* afterLoopBB = llvm::BasicBlock::Create(context, "afterloop", currentFunction);
+
+    // Инициализация переменной цикла
+    execute(forBlockCtx->declarationWithDefinition());
+    const std::string loopVarName = forBlockCtx->declarationWithDefinition()->IDENTIFIER()->getText();
+    llvm::AllocaInst* loopVarAlloca = findVariable(loopVarName);
+
+    // Переход на блок условие
+    builder.CreateBr(loopCondBB);
+    builder.SetInsertPoint(loopCondBB);
+
+    // Загрузка текущего значения переменной цикла
+    llvm::Value* loopVar = builder.CreateLoad(loopVarAlloca->getAllocatedType(), loopVarAlloca, loopVarName);
+
+    // Условие выхода из цикла
+    llvm::Value* endValue = execute(forBlockCtx->expression(0));
+    llvm::Value* condVal = builder.CreateICmpSLT(loopVar, endValue, "loopcond");
+    builder.CreateCondBr(condVal, loopBodyBB, afterLoopBB);
+
+    // Тело цикла
+    builder.SetInsertPoint(loopBodyBB);
+    execute(forBlockCtx->scope());
+    builder.CreateBr(loopIncBB);
+
+    // Блок инкремента
+    builder.SetInsertPoint(loopIncBB);
+    loopVar = builder.CreateLoad(loopVarAlloca->getAllocatedType(), loopVarAlloca, loopVarName);
+    llvm::Value* stepValue = execute(forBlockCtx->expression(1));
+    llvm::Value* nextValue = builder.CreateAdd(loopVar, stepValue, "nextValue");
+    builder.CreateStore(nextValue, loopVarAlloca);
+    builder.CreateBr(loopCondBB);
+
+    // Переход к блоку после цикла
+    builder.SetInsertPoint(afterLoopBB);
 
     return nullptr;
 }
