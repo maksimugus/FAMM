@@ -149,7 +149,7 @@ llvm::Value* LLVMIRGenerator::visitConstantExpression(FAMMParser::ConstantContex
     if (constantContext->INTEGER_LIT()) {
         // Convert the integer literal text to an integer value
         const int intValue = std::stoi(constantContext->INTEGER_LIT()->getText());
-        return llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context), intValue, true);
+        return llvm::ConstantInt::get(llvm::Type::getInt64Ty(*context), intValue, true);
     }
     if (constantContext->FLOAT_LIT()) {
         // Convert the float literal text to a float value

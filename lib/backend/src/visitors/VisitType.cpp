@@ -3,7 +3,7 @@
 llvm::Type* LLVMIRGenerator::getLLVMType(FAMMParser::TypeContext* typeContext) {
     if (auto baseType = typeContext->baseType()) {
         if (baseType->INT()) {
-            return llvm::Type::getInt32Ty(*context);
+            return llvm::Type::getInt64Ty(*context);
         }
 
         if (baseType->FLOAT()) {
