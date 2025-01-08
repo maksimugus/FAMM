@@ -25,11 +25,12 @@ std::any LLVMIRGenerator::visit(tree::ParseTree* node) {
     if (const auto program = dynamic_cast<FAMMParser::ProgramContext*>(node)) {
         return visitProgram(program);
     }
-
-    if (const auto line = dynamic_cast<FAMMParser::LineContext*>(node)) {
-        return visitLine(line);
+    if (const auto expr = dynamic_cast<FAMMParser::ExpressionContext*>(node)) {
+        return visitExpression(expr);
     }
-
+    if (const auto stat = dynamic_cast<FAMMParser::StatementContext*>(node)) {
+        return visitStatement(stat);
+    }
     return nullptr;
 }
 

@@ -2,8 +2,8 @@
 
 
 llvm::Value* LLVMIRGenerator::visitStatement(FAMMParser::StatementContext* node) {
-    if (const auto declWithDef = dynamic_cast<FAMMParser::DeclarationWithDefinitionContext*>(node)) {
-        return visitDeclarationWithDefinition(declWithDef);
+    if (const auto declWithDef = dynamic_cast<FAMMParser::DeclarationWithDefinitionStatementContext*>(node)) {
+        return visitDeclarationWithDefinition(declWithDef->declarationWithDefinition());
     }
     //     if (const auto declWithoutDef = dynamic_cast<FAMMParser::DeclarationWithoutDefinitionContext*>(node)) {
     //         return visitDeclarationWithoutDefinition(declWithoutDef);
@@ -14,6 +14,10 @@ llvm::Value* LLVMIRGenerator::visitStatement(FAMMParser::StatementContext* node)
 
     if (const auto returnStatement = dynamic_cast<FAMMParser::ReturnStatementContext*>(node)) {
         return visitReturnStatement(returnStatement);
+    }
+
+    if (const auto blockStatement = dynamic_cast<FAMMParser::BlockStatementContext*>(node)) {
+        return visitBlock(blockStatement->block());
     }
 
     throw std::runtime_error("Unknown statement context");

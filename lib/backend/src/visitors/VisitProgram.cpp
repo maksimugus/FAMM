@@ -12,7 +12,7 @@ llvm::Value* LLVMIRGenerator::visitProgram(FAMMParser::ProgramContext* node) {
     builder.SetInsertPoint(entry);
 
     for (const auto line : node->line()) {
-        execute(line);
+        visitLine(line);
     }
 
     // Return 0 from main
@@ -27,16 +27,12 @@ llvm::Value* LLVMIRGenerator::visitProgram(FAMMParser::ProgramContext* node) {
 }
 
 llvm::Value* LLVMIRGenerator::visitLine(FAMMParser::LineContext* node) {
-    if (node->statement()) {
-        return visitStatement(node->statement());
+    if (const auto statement = dynamic_cast<FAMMParser::StatementLineContext*>(node)) {
+        return visitStatement(statement->statement());
     }
-    if (node->expression()) {
-        return visitExpression(node->expression());
+    if (const auto expression = dynamic_cast<FAMMParser::ExpressionLineContext*>(node)) {
+        return visitExpression(expression->expression());
     }
-    if (node->SEMICOLON()) {
-        return nullptr;
-    }
-
     throw std::runtime_error("Unknown line context");
 }
 
