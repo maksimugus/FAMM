@@ -1,54 +1,28 @@
 #include "FAMMLexer.h"
 #include "FAMMParser.h"
 #include "lib/backend/src/Visitors/Visitor.h"
-#include "run/ObjectEmitter.h"
 #include <antlr4-runtime.h>
-#include <llvm/Support/TargetSelect.h>
-#include <fstream>
 #include <iostream>
 #include <sstream>
-#include <string>
+
+#include "llvm/ExecutionEngine/ExecutionEngine.h"
+#include "llvm/ExecutionEngine/SectionMemoryManager.h"
+#include "llvm/ExecutionEngine/GenericValue.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/IR/Verifier.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/Support/raw_ostream.h"
 
 using namespace antlr4;
 using namespace std;
 
-// int run(const FooLang::CLIManager& cli, FooLang::Visitor& visitor) {
-//     auto jit = FooLang::JIT::create(visitor.llvm_module, visitor.llvm_context);
-//
-//     auto entry = jit->lookup<int()>("main");
-//     if (!entry) {
-//         llvm::errs() << entry.takeError();
-//         return 1;
-//     }
-//
-//     return entry.get()();
-// }
-//
-int compile(LLVMIRGenerator& visitor, const string& filename) {
-    std::string error;
-    ObjectEmitter::emit(visitor.getModule(), filename, error);
-
-    if (!error.empty()) {
-        llvm::errs() << error;
-        return 1;
-    }
-
-    return 0;
-}
-
 int main(int argc, const char* argv[]) {
     if (argc < 2) {
-        cerr << "Usage: " << argv[0] << " <file.famm> [--compile]" << endl;
+        cerr << "Usage: " << argv[0] << " <file.famm>" << endl;
         return 1;
     }
 
-    string filename  = argv[1];
-    bool compileMode = false;
-
-    if (argc >= 3 && string(argv[2]) == "--compile") {
-        compileMode = true;
-    }
-
+    string filename = argv[1];
     ifstream file(filename);
     if (!file.is_open()) {
         cerr << "Error opening file: " << filename << endl;
@@ -62,27 +36,52 @@ int main(int argc, const char* argv[]) {
     ANTLRInputStream input(input_string);
 
     FAMMLexer lexer(&input);
+
     CommonTokenStream tokens(&lexer);
+
     FAMMParser parser(&tokens);
     tree::ParseTree* tree = parser.program();
 
-    std::cout << "Parsed tree: " << tree->toStringTree(&parser) << std::endl;
 
+    std::cout << tree->toStringTree(&parser) << std::endl;
     auto visitor = LLVMIRGenerator();
     visitor.visit(tree);
 
     visitor.printIR();
-    // visitor
-
+    LLVMLinkInMCJIT();
     llvm::InitializeNativeTarget();
-    llvm::InitializeNativeTargetAsmParser();
     llvm::InitializeNativeTargetAsmPrinter();
+    llvm::InitializeNativeTargetAsmParser();
+    llvm::Function *mainFunction = visitor.module->getFunction("main");
 
-    // if (compileMode) {
-    // compile(visitor, "output.o");
-    // } else {
-    // runJIT(visitor.getModule());
-    // }
+    if (!mainFunction) {
+        llvm::errs() << "Function 'main' not found in module.\n";
+        return 1;
+    }
+    if (llvm::verifyModule(*visitor.module, &llvm::errs())) {
+        llvm::errs() << "Module verification failed.\n";
+        return 1;
+    }
+    std::string error;
+    llvm::ExecutionEngine *engine = llvm::EngineBuilder(std::move(visitor.module))
+        .setErrorStr(&error)
+        .setEngineKind(llvm::EngineKind::JIT)
+        .setMCJITMemoryManager(std::make_unique<llvm::SectionMemoryManager>())
+        .create();
+
+    if (!engine) {
+        llvm::errs() << "Failed to create ExecutionEngine: " << error << "\n";
+        return 1;
+    }
+    // Компиляция и выполнение функции
+    std::vector<llvm::GenericValue> noArgs;
+    llvm::GenericValue result = engine->runFunction(mainFunction, noArgs);
+
+    // Вывод результата
+    llvm::outs() << "Result: " << result.IntVal << "\n";
+
 
     return 0;
+    // TODO: нужны встроенные функции (хотя бы display(...))
+    // TODO: тесты на famm (можно будет сделать после добавления display() )
 }
