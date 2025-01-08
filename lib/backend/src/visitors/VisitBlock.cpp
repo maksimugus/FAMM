@@ -103,6 +103,11 @@ llvm::Value* LLVMIRGenerator::visitForBlock(FAMMParser::ForBlockContext* forBloc
 
 llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContext* node) {
     const std::string functionName = node->IDENTIFIER()->getText();
+
+    if (module->getFunction(functionName) or functionName == "display") {
+        throw std::runtime_error("A function with the same name already exists.");
+    }
+
     llvm::Type* returnType;
     if (node->NIH_LIT()) {
         returnType = llvm::Type::getVoidTy(*context);
@@ -113,7 +118,6 @@ llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContex
     // Create a vector of parameter types
     std::vector<llvm::Type*> paramTypes;
     for (auto* parameter : node->parameterList()->parameter()) {
-        // Получаем тип параметра через visitType
         llvm::Type* paramType = getLLVMType(parameter->type());
         paramTypes.push_back(paramType);
     }
