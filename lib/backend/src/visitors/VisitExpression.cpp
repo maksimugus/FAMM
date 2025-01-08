@@ -90,7 +90,7 @@ llvm::Value* LLVMIRGenerator::visitCompareExpression(FAMMParser::CompareExpressi
 
     EnsureTypeEq(leftType, rightType);
 
-    if (leftType->isIntegerTy(32)) {
+    if (leftType->isIntegerTy(64)) {
         return createIntComparison(compareCtx, left, right);
     }
     if (leftType->isFloatTy()) {

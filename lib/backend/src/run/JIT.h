@@ -1,47 +1,53 @@
 #pragma once
-// #include <llvm/ExecutionEngine/ExecutionEngine.h>
-// #include <llvm/ExecutionEngine/Orc/BasicExecutorContact.h>
-// #include <llvm/ExecutionEngine/Orc/LLJIT.h>
-// #include <llvm/IR/Module.h>
-// #include <llvm/TargetParser/Host.h>
-// #include <llvm/Support/TargetSelect.h>
-//
-// class LLVMJIT {
-// public:
-//     static std::unique_ptr<llvm::orc::LLJIT> createJIT(std::unique_ptr<llvm::Module> module) {
-//         // Initialize LLVM's JIT
-//         llvm::InitializeNativeTarget();
-//         llvm::InitializeNativeTargetAsmParser();
-//         llvm::InitializeNativeTargetAsmPrinter();
-//
-//         llvm::orc::LLJITBuilder jitBuilder;
-//         jitBuilder.setJITTargetMachineBuilder(llvm::TargetMachine::getDefaultTargetTriple());
-//
-//         auto jit = llvm::orc::LLJITBuilder()
-//                     .create();
-//
-//         if (!jit) {
-//             llvm::errs() << "Failed to create JIT\n";
-//             return nullptr;
-//         }
-//
-//         // Add module to JIT execution engine
-//         if (auto err = jit->addIRModule(llvm::ThreadSafeModule(std::move(module), std::make_shared<llvm::LLVMContext>()))){
-//             llvm::errs() << "Failed to add IR module: " << toString(std::move(err)) << "\n";
-//             return nullptr;
-//         }
-//
-//         return jit;
-//     }
-//
-//     static int runJIT(std::unique_ptr<llvm::orc::LLJIT>& jit, const std::string& funcName) {
-//         auto symbol = jit->lookup(funcName);
-//         if (!symbol) {
-//             llvm::errs() << "Could not find function: " << funcName << "\n";
-//             return 1;
-//         }
-//
-//         auto funcPtr = reinterpret_cast<int (*)()>(symbol.get().getAddress());
-//         return funcPtr();
-//     }
-// };
+#include <llvm/ExecutionEngine/ExecutionEngine.h>
+#include <llvm/ExecutionEngine/GenericValue.h>
+#include <llvm/ExecutionEngine/Orc/LLJIT.h>
+#include <llvm/ExecutionEngine/SectionMemoryManager.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Verifier.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/TargetParser/Host.h>
+
+class LLVMJIT {
+private:
+ std::unique_ptr<llvm::Module> module;
+public:
+    LLVMJIT(std::unique_ptr<llvm::Module> other){
+        module = std::move(other);
+    }
+
+    void runCode() {
+        LLVMLinkInMCJIT();
+        llvm::InitializeNativeTarget();
+        llvm::InitializeNativeTargetAsmPrinter();
+        llvm::InitializeNativeTargetAsmParser();
+        llvm::Function *mainFunction = module->getFunction("main");
+
+        if (!mainFunction) {
+            llvm::errs() << "Function 'main' not found in module.\n";
+            return;
+        }
+
+        if (llvm::verifyModule(*module, &llvm::errs())) {
+            llvm::errs() << "Module verification failed.\n";
+            return;
+        }
+        std::string error;
+        llvm::ExecutionEngine *engine = llvm::EngineBuilder(std::move(module))
+            .setErrorStr(&error)
+            .setEngineKind(llvm::EngineKind::JIT)
+            .setMCJITMemoryManager(std::make_unique<llvm::SectionMemoryManager>())
+            .create();
+
+        if (!engine) {
+            llvm::errs() << "Failed to create ExecutionEngine: " << error << "\n";
+            return;
+        }
+        // Компиляция и выполнение функции
+        std::vector<llvm::GenericValue> noArgs;
+        llvm::GenericValue result = engine->runFunction(mainFunction, noArgs);
+
+        //Вывод результата
+        llvm::outs() << "Exit Code: " << result.IntVal << "\n";
+    }
+};

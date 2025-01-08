@@ -5,16 +5,16 @@
 #include <iostream>
 #include <sstream>
 
-#include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/SectionMemoryManager.h"
-#include "llvm/ExecutionEngine/GenericValue.h"
-#include "llvm/IR/LegacyPassManager.h"
-#include "llvm/IR/Verifier.h"
-#include "llvm/Support/TargetSelect.h"
-#include "llvm/Support/raw_ostream.h"
+#include "run/JIT.h"
 
 using namespace antlr4;
 using namespace std;
+
+void run(LLVMIRGenerator& visitor) {
+    auto jit = LLVMJIT(visitor.getModule());
+    jit.runCode();
+}
 
 int main(int argc, const char* argv[]) {
     if (argc < 2) {
@@ -42,45 +42,14 @@ int main(int argc, const char* argv[]) {
     FAMMParser parser(&tokens);
     tree::ParseTree* tree = parser.program();
 
-
     std::cout << tree->toStringTree(&parser) << std::endl;
     auto visitor = LLVMIRGenerator();
     visitor.visit(tree);
 
     visitor.printIR();
-//     LLVMLinkInMCJIT();
-//     llvm::InitializeNativeTarget();
-//     llvm::InitializeNativeTargetAsmPrinter();
-//     llvm::InitializeNativeTargetAsmParser();
-// //    llvm::Function *mainFunction = visitor.module->getFunction("main");
-//
-// //    if (!mainFunction) {
-// //        llvm::errs() << "Function 'main' not found in module.\n";
-// //        return 1;
-// //    }
-// //    if (llvm::verifyModule(*visitor.module, &llvm::errs())) {
-// //        llvm::errs() << "Module verification failed.\n";
-// //        return 1;
-// //    } TODO
-//     std::string error;
-//     llvm::ExecutionEngine *engine = llvm::EngineBuilder(visitor.getModule())
-//         .setErrorStr(&error)
-//         .setEngineKind(llvm::EngineKind::JIT)
-//         .setMCJITMemoryManager(std::make_unique<llvm::SectionMemoryManager>())
-//         .create();
-//
-//     if (!engine) {
-//         llvm::errs() << "Failed to create ExecutionEngine: " << error << "\n";
-//         return 1;
-//     }
-//     // Компиляция и выполнение функции
-//     std::vector<llvm::GenericValue> noArgs;
-//    llvm::GenericValue result = engine->runFunction(mainFunction, noArgs); TODO
+    LLVMLinkInMCJIT();
 
-    // Вывод результата
-//    llvm::outs() << "Result: " << result.IntVal << "\n"; TODO
-
-
+    run(visitor);
     return 0;
     // TODO: нужны встроенные функции (хотя бы display(...))
     // TODO: тесты на famm (можно будет сделать после добавления display() )
