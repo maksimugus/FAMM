@@ -4,9 +4,9 @@ std::any LLVMIRGenerator::visitDeclaration(FAMMParser::DeclarationContext* node)
     if (node->declarationWithDefinition()) {
         return visitDeclarationWithDefinition(node->declarationWithDefinition());
     }
-//    if (node->declarationWithoutDefinition()) {
-//        return visitDeclarationWithoutDefinition(node->declarationWithoutDefinition());
-//    }
+    if (node->declarationWithoutDefinition()) {
+        return visitDeclarationWithoutDefinition(node->declarationWithoutDefinition());
+    }
     return nullptr;
 }
 
@@ -25,7 +25,11 @@ std::any LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::Declaration
     llvm::AllocaInst* alloca = tempBuilder.CreateAlloca(llvmType, nullptr, variableName);
 
     if (!scopeStack.empty()) {
-        scopeStack.back().variables[variableName] = alloca;
+        if (!scopeStack.back().variables.contains(variableName)){
+            scopeStack.back().variables[variableName] = alloca;
+        } else {
+            throw std::runtime_error("Variable: \'" + variableName + "\' is already exists in scope");
+        }
     } else {
         throw std::runtime_error("No active scope to declare variable.");
     }
@@ -48,5 +52,31 @@ std::any LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* node) {
 
     builder.CreateStore(newValue, alloca);
 
+    return nullptr;
+}
+
+std::any LLVMIRGenerator::visitDeclarationWithoutDefinition(FAMMParser::DeclarationWithoutDefinitionContext* node) {
+    // Extract the variable name and type
+    for(const auto identifier : node->IDENTIFIER()) {
+        std::string variableName = identifier->getText();
+
+        auto typeContext = node->type();
+        std::string variableType = visitType(typeContext);
+        llvm::Type* llvmType = getLLVMType(variableType);
+        llvm::Function* currentFunction = builder.GetInsertBlock()->getParent();
+        llvm::IRBuilder<> tempBuilder(&currentFunction->getEntryBlock(), currentFunction->getEntryBlock().begin());
+
+        llvm::AllocaInst* alloca = tempBuilder.CreateAlloca(llvmType, nullptr, variableName);
+
+        if (!scopeStack.empty()) {
+            if (!scopeStack.back().variables.contains(variableName)){
+                scopeStack.back().variables[variableName] = alloca;
+            } else {
+                throw std::runtime_error("Variable: \'" + variableName + "\' is already exists in scope");
+            }
+        } else {
+            throw std::runtime_error("No active scope to declare variable.");
+        }
+    }
     return nullptr;
 }

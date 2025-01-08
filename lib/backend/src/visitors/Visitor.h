@@ -60,4 +60,5 @@ private:
     llvm::IRBuilder<> builder;
     llvm::Module module;
     std::vector<Scope> scopeStack;
+    std::any visitDeclarationWithoutDefinition(FAMMParser::DeclarationWithoutDefinitionContext* node);
 };
