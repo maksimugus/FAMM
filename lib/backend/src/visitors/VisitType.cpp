@@ -10,16 +10,16 @@ llvm::Type* LLVMIRGenerator::getLLVMType(const std::string& typeStr) {
     }
 
     if (typeStr == "int") {
-        return llvm::Type::getInt32Ty(context);
+        return llvm::Type::getInt32Ty(*context);
     }
     if (typeStr == "float") {
-        return llvm::Type::getFloatTy(context);
+        return llvm::Type::getFloatTy(*context);
     }
     if (typeStr == "string") {
-        return llvm::PointerType::getInt8Ty(context);
+        return llvm::PointerType::getInt8Ty(*context);
     }
     if (typeStr == "bool") {
-        return llvm::Type::getInt1Ty(context); // Boolean as a 1-bit integer
+        return llvm::Type::getInt1Ty(*context); // Boolean as a 1-bit integer
     }
     throw std::runtime_error("Unknown type string: " + typeStr);
 }

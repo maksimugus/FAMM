@@ -252,9 +252,10 @@ public:
     antlr4::tree::TerminalNode *LPAR();
     antlr4::tree::TerminalNode *RPAR();
     antlr4::tree::TerminalNode *COLON();
-    TypeContext *type();
     antlr4::tree::TerminalNode *ASSIGNMENT();
     ScopeContext *scope();
+    TypeContext *type();
+    antlr4::tree::TerminalNode *NIH_LIT();
     ParameterListContext *parameterList();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -658,7 +659,6 @@ public:
     antlr4::tree::TerminalNode *FLOAT_LIT();
     antlr4::tree::TerminalNode *STRING_LIT();
     antlr4::tree::TerminalNode *BOOL_LIT();
-    antlr4::tree::TerminalNode *NIH_LIT();
     ArrayLiteralContext *arrayLiteral();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;

@@ -15,6 +15,9 @@ public:
     LLVMIRGenerator();
 
     void printIR() const;
+    std::unique_ptr<llvm::Module> getModule() {
+        return std::move(module);
+    }
 
     void enterScope();
     void exitScope();
@@ -22,7 +25,7 @@ public:
 
     void EnsureTypeEq(const llvm::Type* firstType, const llvm::Type* secondType);
 
-    std::any visit(tree::ParseTree* node) override;  // big if
+    std::any visit(tree::ParseTree* node) override; // big if
     llvm::Value* execute(tree::ParseTree* node); // TODO rename ? run, exec, parse, visitALl
 
     llvm::Value* visitProgram(FAMMParser::ProgramContext* node);
@@ -32,18 +35,19 @@ public:
     llvm::Value* visitConstantExpression(FAMMParser::ConstantContext* constantContext);
     llvm::Value* visitAddSubExpression(FAMMParser::AddSubExpressionContext* addSubCtx);
     llvm::Value* visitMulDivExpression(FAMMParser::MulDivExpressionContext* mulDivCtx);
-    llvm::Value* createIntComparison(
-        FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
-    llvm::Value* createFloatComparison(
-        FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
-    llvm::Value* createBoolComparison(
-        FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
     llvm::Value* visitCompareExpression(FAMMParser::CompareExpressionContext* compareCtx);
     llvm::Value* visitBoolExpression(FAMMParser::BoolExpressionContext* boolCtx);
     llvm::Value* visitNegationExpression(FAMMParser::NegationExpressionContext* negationCtx);
     llvm::Value* visitFunctionCallExpression(FAMMParser::FunctionCallContext* node);
     llvm::Value* visitIdentifierExpression(FAMMParser::IdentifierExpressionContext* identCtx);
     llvm::Value* visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx);
+
+    llvm::Value* createIntComparison(
+        FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
+    llvm::Value* createFloatComparison(
+        FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
+    llvm::Value* createBoolComparison(
+        FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
 
 
     llvm::Type* getLLVMType(const std::string& typeStr);
@@ -54,10 +58,11 @@ public:
     llvm::Value* visitStatement(FAMMParser::StatementContext* node); // big if
 
     llvm::Value* visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node);
+    llvm::Value* visitDeclarationWithoutDefinition(FAMMParser::DeclarationWithoutDefinitionContext* node);
     llvm::Value* visitReturnStatement(FAMMParser::ReturnStatementContext* returnCtx);
     llvm::Value* visitDefinition(FAMMParser::DefinitionContext* node);
 
-    llvm::Value* visitBlock(FAMMParser::BlockContext* block);  // big if
+    llvm::Value* visitBlock(FAMMParser::BlockContext* block); // big if
 
     llvm::Value* visitFunctionBlock(FAMMParser::FunctionBlockContext* node);
     llvm::Value* visitIfBlock(FAMMParser::IfBlockContext* ifBlockCtx);
@@ -65,12 +70,12 @@ public:
     llvm::Value* visitForBlock(FAMMParser::ForBlockContext* forBlockCtx);
 
     llvm::Value* visitScope(FAMMParser::ScopeContext* scope);
-    llvm::Value* visitLine(FAMMParser::LineContext* node);  // big if
+    llvm::Value* visitLine(FAMMParser::LineContext* node); // big if
 
 
 private:
-    llvm::LLVMContext context;
+    std::unique_ptr<llvm::LLVMContext> context;
     llvm::IRBuilder<> builder;
-    llvm::Module module;
+    std::unique_ptr<llvm::Module> module;
     std::vector<Scope> scopeStack;
 };
