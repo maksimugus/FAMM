@@ -60,7 +60,7 @@ llvm::Value* LLVMIRGenerator::visitBoolExpression(FAMMParser::BoolExpressionCont
 
     EnsureTypeEq(left->getType(), right->getType());
 
-    if (!left->getType()->isIntegerTy(1) or !right->getType()->isIntegerTy(1)) {
+    if (!left->getType()->isIntegerTy(1)) {
         throw std::runtime_error("Unsupported type of value in bool operation.");
     }
 

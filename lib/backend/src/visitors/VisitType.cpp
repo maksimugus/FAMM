@@ -16,7 +16,7 @@ llvm::Type* LLVMIRGenerator::getLLVMType(const std::string& typeStr) {
         return llvm::Type::getFloatTy(*context);
     }
     if (typeStr == "string") {
-        return llvm::PointerType::getInt8Ty(*context);
+        return llvm::PointerType::get(llvm::Type::getInt8Ty(*context), 0);
     }
     if (typeStr == "bool") {
         return llvm::Type::getInt1Ty(*context); // Boolean as a 1-bit integer
