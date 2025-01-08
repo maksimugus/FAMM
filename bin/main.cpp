@@ -48,28 +48,26 @@ int main(int argc, const char* argv[]) {
     visitor.visit(tree);
 
     visitor.printIR();
-
+    LLVMLinkInMCJIT();
     llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmPrinter();
     llvm::InitializeNativeTargetAsmParser();
     llvm::Function *mainFunction = visitor.module->getFunction("main");
-//    llvm::Function *mainFunction = nullptr;
+
     if (!mainFunction) {
         llvm::errs() << "Function 'main' not found in module.\n";
         return 1;
     }
-
+    if (llvm::verifyModule(*visitor.module, &llvm::errs())) {
+        llvm::errs() << "Module verification failed.\n";
+        return 1;
+    }
     std::string error;
     llvm::ExecutionEngine *engine = llvm::EngineBuilder(std::move(visitor.module))
         .setErrorStr(&error)
         .setEngineKind(llvm::EngineKind::JIT)
         .setMCJITMemoryManager(std::make_unique<llvm::SectionMemoryManager>())
         .create();
-
-//    if (!visitor.module) {
-//        std::cout << "pizdex";
-//        return 1;
-//    }
 
     if (!engine) {
         llvm::errs() << "Failed to create ExecutionEngine: " << error << "\n";
@@ -80,7 +78,7 @@ int main(int argc, const char* argv[]) {
     llvm::GenericValue result = engine->runFunction(mainFunction, noArgs);
 
     // Вывод результата
-//    llvm::outs() << "Result: " << result.IntVal << "\n";
+    llvm::outs() << "Result: " << result.IntVal << "\n";
 
 
     return 0;
