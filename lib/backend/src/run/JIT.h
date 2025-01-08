@@ -5,49 +5,41 @@
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Verifier.h>
-#include <llvm/Support/TargetSelect.h>
-#include <llvm/TargetParser/Host.h>
 
 class LLVMJIT {
-private:
- std::unique_ptr<llvm::Module> module;
 public:
-    LLVMJIT(std::unique_ptr<llvm::Module> other){
-        module = std::move(other);
-    }
+    static void run(std::unique_ptr<llvm::Module> module, std::string& error) {
+        if (!module) {
+            error = "Module is null.";
+            return;
+        }
 
-    void runCode() {
-        LLVMLinkInMCJIT();
-        llvm::InitializeNativeTarget();
-        llvm::InitializeNativeTargetAsmPrinter();
-        llvm::InitializeNativeTargetAsmParser();
-        llvm::Function *mainFunction = module->getFunction("main");
+        llvm::Function* mainFunction = module->getFunction("main");
 
         if (!mainFunction) {
-            llvm::errs() << "Function 'main' not found in module.\n";
+            error = "Function 'main' not found in module.";
             return;
         }
 
-        if (llvm::verifyModule(*module, &llvm::errs())) {
-            llvm::errs() << "Module verification failed.\n";
+        if (verifyModule(*module, &llvm::errs())) {
+            error = "Module verification failed.";
             return;
         }
-        std::string error;
-        llvm::ExecutionEngine *engine = llvm::EngineBuilder(std::move(module))
-            .setErrorStr(&error)
-            .setEngineKind(llvm::EngineKind::JIT)
-            .setMCJITMemoryManager(std::make_unique<llvm::SectionMemoryManager>())
-            .create();
+
+        llvm::ExecutionEngine* engine = llvm::EngineBuilder(std::move(module))
+                                            .setErrorStr(&error)
+                                            .setEngineKind(llvm::EngineKind::JIT)
+                                            .setMCJITMemoryManager(std::make_unique<llvm::SectionMemoryManager>())
+                                            .create();
 
         if (!engine) {
-            llvm::errs() << "Failed to create ExecutionEngine: " << error << "\n";
+            error = "Failed to create ExecutionEngine: " + error;
             return;
         }
-        // Компиляция и выполнение функции
-        std::vector<llvm::GenericValue> noArgs;
-        llvm::GenericValue result = engine->runFunction(mainFunction, noArgs);
 
-        //Вывод результата
+        const std::vector<llvm::GenericValue> noArgs;
+        const llvm::GenericValue result = engine->runFunction(mainFunction, noArgs);
+
         llvm::outs() << "Exit Code: " << result.IntVal << "\n";
     }
 };
