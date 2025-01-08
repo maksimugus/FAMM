@@ -5,6 +5,13 @@
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Verifier.h>
+#include <llvm/IR/LegacyPassManager.h>
+#include <llvm/Transforms/Scalar.h>
+#include <llvm/Transforms/Utils.h>
+  // #include <llvm/Transforms/Scalar.h>
+  // #include <llvm/Transforms/IPO.h>
+  // #include <llvm/Transforms/InstCombine/InstCombine.h>
+  // #include <llvm/Transforms/Scalar/GVN.h>
 
 class LLVMJIT {
 public:
@@ -26,6 +33,9 @@ public:
             return;
         }
 
+
+        optimizeModule(*module);
+
         llvm::ExecutionEngine* engine = llvm::EngineBuilder(std::move(module))
                                             .setErrorStr(&error)
                                             .setEngineKind(llvm::EngineKind::JIT)
@@ -37,9 +47,26 @@ public:
             return;
         }
 
+        engine->addGlobalMapping("display", reinterpret_cast<uint64_t>(&printf));
+
         const std::vector<llvm::GenericValue> noArgs;
         const llvm::GenericValue result = engine->runFunction(mainFunction, noArgs);
 
         llvm::outs() << "Exit Code: " << result.IntVal << "\n";
+    }
+
+private:
+    static void optimizeModule(llvm::Module& module) {
+        llvm::legacy::PassManager passManager;
+        //
+        // passManager.add(llvm::createPromoteMemoryToRegisterPass());  // SSA form
+        // passManager.add(llvm::createInstructionCombiningPass());    // Combine instructions
+        // passManager.add(llvm::createReassociatePass());             // Reassociate expressions
+        // passManager.add(llvm::createGVNPass());                     // Eliminate redundant loads/stores
+        // passManager.add(llvm::createCFGSimplificationPass());       // Simplify the control flow graph
+        // passManager.add(llvm::createDeadCodeEliminationPass());     // Remove dead code
+        // passManager.add(llvm::createFunctionInliningPass());        // Inline small functions
+
+        passManager.run(module);
     }
 };

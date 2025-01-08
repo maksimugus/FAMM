@@ -2,16 +2,22 @@ find_package(LLVM REQUIRED CONFIG)
 
 if (NOT LLVM_FOUND)
     message(FATAL_ERROR "LLVM not found. Please install LLVM or set the path correctly.")
-endif()
+endif ()
 
 # Specify the LLVM components you need
 llvm_map_components_to_libnames(llvm_libs
-    Core
-    Support
-    Target
-    ExecutionEngine
-    MCJIT
-    native
+        Core
+        Support
+        Target
+        ExecutionEngine
+        MCJIT
+        native
+#        ScalarOpts
+#        TransformUtils
+#        Analysis
+#        InstCombine
+#        TransformUtils
+#        IPO
 )
 
 # Specify the source files for the backend library

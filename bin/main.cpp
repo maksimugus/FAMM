@@ -71,8 +71,8 @@ int main(int argc, const char* argv[]) {
     llvm::InitializeNativeTargetAsmPrinter();
     llvm::InitializeNativeTargetAsmParser();
 
-    // run(visitor);
-    compile(visitor, "output.o");
+    run(visitor);
+   // compile(visitor, "output.o");
     return 0;
     // TODO: нужны встроенные функции (хотя бы display(...))
     // TODO: тесты на famm (можно будет сделать после добавления display() )
