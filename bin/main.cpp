@@ -36,13 +36,14 @@ int main(int argc, const char* argv[]) {
     FAMMParser parser(&tokens);
     tree::ParseTree* tree = parser.program();
 
-    cout << tree->toStringTree(&parser) << endl;
 
-    // auto visitor = LLVMIRGenerator();
-    // visitor.visit(tree);
-    //
-    // visitor.printIR();
+    std::cout << tree->toStringTree(&parser) << std::endl;
+    auto visitor = LLVMIRGenerator();
+    visitor.visit(tree);
 
+    visitor.printIR();
 
+    // TODO: нужны встроенные функции (хотя бы display(...))
+    // TODO: тесты на famm (можно будет сделать после добавления display() )
     return 0;
 }

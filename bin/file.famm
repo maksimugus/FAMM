@@ -1,1 +1,7 @@
-var a: [[int, 3], 3] = [[1,2,3],[1,2,3],[1,2,3]];
+var i: int = 1;
+var j: int = -5;
+func abas (a: int, b: int): int = {
+  var c: int = 1 + a;
+  return c + b;};
+var g: int = abas(i, j);
+var k: int = 2;

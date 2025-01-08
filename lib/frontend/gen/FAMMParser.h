@@ -57,28 +57,28 @@ public:
   class StatementContext;
   class IfBlockContext;
   class WhileBlockContext;
-  class ForBlockContext;
-  class BlockContext;
+  class ForBlockContext; // TODO
+  class BlockContext; // TODO: можно вынести в отдельную функцию (обязательно)
   class DeclarationContext;
   class DeclarationWithDefinitionContext;
-  class DeclarationWithoutDefinitionContext;
+  class DeclarationWithoutDefinitionContext; // TODO
   class DefinitionContext;
   class FunctionCallContext;
   class FunctionDefinitionContext;
-  class ParameterListContext;
+  class ParameterListContext; // TODO: можно вынести отдельную функцию (необязательно)
   class ParameterContext;
   class ReturnStatementContext;
   class ExpressionContext;
-  class AssignmentOpContext;
+  class AssignmentOpContext; // TODO
   class MultOpContext;
   class AddOpContext;
   class CompareOpContext;
   class BoolOpContext;
   class TypeContext;
-  class ArrayTypeContext;
+  class ArrayTypeContext; // TODO
   class BaseTypeContext;
   class ConstantContext;
-  class ArrayLiteralContext; 
+  class ArrayLiteralContext; // TODO (?)
 
   class  ProgramContext : public antlr4::ParserRuleContext {
   public:
