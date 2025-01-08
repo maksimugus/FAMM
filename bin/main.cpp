@@ -48,33 +48,33 @@ int main(int argc, const char* argv[]) {
     visitor.visit(tree);
 
     visitor.printIR();
-    LLVMLinkInMCJIT();
-    llvm::InitializeNativeTarget();
-    llvm::InitializeNativeTargetAsmPrinter();
-    llvm::InitializeNativeTargetAsmParser();
-//    llvm::Function *mainFunction = visitor.module->getFunction("main");
-
-//    if (!mainFunction) {
-//        llvm::errs() << "Function 'main' not found in module.\n";
-//        return 1;
-//    }
-//    if (llvm::verifyModule(*visitor.module, &llvm::errs())) {
-//        llvm::errs() << "Module verification failed.\n";
-//        return 1;
-//    } TODO
-    std::string error;
-    llvm::ExecutionEngine *engine = llvm::EngineBuilder(visitor.getModule())
-        .setErrorStr(&error)
-        .setEngineKind(llvm::EngineKind::JIT)
-        .setMCJITMemoryManager(std::make_unique<llvm::SectionMemoryManager>())
-        .create();
-
-    if (!engine) {
-        llvm::errs() << "Failed to create ExecutionEngine: " << error << "\n";
-        return 1;
-    }
-    // Компиляция и выполнение функции
-    std::vector<llvm::GenericValue> noArgs;
+//     LLVMLinkInMCJIT();
+//     llvm::InitializeNativeTarget();
+//     llvm::InitializeNativeTargetAsmPrinter();
+//     llvm::InitializeNativeTargetAsmParser();
+// //    llvm::Function *mainFunction = visitor.module->getFunction("main");
+//
+// //    if (!mainFunction) {
+// //        llvm::errs() << "Function 'main' not found in module.\n";
+// //        return 1;
+// //    }
+// //    if (llvm::verifyModule(*visitor.module, &llvm::errs())) {
+// //        llvm::errs() << "Module verification failed.\n";
+// //        return 1;
+// //    } TODO
+//     std::string error;
+//     llvm::ExecutionEngine *engine = llvm::EngineBuilder(visitor.getModule())
+//         .setErrorStr(&error)
+//         .setEngineKind(llvm::EngineKind::JIT)
+//         .setMCJITMemoryManager(std::make_unique<llvm::SectionMemoryManager>())
+//         .create();
+//
+//     if (!engine) {
+//         llvm::errs() << "Failed to create ExecutionEngine: " << error << "\n";
+//         return 1;
+//     }
+//     // Компиляция и выполнение функции
+//     std::vector<llvm::GenericValue> noArgs;
 //    llvm::GenericValue result = engine->runFunction(mainFunction, noArgs); TODO
 
     // Вывод результата

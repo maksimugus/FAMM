@@ -26,9 +26,8 @@ llvm::Value* LLVMIRGenerator::visitDeclarationWithoutDefinition(FAMMParser::Decl
     for (const auto identifier : node->IDENTIFIER()) {
         std::string variableName = identifier->getText();
 
-        auto typeContext= node->type();
-        std::string variableType = visitType(typeContext);
-        llvm::Type* llvmType = getLLVMType(variableType);
+        auto typeContext                = node->type();
+        llvm::Type* llvmType            = getLLVMType(typeContext);
         llvm::Function* currentFunction = builder.GetInsertBlock()->getParent();
         llvm::IRBuilder<> tempBuilder(&currentFunction->getEntryBlock(), currentFunction->getEntryBlock().begin());
 
@@ -50,10 +49,9 @@ llvm::Value* LLVMIRGenerator::visitDeclarationWithoutDefinition(FAMMParser::Decl
 llvm::Value* LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node) {
     const std::string variableName = node->IDENTIFIER()->getText();
     const auto typeContext         = node->type();
-    const std::string variableType = visitType(typeContext);
     const auto expressionContext   = node->expression();
     llvm::Value* initialValue      = execute(expressionContext);
-    llvm::Type* llvmType           = getLLVMType(variableType);
+    llvm::Type* llvmType           = getLLVMType(typeContext);
 
     EnsureTypeEq(llvmType, initialValue->getType());
 
@@ -92,32 +90,32 @@ llvm::Value* LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* nod
     }
     if (node->assignmentOp()->MULT_ASSIGNMENT()) {
         llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
-        llvm::Value* result = builder.CreateMul(currentValue, newValue);
+        llvm::Value* result       = builder.CreateMul(currentValue, newValue);
         builder.CreateStore(result, alloca);
     }
     if (node->assignmentOp()->DIV_ASSIGNMENT()) {
         llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
-        llvm::Value* result = builder.CreateFDiv(currentValue, newValue);
+        llvm::Value* result       = builder.CreateFDiv(currentValue, newValue);
         builder.CreateStore(result, alloca);
     }
     if (node->assignmentOp()->FLOOR_DIV_ASSIGNMENT()) {
         llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
-        llvm::Value* result = builder.CreateSDiv(currentValue, newValue); // Assuming integer division
+        llvm::Value* result       = builder.CreateSDiv(currentValue, newValue); // Assuming integer division
         builder.CreateStore(result, alloca);
     }
     if (node->assignmentOp()->MOD_ASSIGNMENT()) {
         llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
-        llvm::Value* result = builder.CreateSRem(currentValue, newValue);
+        llvm::Value* result       = builder.CreateSRem(currentValue, newValue);
         builder.CreateStore(result, alloca);
     }
     if (node->assignmentOp()->PLUS_ASSIGNMENT()) {
         llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
-        llvm::Value* result = builder.CreateAdd(currentValue, newValue);
+        llvm::Value* result       = builder.CreateAdd(currentValue, newValue);
         builder.CreateStore(result, alloca);
     }
     if (node->assignmentOp()->MINUS_ASSIGNMENT()) {
         llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
-        llvm::Value* result = builder.CreateSub(currentValue, newValue);
+        llvm::Value* result       = builder.CreateSub(currentValue, newValue);
         builder.CreateStore(result, alloca);
     }
 
@@ -126,7 +124,7 @@ llvm::Value* LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* nod
 
 llvm::Value* LLVMIRGenerator::visitReturnStatement(FAMMParser::ReturnStatementContext* returnCtx) {
     const llvm::Function* currentFunction = builder.GetInsertBlock()->getParent();
-    const llvm::Type* returnType = currentFunction->getReturnType();
+    const llvm::Type* returnType          = currentFunction->getReturnType();
 
     if (returnCtx->expression()) {
         llvm::Value* returnValue = visitExpression(returnCtx->expression());

@@ -1,7 +1,2 @@
 
-
-var i: int = 1;
-
-while (i < 5) {
-    i = i + 1;
-};
+var a: [int, 3];
