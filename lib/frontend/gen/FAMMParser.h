@@ -25,14 +25,12 @@ public:
   };
 
   enum {
-    RuleProgram = 0, RuleLine = 1, RuleStatement = 2, RuleReturnStatement = 3, 
-    RuleBlock = 4, RuleIfBlock = 5, RuleWhileBlock = 6, RuleForBlock = 7, 
-    RuleFunctionBlock = 8, RuleParameterList = 9, RuleParameter = 10, RuleScope = 11, 
-    RuleDefinition = 12, RuleDeclarationWithDefinition = 13, RuleDeclarationWithoutDefinition = 14, 
-    RuleExpression = 15, RuleFunctionCall = 16, RuleAssignmentOp = 17, RuleMultOp = 18, 
-    RuleAddOp = 19, RuleCompareOp = 20, RuleBoolOp = 21, RuleType = 22, 
-    RuleArrayType = 23, RuleSize = 24, RuleBaseType = 25, RuleConstant = 26, 
-    RuleArrayLiteral = 27
+    RuleProgram = 0, RuleLine = 1, RuleStatement = 2, RuleBlock = 3, RuleParameterList = 4, 
+    RuleParameter = 5, RuleScope = 6, RuleDefinition = 7, RuleDeclarationWithDefinition = 8, 
+    RuleDeclarationWithoutDefinition = 9, RuleExpression = 10, RuleFunctionCall = 11, 
+    RuleAssignmentOp = 12, RuleMultOp = 13, RuleAddOp = 14, RuleCompareOp = 15, 
+    RuleBoolOp = 16, RuleType = 17, RuleArrayType = 18, RuleSize = 19, RuleBaseType = 20, 
+    RuleConstant = 21, RuleArrayLiteral = 22
   };
 
   explicit FAMMParser(antlr4::TokenStream *input);
@@ -55,12 +53,7 @@ public:
   class ProgramContext;
   class LineContext;
   class StatementContext;
-  class ReturnStatementContext;
   class BlockContext;
-  class IfBlockContext;
-  class WhileBlockContext;
-  class ForBlockContext;
-  class FunctionBlockContext;
   class ParameterListContext;
   class ParameterContext;
   class ScopeContext;
@@ -99,14 +92,34 @@ public:
   class  LineContext : public antlr4::ParserRuleContext {
   public:
     LineContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *SEMICOLON();
-    ExpressionContext *expression();
-    StatementContext *statement();
+   
+    LineContext() = default;
+    void copyFrom(LineContext *context);
+    using antlr4::ParserRuleContext::copyFrom;
 
+    virtual size_t getRuleIndex() const override;
+
+   
+  };
+
+  class  ExpressionLineContext : public LineContext {
+  public:
+    ExpressionLineContext(LineContext *ctx);
+
+    ExpressionContext *expression();
+    antlr4::tree::TerminalNode *SEMICOLON();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
+  };
+
+  class  StatementLineContext : public LineContext {
+  public:
+    StatementLineContext(LineContext *ctx);
+
+    StatementContext *statement();
+    antlr4::tree::TerminalNode *SEMICOLON();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
 
   LineContext* line();
@@ -114,90 +127,94 @@ public:
   class  StatementContext : public antlr4::ParserRuleContext {
   public:
     StatementContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    DeclarationWithDefinitionContext *declarationWithDefinition();
-    DeclarationWithoutDefinitionContext *declarationWithoutDefinition();
-    DefinitionContext *definition();
-    ReturnStatementContext *returnStatement();
-    BlockContext *block();
+   
+    StatementContext() = default;
+    void copyFrom(StatementContext *context);
+    using antlr4::ParserRuleContext::copyFrom;
 
+    virtual size_t getRuleIndex() const override;
+
+   
+  };
+
+  class  DeclarationWithDefinitionStatementContext : public StatementContext {
+  public:
+    DeclarationWithDefinitionStatementContext(StatementContext *ctx);
+
+    DeclarationWithDefinitionContext *declarationWithDefinition();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
+  };
+
+  class  DefinitionStatementContext : public StatementContext {
+  public:
+    DefinitionStatementContext(StatementContext *ctx);
+
+    DefinitionContext *definition();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  ReturnStatementContext : public StatementContext {
+  public:
+    ReturnStatementContext(StatementContext *ctx);
+
+    antlr4::tree::TerminalNode *RETURN();
+    ExpressionContext *expression();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  BlockStatementContext : public StatementContext {
+  public:
+    BlockStatementContext(StatementContext *ctx);
+
+    BlockContext *block();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  DeclarationWithoutDefinitionStatementContext : public StatementContext {
+  public:
+    DeclarationWithoutDefinitionStatementContext(StatementContext *ctx);
+
+    DeclarationWithoutDefinitionContext *declarationWithoutDefinition();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
 
   StatementContext* statement();
 
-  class  ReturnStatementContext : public antlr4::ParserRuleContext {
-  public:
-    ReturnStatementContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *RETURN();
-    ExpressionContext *expression();
-
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
-  };
-
-  ReturnStatementContext* returnStatement();
-
   class  BlockContext : public antlr4::ParserRuleContext {
   public:
     BlockContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    IfBlockContext *ifBlock();
-    WhileBlockContext *whileBlock();
-    ForBlockContext *forBlock();
-    FunctionBlockContext *functionBlock();
+   
+    BlockContext() = default;
+    void copyFrom(BlockContext *context);
+    using antlr4::ParserRuleContext::copyFrom;
 
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual size_t getRuleIndex() const override;
+
    
   };
 
-  BlockContext* block();
-
-  class  IfBlockContext : public antlr4::ParserRuleContext {
+  class  WhileBlockContext : public BlockContext {
   public:
-    IfBlockContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *IF();
-    antlr4::tree::TerminalNode *LPAR();
-    ExpressionContext *expression();
-    antlr4::tree::TerminalNode *RPAR();
-    std::vector<ScopeContext *> scope();
-    ScopeContext* scope(size_t i);
-    antlr4::tree::TerminalNode *ELSE();
+    WhileBlockContext(BlockContext *ctx);
 
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
-  };
-
-  IfBlockContext* ifBlock();
-
-  class  WhileBlockContext : public antlr4::ParserRuleContext {
-  public:
-    WhileBlockContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
     antlr4::tree::TerminalNode *WHILE();
     antlr4::tree::TerminalNode *LPAR();
     ExpressionContext *expression();
     antlr4::tree::TerminalNode *RPAR();
     ScopeContext *scope();
-
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
   };
 
-  WhileBlockContext* whileBlock();
-
-  class  ForBlockContext : public antlr4::ParserRuleContext {
+  class  ForBlockContext : public BlockContext {
   public:
-    ForBlockContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
+    ForBlockContext(BlockContext *ctx);
+
     antlr4::tree::TerminalNode *FOR();
     antlr4::tree::TerminalNode *LPAR();
     DeclarationWithDefinitionContext *declarationWithDefinition();
@@ -207,18 +224,29 @@ public:
     antlr4::tree::TerminalNode *BY();
     antlr4::tree::TerminalNode *RPAR();
     ScopeContext *scope();
-
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
   };
 
-  ForBlockContext* forBlock();
-
-  class  FunctionBlockContext : public antlr4::ParserRuleContext {
+  class  IfBlockContext : public BlockContext {
   public:
-    FunctionBlockContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
+    IfBlockContext(BlockContext *ctx);
+
+    antlr4::tree::TerminalNode *IF();
+    antlr4::tree::TerminalNode *LPAR();
+    ExpressionContext *expression();
+    antlr4::tree::TerminalNode *RPAR();
+    std::vector<ScopeContext *> scope();
+    ScopeContext* scope(size_t i);
+    antlr4::tree::TerminalNode *ELSE();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  FunctionBlockContext : public BlockContext {
+  public:
+    FunctionBlockContext(BlockContext *ctx);
+
     antlr4::tree::TerminalNode *FUNC();
     antlr4::tree::TerminalNode *IDENTIFIER();
     antlr4::tree::TerminalNode *LPAR();
@@ -228,13 +256,11 @@ public:
     antlr4::tree::TerminalNode *ASSIGNMENT();
     ScopeContext *scope();
     ParameterListContext *parameterList();
-
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
   };
 
-  FunctionBlockContext* functionBlock();
+  BlockContext* block();
 
   class  ParameterListContext : public antlr4::ParserRuleContext {
   public:

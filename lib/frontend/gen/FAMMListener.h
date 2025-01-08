@@ -17,17 +17,26 @@ public:
   virtual void enterProgram(FAMMParser::ProgramContext *ctx) = 0;
   virtual void exitProgram(FAMMParser::ProgramContext *ctx) = 0;
 
-  virtual void enterLine(FAMMParser::LineContext *ctx) = 0;
-  virtual void exitLine(FAMMParser::LineContext *ctx) = 0;
+  virtual void enterExpressionLine(FAMMParser::ExpressionLineContext *ctx) = 0;
+  virtual void exitExpressionLine(FAMMParser::ExpressionLineContext *ctx) = 0;
 
-  virtual void enterStatement(FAMMParser::StatementContext *ctx) = 0;
-  virtual void exitStatement(FAMMParser::StatementContext *ctx) = 0;
+  virtual void enterStatementLine(FAMMParser::StatementLineContext *ctx) = 0;
+  virtual void exitStatementLine(FAMMParser::StatementLineContext *ctx) = 0;
+
+  virtual void enterDeclarationWithDefinitionStatement(FAMMParser::DeclarationWithDefinitionStatementContext *ctx) = 0;
+  virtual void exitDeclarationWithDefinitionStatement(FAMMParser::DeclarationWithDefinitionStatementContext *ctx) = 0;
+
+  virtual void enterDeclarationWithoutDefinitionStatement(FAMMParser::DeclarationWithoutDefinitionStatementContext *ctx) = 0;
+  virtual void exitDeclarationWithoutDefinitionStatement(FAMMParser::DeclarationWithoutDefinitionStatementContext *ctx) = 0;
+
+  virtual void enterDefinitionStatement(FAMMParser::DefinitionStatementContext *ctx) = 0;
+  virtual void exitDefinitionStatement(FAMMParser::DefinitionStatementContext *ctx) = 0;
 
   virtual void enterReturnStatement(FAMMParser::ReturnStatementContext *ctx) = 0;
   virtual void exitReturnStatement(FAMMParser::ReturnStatementContext *ctx) = 0;
 
-  virtual void enterBlock(FAMMParser::BlockContext *ctx) = 0;
-  virtual void exitBlock(FAMMParser::BlockContext *ctx) = 0;
+  virtual void enterBlockStatement(FAMMParser::BlockStatementContext *ctx) = 0;
+  virtual void exitBlockStatement(FAMMParser::BlockStatementContext *ctx) = 0;
 
   virtual void enterIfBlock(FAMMParser::IfBlockContext *ctx) = 0;
   virtual void exitIfBlock(FAMMParser::IfBlockContext *ctx) = 0;
