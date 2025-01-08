@@ -148,7 +148,7 @@ llvm::Value* LLVMIRGenerator::visitMulDivExpression(FAMMParser::MulDivExpression
 llvm::Value* LLVMIRGenerator::visitConstantExpression(FAMMParser::ConstantContext* constantContext) {
     if (constantContext->INTEGER_LIT()) {
         // Convert the integer literal text to an integer value
-        const int intValue = std::stoi(constantContext->INTEGER_LIT()->getText());
+        const int64_t intValue = std::stoll(constantContext->INTEGER_LIT()->getText());
         return llvm::ConstantInt::get(llvm::Type::getInt64Ty(*context), intValue, true);
     }
     if (constantContext->FLOAT_LIT()) {

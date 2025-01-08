@@ -24,7 +24,7 @@ llvm::Type* LLVMIRGenerator::getLLVMType(FAMMParser::TypeContext* typeContext) {
     if (auto arrayType = typeContext->arrayType()) {
         auto type        = getLLVMType(arrayType->type());
         auto sizeContext = arrayType->size();
-        int size         = std::stoi(sizeContext->INTEGER_LIT()->getText());
+        int64_t size         = std::stoll(sizeContext->INTEGER_LIT()->getText());
         return llvm::ArrayType::get(type, size);
     }
 
