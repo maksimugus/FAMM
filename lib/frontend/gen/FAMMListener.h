@@ -59,6 +59,9 @@ public:
   virtual void enterParameter(FAMMParser::ParameterContext *ctx) = 0;
   virtual void exitParameter(FAMMParser::ParameterContext *ctx) = 0;
 
+  virtual void enterReturnStatement(FAMMParser::ReturnStatementContext *ctx) = 0;
+  virtual void exitReturnStatement(FAMMParser::ReturnStatementContext *ctx) = 0;
+
   virtual void enterAddSubExpression(FAMMParser::AddSubExpressionContext *ctx) = 0;
   virtual void exitAddSubExpression(FAMMParser::AddSubExpressionContext *ctx) = 0;
 

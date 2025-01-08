@@ -61,6 +61,9 @@ public:
   virtual void enterParameter(FAMMParser::ParameterContext * /*ctx*/) override { }
   virtual void exitParameter(FAMMParser::ParameterContext * /*ctx*/) override { }
 
+  virtual void enterReturnStatement(FAMMParser::ReturnStatementContext * /*ctx*/) override { }
+  virtual void exitReturnStatement(FAMMParser::ReturnStatementContext * /*ctx*/) override { }
+
   virtual void enterAddSubExpression(FAMMParser::AddSubExpressionContext * /*ctx*/) override { }
   virtual void exitAddSubExpression(FAMMParser::AddSubExpressionContext * /*ctx*/) override { }
 

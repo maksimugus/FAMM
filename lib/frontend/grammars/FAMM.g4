@@ -4,7 +4,7 @@ program: line* EOF;
 
 line: (expression | statement | ifBlock | whileBlock | forBlock | functionDefinition) SEMICOLON;
 
-statement: declaration | definition | functionCall;
+statement: declaration | definition | functionCall | returnStatement;
 
 ifBlock: IF LPAR expression RPAR block (ELSE block)?;
 
@@ -20,9 +20,11 @@ declarationWithoutDefinition: VAR IDENTIFIER (COMMA IDENTIFIER)* COLON type; // 
 definition: IDENTIFIER assignmentOp expression; // a += 3, a = 3
 
 functionCall: IDENTIFIER LPAR (expression (COMMA expression)*)? RPAR;
-functionDefinition: FUNC IDENTIFIER LPAR parameterList? RPAR COLON type block;
+functionDefinition: FUNC IDENTIFIER LPAR parameterList? RPAR COLON type ASSIGNMENT block;
 parameterList: parameter (COMMA parameter)*;
 parameter: IDENTIFIER COLON type;
+
+returnStatement: RETURN expression?;
 
 expression
     : constant                                 # ConstantExpression // константа
@@ -55,7 +57,7 @@ boolOp: AND | OR;
 
 type : baseType | arrayType;
 
-arrayType : LBRACKET type RBRACKET;
+arrayType : LBRACKET type COMMA INTEGER_LIT RBRACKET;
 
 baseType
     : INT
@@ -84,6 +86,7 @@ ELSE: 'else';
 WHILE: 'while';
 FOR: 'for';
 BY: 'by';
+RETURN: 'return';
 ARROW: '->';
 NOT: '!';
 ASSIGNMENT: '=';
