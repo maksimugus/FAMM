@@ -52,18 +52,18 @@ int main(int argc, const char* argv[]) {
     llvm::InitializeNativeTarget();
     llvm::InitializeNativeTargetAsmPrinter();
     llvm::InitializeNativeTargetAsmParser();
-    llvm::Function *mainFunction = visitor.module->getFunction("main");
+//    llvm::Function *mainFunction = visitor.module->getFunction("main");
 
-    if (!mainFunction) {
-        llvm::errs() << "Function 'main' not found in module.\n";
-        return 1;
-    }
-    if (llvm::verifyModule(*visitor.module, &llvm::errs())) {
-        llvm::errs() << "Module verification failed.\n";
-        return 1;
-    }
+//    if (!mainFunction) {
+//        llvm::errs() << "Function 'main' not found in module.\n";
+//        return 1;
+//    }
+//    if (llvm::verifyModule(*visitor.module, &llvm::errs())) {
+//        llvm::errs() << "Module verification failed.\n";
+//        return 1;
+//    } TODO
     std::string error;
-    llvm::ExecutionEngine *engine = llvm::EngineBuilder(std::move(visitor.module))
+    llvm::ExecutionEngine *engine = llvm::EngineBuilder(visitor.getModule())
         .setErrorStr(&error)
         .setEngineKind(llvm::EngineKind::JIT)
         .setMCJITMemoryManager(std::make_unique<llvm::SectionMemoryManager>())
@@ -75,10 +75,10 @@ int main(int argc, const char* argv[]) {
     }
     // Компиляция и выполнение функции
     std::vector<llvm::GenericValue> noArgs;
-    llvm::GenericValue result = engine->runFunction(mainFunction, noArgs);
+//    llvm::GenericValue result = engine->runFunction(mainFunction, noArgs); TODO
 
     // Вывод результата
-    llvm::outs() << "Result: " << result.IntVal << "\n";
+//    llvm::outs() << "Result: " << result.IntVal << "\n"; TODO
 
 
     return 0;
