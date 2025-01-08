@@ -11,11 +11,9 @@ llvm::Value* LLVMIRGenerator::visitStatement(FAMMParser::StatementContext* node)
     if (const auto definition = dynamic_cast<FAMMParser::DefinitionStatementContext*>(node)) {
         return visitDefinition(definition->definition());
     }
-
     if (const auto returnStatement = dynamic_cast<FAMMParser::ReturnStatementContext*>(node)) {
         return visitReturnStatement(returnStatement);
     }
-
     if (const auto blockStatement = dynamic_cast<FAMMParser::BlockStatementContext*>(node)) {
         return visitBlock(blockStatement->block());
     }
@@ -82,10 +80,42 @@ llvm::Value* LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* nod
     llvm::Value* newValue = visitExpression(node->expression());
 
     // Убедимся что с типом всё ок
-    const llvm::Type* variableType = alloca->getAllocatedType();
+    llvm::Type* variableType = alloca->getAllocatedType();
     EnsureTypeEq(variableType, newValue->getType());
 
-    builder.CreateStore(newValue, alloca);
+    if (node->assignmentOp()->ASSIGNMENT()) {
+        builder.CreateStore(newValue, alloca);
+    }
+    if (node->assignmentOp()->MULT_ASSIGNMENT()) {
+        llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
+        llvm::Value* result = builder.CreateMul(currentValue, newValue);
+        builder.CreateStore(result, alloca);
+    }
+    if (node->assignmentOp()->DIV_ASSIGNMENT()) {
+        llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
+        llvm::Value* result = builder.CreateFDiv(currentValue, newValue);
+        builder.CreateStore(result, alloca);
+    }
+    if (node->assignmentOp()->FLOOR_DIV_ASSIGNMENT()) {
+        llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
+        llvm::Value* result = builder.CreateSDiv(currentValue, newValue); // Assuming integer division
+        builder.CreateStore(result, alloca);
+    }
+    if (node->assignmentOp()->MOD_ASSIGNMENT()) {
+        llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
+        llvm::Value* result = builder.CreateSRem(currentValue, newValue);
+        builder.CreateStore(result, alloca);
+    }
+    if (node->assignmentOp()->PLUS_ASSIGNMENT()) {
+        llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
+        llvm::Value* result = builder.CreateAdd(currentValue, newValue);
+        builder.CreateStore(result, alloca);
+    }
+    if (node->assignmentOp()->MINUS_ASSIGNMENT()) {
+        llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
+        llvm::Value* result = builder.CreateSub(currentValue, newValue);
+        builder.CreateStore(result, alloca);
+    }
 
     return nullptr;
 }
