@@ -1,7 +1,7 @@
 #include "Visitor.h"
 
 
-std::any LLVMIRGenerator::visitStatement(FAMMParser::StatementContext* node) {
+llvm::Value* LLVMIRGenerator::visitStatement(FAMMParser::StatementContext* node) {
     if (const auto declWithDef = dynamic_cast<FAMMParser::DeclarationWithDefinitionContext*>(node)) {
         return visitDeclarationWithDefinition(declWithDef);
     }
@@ -19,13 +19,13 @@ std::any LLVMIRGenerator::visitStatement(FAMMParser::StatementContext* node) {
     throw std::runtime_error("Unknown statement context");
 }
 
-std::any LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node) {
-    const std::string variableName           = node->IDENTIFIER()->getText();
-    const auto typeContext                = node->type();
-    const std::string variableType     = visitType(typeContext);
-    const auto expressionContext    = node->expression();
-    llvm::Value* initialValue = visitExpression(expressionContext);
-    llvm::Type* llvmType      = getLLVMType(variableType);
+llvm::Value* LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node) {
+    const std::string variableName = node->IDENTIFIER()->getText();
+    const auto typeContext         = node->type();
+    const std::string variableType = visitType(typeContext);
+    const auto expressionContext   = node->expression();
+    llvm::Value* initialValue      = execute(expressionContext);
+    llvm::Type* llvmType           = getLLVMType(variableType);
 
     EnsureTypeEq(llvmType, initialValue->getType());
 
@@ -43,7 +43,7 @@ std::any LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::Declaration
     return nullptr;
 }
 
-std::any LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* node) {
+llvm::Value* LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* node) {
     const std::string variableName = node->IDENTIFIER()->getText();
 
     // Пытаемся найти переменную в скопах
@@ -60,7 +60,7 @@ std::any LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* node) {
     return nullptr;
 }
 
-std::any LLVMIRGenerator::visitReturnStatement(FAMMParser::ReturnStatementContext* returnCtx) {
+llvm::Value* LLVMIRGenerator::visitReturnStatement(FAMMParser::ReturnStatementContext* returnCtx) {
     const llvm::Function* currentFunction = builder.GetInsertBlock()->getParent();
     const llvm::Type* returnType = currentFunction->getReturnType();
 

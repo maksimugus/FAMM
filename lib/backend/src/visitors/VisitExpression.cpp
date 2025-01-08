@@ -43,7 +43,7 @@ llvm::Value* LLVMIRGenerator::visitIdentifierExpression(FAMMParser::IdentifierEx
 }
 
 llvm::Value* LLVMIRGenerator::visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx) {
-    llvm::Value* exprValue = visitExpression(negativeCtx->expression());
+    llvm::Value* exprValue = execute(negativeCtx->expression());
 
     if (exprValue->getType()->isIntegerTy()) {
         return builder.CreateNeg(exprValue, "negtmp");
@@ -55,8 +55,8 @@ llvm::Value* LLVMIRGenerator::visitNegativeExpression(FAMMParser::NegativeExpres
 }
 
 llvm::Value* LLVMIRGenerator::visitBoolExpression(FAMMParser::BoolExpressionContext* boolCtx) {
-    const auto left  = std::any_cast<llvm::Value*>(visit(boolCtx->expression(0))); // TODO тут либо any_cast
-    llvm::Value* right = visitExpression(boolCtx->expression(1)); // TODO либо visitExpression второе симпатичнее
+    llvm::Value* left  = execute(boolCtx->expression(0));
+    llvm::Value* right = execute(boolCtx->expression(1));
 
     EnsureTypeEq(left->getType(), right->getType());
 
@@ -75,15 +75,15 @@ llvm::Value* LLVMIRGenerator::visitBoolExpression(FAMMParser::BoolExpressionCont
 }
 
 llvm::Value* LLVMIRGenerator::visitNegationExpression(FAMMParser::NegationExpressionContext* negationCtx) {
-    if (llvm::Value* value = visitExpression(negationCtx->expression()); value->getType()->isIntegerTy(1)) {
+    if (llvm::Value* value = execute(negationCtx->expression()); value->getType()->isIntegerTy(1)) {
         return builder.CreateNot(value, "nottmp");
     }
     throw std::runtime_error("Unsupported type of value in bool operation.");
 }
 
 llvm::Value* LLVMIRGenerator::visitCompareExpression(FAMMParser::CompareExpressionContext* compareCtx) {
-    llvm::Value* left  = visitExpression(compareCtx->expression(0));
-    llvm::Value* right = visitExpression(compareCtx->expression(1));
+    llvm::Value* left  = execute(compareCtx->expression(0));
+    llvm::Value* right = execute(compareCtx->expression(1));
 
     const llvm::Type* leftType        = left->getType();
     const llvm::Type* rightType = right->getType();
@@ -104,8 +104,8 @@ llvm::Value* LLVMIRGenerator::visitCompareExpression(FAMMParser::CompareExpressi
 }
 
 llvm::Value* LLVMIRGenerator::visitAddSubExpression(FAMMParser::AddSubExpressionContext* addSubCtx) {
-    llvm::Value* left  = visitExpression(addSubCtx->expression(0));
-    llvm::Value* right = visitExpression(addSubCtx->expression(1));
+    llvm::Value* left  = execute(addSubCtx->expression(0));
+    llvm::Value* right = execute(addSubCtx->expression(1));
 
     EnsureTypeEq(left->getType(), right->getType());
 
@@ -121,8 +121,8 @@ llvm::Value* LLVMIRGenerator::visitAddSubExpression(FAMMParser::AddSubExpression
 }
 
 llvm::Value* LLVMIRGenerator::visitMulDivExpression(FAMMParser::MulDivExpressionContext* mulDivCtx) {
-    llvm::Value* left  = visitExpression(mulDivCtx->expression(0));
-    llvm::Value* right = visitExpression(mulDivCtx->expression(1));
+    llvm::Value* left  = execute(mulDivCtx->expression(0));
+    llvm::Value* right = execute(mulDivCtx->expression(1));
 
     EnsureTypeEq(left->getType(), right->getType());
     // TODO че делать со стрингами ёлы палы

@@ -33,6 +33,10 @@ std::any LLVMIRGenerator::visit(tree::ParseTree* node) {
     return nullptr;
 }
 
+llvm::Value* LLVMIRGenerator::execute(tree::ParseTree* node) {
+    return std::any_cast<llvm::Value*>(visit(node));
+}
+
 llvm::AllocaInst* LLVMIRGenerator::findVariable(const std::string& name) {
     for (auto it = scopeStack.rbegin(); it != scopeStack.rend(); ++it) {
         if (auto& variables = it->variables; variables.contains(name)) {

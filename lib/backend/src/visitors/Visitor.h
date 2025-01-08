@@ -3,12 +3,10 @@
 #include "FAMMParser.h"
 #include "Scope.h"
 #include "antlr4-runtime.h"
-#include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Verifier.h"
+
 
 using namespace antlr4;
 
@@ -25,8 +23,9 @@ public:
     void EnsureTypeEq(const llvm::Type* firstType, const llvm::Type* secondType);
 
     std::any visit(tree::ParseTree* node) override;  // big if
+    llvm::Value* execute(tree::ParseTree* node); // TODO rename ? run, exec, parse, visitALl
 
-    std::any visitProgram(FAMMParser::ProgramContext* node);
+    llvm::Value* visitProgram(FAMMParser::ProgramContext* node);
 
     llvm::Value* visitExpression(FAMMParser::ExpressionContext* expressionContext); // big if
 
@@ -52,21 +51,21 @@ public:
     std::string visitBaseType(FAMMParser::BaseTypeContext* baseTypeContext);
 
 
-    std::any visitStatement(FAMMParser::StatementContext* node); // big if
+    llvm::Value* visitStatement(FAMMParser::StatementContext* node); // big if
 
-    std::any visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node);
-    std::any visitReturnStatement(FAMMParser::ReturnStatementContext* returnCtx);
-    std::any visitDefinition(FAMMParser::DefinitionContext* node);
+    llvm::Value* visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node);
+    llvm::Value* visitReturnStatement(FAMMParser::ReturnStatementContext* returnCtx);
+    llvm::Value* visitDefinition(FAMMParser::DefinitionContext* node);
 
-    std::any visitBlock(FAMMParser::BlockContext* block);  // big if
+    llvm::Value* visitBlock(FAMMParser::BlockContext* block);  // big if
 
-    std::any visitFunctionBlock(FAMMParser::FunctionBlockContext* node);
-    std::any visitIfBlock(FAMMParser::IfBlockContext* ifBlockCtx);
-    std::any visitWhileBlock(FAMMParser::WhileBlockContext* whileBlockCtx);
-    std::any visitForBlock(FAMMParser::ForBlockContext* forBlockCtx);
+    llvm::Value* visitFunctionBlock(FAMMParser::FunctionBlockContext* node);
+    llvm::Value* visitIfBlock(FAMMParser::IfBlockContext* ifBlockCtx);
+    llvm::Value* visitWhileBlock(FAMMParser::WhileBlockContext* whileBlockCtx);
+    llvm::Value* visitForBlock(FAMMParser::ForBlockContext* forBlockCtx);
 
-    std::any visitScope(FAMMParser::ScopeContext* scope);
-    std::any visitLine(FAMMParser::LineContext* node);  // big if
+    llvm::Value* visitScope(FAMMParser::ScopeContext* scope);
+    llvm::Value* visitLine(FAMMParser::LineContext* node);  // big if
 
 
 private:

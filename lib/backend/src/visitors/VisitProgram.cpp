@@ -1,6 +1,7 @@
 #include "Visitor.h"
+#include <llvm/IR/Verifier.h>
 
-std::any LLVMIRGenerator::visitProgram(FAMMParser::ProgramContext* node) {
+llvm::Value* LLVMIRGenerator::visitProgram(FAMMParser::ProgramContext* node) {
     enterScope(); // Глобальный скопец
 
     llvm::FunctionType* mainType = llvm::FunctionType::get(llvm::Type::getInt32Ty(context), false);
@@ -10,7 +11,7 @@ std::any LLVMIRGenerator::visitProgram(FAMMParser::ProgramContext* node) {
     builder.SetInsertPoint(entry);
 
     for (const auto line : node->line()) {
-        visit(line);
+        execute(line);
     }
 
     // Return 0 from main
@@ -24,7 +25,7 @@ std::any LLVMIRGenerator::visitProgram(FAMMParser::ProgramContext* node) {
     return nullptr;
 }
 
-std::any LLVMIRGenerator::visitLine(FAMMParser::LineContext* node) {
+llvm::Value* LLVMIRGenerator::visitLine(FAMMParser::LineContext* node) {
     if (node->statement()) {
         return visitStatement(node->statement());
     }
@@ -38,10 +39,10 @@ std::any LLVMIRGenerator::visitLine(FAMMParser::LineContext* node) {
     throw std::runtime_error("Unknown line context");
 }
 
-std::any LLVMIRGenerator::visitScope(FAMMParser::ScopeContext* scope) {
+llvm::Value* LLVMIRGenerator::visitScope(FAMMParser::ScopeContext* scope) {
     enterScope();
     for (const auto line : scope->line()) {
-        visit(line);
+        execute(line);
     }
     exitScope();
     return nullptr;

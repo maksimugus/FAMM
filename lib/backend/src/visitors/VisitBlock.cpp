@@ -1,6 +1,7 @@
 #include "Visitor.h"
+#include "llvm/IR/Verifier.h"
 
-std::any LLVMIRGenerator::visitBlock(FAMMParser::BlockContext* block) {
+llvm::Value* LLVMIRGenerator::visitBlock(FAMMParser::BlockContext* block) {
     if (const auto forLoop = dynamic_cast<FAMMParser::ForBlockContext*>(block)) {
         return visitForBlock(forLoop);
     }
@@ -17,7 +18,7 @@ std::any LLVMIRGenerator::visitBlock(FAMMParser::BlockContext* block) {
 }
 
 
-std::any LLVMIRGenerator::visitWhileBlock(FAMMParser::WhileBlockContext* whileBlockCtx) {
+llvm::Value* LLVMIRGenerator::visitWhileBlock(FAMMParser::WhileBlockContext* whileBlockCtx) {
     llvm::Function* currentFunction = builder.GetInsertBlock()->getParent();
 
     // Создаем базовые блоки для условия, тела цикла и выхода из цикла
@@ -30,7 +31,7 @@ std::any LLVMIRGenerator::visitWhileBlock(FAMMParser::WhileBlockContext* whileBl
     builder.SetInsertPoint(conditionBlock);
 
     // Оцениваем условие цикла
-    llvm::Value* condition = visitExpression(whileBlockCtx->expression());
+    llvm::Value* condition = execute(whileBlockCtx->expression());
     if (!condition->getType()->isIntegerTy(1)) {
         throw std::runtime_error("Condition in while statement must be a boolean expression.");
     }
@@ -41,8 +42,8 @@ std::any LLVMIRGenerator::visitWhileBlock(FAMMParser::WhileBlockContext* whileBl
     // Генерируем тело цикла
     builder.SetInsertPoint(loopBlock);
     enterScope(); // Входим в новую область видимости
-    for (auto line : whileBlockCtx->scope()->line()) {
-        visit(line);
+    for (const auto line : whileBlockCtx->scope()->line()) {
+        execute(line);
     }
     exitScope(); // Выходим из области видимости
     builder.CreateBr(conditionBlock);
@@ -54,7 +55,7 @@ std::any LLVMIRGenerator::visitWhileBlock(FAMMParser::WhileBlockContext* whileBl
 }
 
 
-std::any LLVMIRGenerator::visitForBlock(FAMMParser::ForBlockContext* forBlockCtx) {
+llvm::Value* LLVMIRGenerator::visitForBlock(FAMMParser::ForBlockContext* forBlockCtx) {
     // llvm::Function* currentFunction = builder.GetInsertBlock()->getParent(); // TODO
     //
     // // Create basic blocks for loop components
@@ -122,9 +123,9 @@ std::any LLVMIRGenerator::visitForBlock(FAMMParser::ForBlockContext* forBlockCtx
 }
 
 
-std::any LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContext* node) {
+llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContext* node) {
     const std::string functionName = node->IDENTIFIER()->getText();
-    llvm::Type* returnType   = getLLVMType(visitType(node->type()));
+    llvm::Type* returnType         = getLLVMType(visitType(node->type()));
 
     // Create a vector of parameter types
     std::vector<llvm::Type*> paramTypes;
@@ -155,7 +156,7 @@ std::any LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContext* n
     }
 
     // Visit the function body (block)
-    visit(node->scope()); // TODO
+    execute(node->scope()); // TODO
 
     // Validate the generated code
     llvm::verifyFunction(*function);
@@ -164,8 +165,8 @@ std::any LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContext* n
 }
 
 
-std::any LLVMIRGenerator::visitIfBlock(FAMMParser::IfBlockContext* ifBlockCtx) {
-    llvm::Value* condition = visitExpression(ifBlockCtx->expression());
+llvm::Value* LLVMIRGenerator::visitIfBlock(FAMMParser::IfBlockContext* ifBlockCtx) {
+    llvm::Value* condition = execute(ifBlockCtx->expression());
 
     if (!condition->getType()->isIntegerTy(1)) {
         throw std::runtime_error("Condition in if statement must be a boolean expression.");
@@ -182,7 +183,7 @@ std::any LLVMIRGenerator::visitIfBlock(FAMMParser::IfBlockContext* ifBlockCtx) {
     // Генерируем 'then' блок
     builder.SetInsertPoint(thenBlock);
 
-    visit(ifBlockCtx->scope(0));
+    execute(ifBlockCtx->scope(0));
 
     builder.CreateBr(mergeBlock);
 
@@ -190,7 +191,7 @@ std::any LLVMIRGenerator::visitIfBlock(FAMMParser::IfBlockContext* ifBlockCtx) {
     builder.SetInsertPoint(elseBlock);
 
     if (ifBlockCtx->ELSE()) {
-        visit(ifBlockCtx->scope(1));
+        execute(ifBlockCtx->scope(1));
     }
 
     builder.CreateBr(mergeBlock);

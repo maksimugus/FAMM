@@ -1,5 +1,7 @@
 #include "Visitor.h"
 
+// TODO move from visitors
+
 llvm::Value* LLVMIRGenerator::createIntComparison(
     FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right) {
     if (compareCtx->compareOp()->EQ()) {
