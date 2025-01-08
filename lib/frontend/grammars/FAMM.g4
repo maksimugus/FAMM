@@ -20,7 +20,7 @@ block
     : IF LPAR expression RPAR scope (ELSE scope)?                                    # IfBlock
     | WHILE LPAR expression RPAR scope                                               # WhileBlock
     | FOR LPAR declarationWithDefinition ARROW expression BY expression RPAR scope   # ForBlock
-    | FUNC IDENTIFIER LPAR parameterList? RPAR COLON type ASSIGNMENT scope           # FunctionBlock
+    | FUNC IDENTIFIER LPAR parameterList? RPAR COLON (type | NIH_LIT) ASSIGNMENT scope           # FunctionBlock
     ;
 
 
@@ -81,7 +81,6 @@ constant
     | FLOAT_LIT
     | STRING_LIT
     | BOOL_LIT
-    | NIH_LIT
     | arrayLiteral
     ;
 

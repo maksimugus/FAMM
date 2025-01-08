@@ -162,7 +162,7 @@ llvm::Value* LLVMIRGenerator::visitConstantExpression(FAMMParser::ConstantContex
         // Remove quotes if necessary
         strValue = strValue.substr(1, strValue.length() - 2);
         return builder.CreateGlobalStringPtr(strValue, "strtmp");
-    } // TODO: не хватает массива
+    }
     if (constantContext->BOOL_LIT()) {
         // Convert the boolean literal text to a boolean value
         const bool boolValue = (constantContext->BOOL_LIT()->getText() == "true");

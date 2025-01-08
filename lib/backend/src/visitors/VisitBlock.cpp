@@ -125,7 +125,12 @@ llvm::Value* LLVMIRGenerator::visitForBlock(FAMMParser::ForBlockContext* forBloc
 
 llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContext* node) {
     const std::string functionName = node->IDENTIFIER()->getText();
-    llvm::Type* returnType         = getLLVMType(visitType(node->type()));
+    llvm::Type* returnType;
+    if (node->NIH_LIT()) {
+        returnType = llvm::Type::getVoidTy(context);
+    } else {
+        returnType = getLLVMType(visitType(node->type()));
+    }
 
     // Create a vector of parameter types
     std::vector<llvm::Type*> paramTypes;
