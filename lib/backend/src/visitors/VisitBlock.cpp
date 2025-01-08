@@ -149,11 +149,11 @@ llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContex
 
     // Handle function parameters
     unsigned idx = 0;
+    enterScope();
     for (auto& arg : function->args()) {
         arg.setName(node->parameterList()->parameter(idx)->IDENTIFIER()->getText());
         llvm::AllocaInst* alloca = builder.CreateAlloca(arg.getType(), nullptr, arg.getName());
         builder.CreateStore(&arg, alloca);
-        enterScope();
         scopeStack.back().variables.insert({arg.getName().str(), alloca});
 
         idx++;
@@ -166,6 +166,7 @@ llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContex
     llvm::verifyFunction(*function);
 
     builder.SetInsertPoint(prevBlock);
+    exitScope();
 
     return module.getFunction("main");;
 }
