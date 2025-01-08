@@ -15,11 +15,9 @@ set(SOURCE_FILES
         src/visitors/VisitExpression.cpp
         src/visitors/CreateComparison.cpp
         src/visitors/VisitType.cpp
-        src/visitors/VisitDeclarationDefinition.cpp
-        src/visitors/VisitIfBlock.cpp
-        src/visitors/VisitLoopBlock.cpp
-        src/visitors/VisitFunction.cpp
-        src/visitors/VisitProgram.cpp)
+        src/visitors/VisitProgram.cpp
+        src/visitors/VisitBlock.cpp
+        src/visitors/VisitStatement.cpp)
 
 # Create the static backend library
 add_library(backend STATIC ${SOURCE_FILES})

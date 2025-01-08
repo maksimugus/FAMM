@@ -10,14 +10,14 @@ std::any LLVMIRGenerator::visitProgram(FAMMParser::ProgramContext* node) {
     builder.SetInsertPoint(entry);
 
     for (const auto line : node->line()) {
-        visitLine(line);
+        visit(line);
     }
 
     // Return 0 from main
     builder.CreateRet(llvm::ConstantInt::get(llvm::Type::getInt32Ty(context), 0));
 
     // Verify the function
-    llvm::verifyFunction(*mainFunction);
+    verifyFunction(*mainFunction);
 
     exitScope();
 
@@ -28,21 +28,9 @@ std::any LLVMIRGenerator::visitLine(FAMMParser::LineContext* node) {
     if (node->statement()) {
         return visitStatement(node->statement());
     }
-    if (node->functionDefinition()) {
-        return visitFunctionDefinition(node->functionDefinition());
-    }
     if (node->expression()) {
         return visitExpression(node->expression());
     }
-    if (node->ifBlock()) {
-        return visitIfBlock(node->ifBlock());
-    }
-    if (node->whileBlock()) {
-        return visitWhileBlock(node->whileBlock());
-    }
-//    if (node->forBlock()) {
-//        return visitForBlock(node->forBlock());
-//    }
     if (node->SEMICOLON()) {
         return nullptr;
     }
@@ -50,10 +38,10 @@ std::any LLVMIRGenerator::visitLine(FAMMParser::LineContext* node) {
     throw std::runtime_error("Unknown line context");
 }
 
-std::any LLVMIRGenerator::visitBlock(FAMMParser::BlockContext* block) {
+std::any LLVMIRGenerator::visitScope(FAMMParser::ScopeContext* scope) {
     enterScope();
-    for (const auto line : block->line()) {
-        visitLine(line);
+    for (const auto line : scope->line()) {
+        visit(line);
     }
     exitScope();
     return nullptr;
