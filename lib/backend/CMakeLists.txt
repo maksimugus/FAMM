@@ -25,6 +25,7 @@ set(SOURCE_FILES
         src/helpers/Helpers.cpp
         src/helpers/Helpers.h
         src/run/ObjectEmitter.h
+        src/run/JIT.h
 )
 
 # Create the static backend library
