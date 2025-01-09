@@ -133,10 +133,9 @@ llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContex
     }
 
     // Создаем функцию
-    llvm::FunctionType* functionType = llvm::FunctionType::get(returnType, false);
+    llvm::FunctionType* functionType = llvm::FunctionType::get(returnType,paramTypes, false);
     llvm::Function* function =
         llvm::Function::Create(functionType, llvm::Function::ExternalLinkage, functionName, *module);
-
     // Запомним блок
     llvm::BasicBlock* prevBlock = builder.GetInsertBlock();
 
