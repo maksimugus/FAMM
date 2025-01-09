@@ -39,6 +39,9 @@ llvm::Value* LLVMIRGenerator::visitLine(FAMMParser::LineContext* node) {
 llvm::Value* LLVMIRGenerator::visitScope(FAMMParser::ScopeContext* scope) {
     enterScope();
     for (const auto line : scope->line()) {
+        if (builder.GetInsertBlock()->getTerminator() != nullptr) {
+            break;
+        }
         execute(line);
     }
     exitScope();
