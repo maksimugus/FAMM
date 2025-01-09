@@ -40,7 +40,7 @@ llvm::Value* LLVMIRGenerator::visitIdentifierExpression(FAMMParser::IdentifierEx
     const std::string varName = identCtx->IDENTIFIER()->getText();
 
     llvm::AllocaInst* alloca = findVariable(varName);
-    return builder.CreateLoad(alloca->getAllocatedType(), alloca, varName + "_load");
+    return builder.CreateAlignedLoad(alloca->getAllocatedType(), alloca, llvm::Align(8), varName + "_load");
 }
 
 llvm::Value* LLVMIRGenerator::visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx) {

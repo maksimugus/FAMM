@@ -91,7 +91,7 @@ llvm::Value* LLVMIRGenerator::visitForBlock(FAMMParser::ForBlockContext* forBloc
     loopVar = builder.CreateLoad(loopVarAlloca->getAllocatedType(), loopVarAlloca, loopVarName);
     llvm::Value* stepValue = execute(forBlockCtx->expression(1));
     llvm::Value* nextValue = builder.CreateAdd(loopVar, stepValue, "nextValue");
-    builder.CreateStore(nextValue, loopVarAlloca);
+    builder.CreateStore(nextValue, loopVarAlloca)->setAlignment(llvm::Align(8));;
     builder.CreateBr(loopCondBB);
 
     // Переход к блоку после цикла
@@ -140,7 +140,7 @@ llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContex
     for (auto& arg : function->args()) {
         arg.setName(node->parameterList()->parameter(idx)->IDENTIFIER()->getText());
         llvm::AllocaInst* alloca = builder.CreateAlloca(arg.getType(), nullptr, arg.getName());
-        builder.CreateStore(&arg, alloca);
+        builder.CreateStore(&arg, alloca)->setAlignment(llvm::Align(8));
         scopeStack.back().variables.insert({arg.getName().str(), alloca});
 
         idx++;

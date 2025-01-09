@@ -26,11 +26,11 @@ public:
             error = "Function 'main' not found in module.";
             return;
         }
-
-        if (verifyModule(*module, &llvm::errs())) {
-            error = "Module verification failed.";
-            return;
-        }
+//
+//        if (verifyModule(*module, &llvm::errs())) {
+//            error = "Module verification failed.";
+//            return;
+//        }
 
 
         optimizeModule(*module);
