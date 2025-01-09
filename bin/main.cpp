@@ -15,10 +15,10 @@
 using namespace antlr4;
 using namespace std;
 
-void run(LLVMIRGenerator& visitor) {
+void run(LLVMIRGenerator& visitor, const bool print_optimised = false) {
     std::string error;
     LLVMLinkInMCJIT();
-    LLVMJIT::run(visitor.getModule(), error);
+    LLVMJIT::run(visitor.getModule(), error, print_optimised);
     if (!error.empty()) {
         llvm::errs() << error << "\n";
     }
@@ -35,6 +35,7 @@ void compile(LLVMIRGenerator& visitor, const string& filename) {
 }
 
 int main(int argc, const char* argv[]) {
+    // todo climanager --compile --print_optimised
     if (argc < 2) {
         cerr << "Usage: " << argv[0] << " <file.famm>" << endl;
         return 1;
@@ -71,8 +72,9 @@ int main(int argc, const char* argv[]) {
     llvm::InitializeNativeTargetAsmPrinter();
     llvm::InitializeNativeTargetAsmParser();
 
-    run(visitor);
-   // compile(visitor, "output.o");
+    // compile(visitor, comp_file);
+    run(visitor, true);
+
     return 0;
     // TODO: нужны встроенные функции (хотя бы display(...))
     // TODO: тесты на famm (можно будет сделать после добавления display() )
