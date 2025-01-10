@@ -1,5 +1,6 @@
 #include "Visitor.h"
-#include "helpers/Helpers.h"
+#include "externalFunctions/ExternalFunctions.h"
+#include "helpers/helpers.h"
 
 llvm::Value* LLVMIRGenerator::visitExpression(FAMMParser::ExpressionContext* expressionContext) {
     if (const auto addSubCtx = dynamic_cast<FAMMParser::AddSubExpressionContext*>(expressionContext)) {
@@ -109,7 +110,7 @@ llvm::Value* LLVMIRGenerator::visitAddSubExpression(FAMMParser::AddSubExpression
     llvm::Value* right = execute(addSubCtx->expression(1));
 
     EnsureTypeEq(left->getType(), right->getType());
-
+    EnsureIntOrFloat(left);
     // TODO че делать со стрингами ёлы палы
     if (addSubCtx->addOp()->PLUS()) {
         return builder.CreateAdd(left, right, "addtmp");
@@ -126,6 +127,7 @@ llvm::Value* LLVMIRGenerator::visitMulDivExpression(FAMMParser::MulDivExpression
     llvm::Value* right = execute(mulDivCtx->expression(1));
 
     EnsureTypeEq(left->getType(), right->getType());
+    EnsureIntOrFloat(left);
     // TODO че делать со стрингами ёлы палы
     if (mulDivCtx->multOp()->MULT()) {
         return builder.CreateMul(left, right, "multmp");

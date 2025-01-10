@@ -31,10 +31,12 @@ set(SOURCE_FILES
         src/visitors/VisitProgram.cpp
         src/visitors/VisitBlock.cpp
         src/visitors/VisitStatement.cpp
-        src/helpers/Helpers.cpp
-        src/helpers/Helpers.h
+        src/externalFunctions/ExternalFunctions.cpp
+        src/externalFunctions/ExternalFunctions.h
         src/run/ObjectEmitter.h
         src/run/JIT.h
+        src/helpers/helpers.cpp
+        src/helpers/helpers.h
 )
 
 # Create the static backend library

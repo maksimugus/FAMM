@@ -41,12 +41,11 @@ llvm::Value* LLVMIRGenerator::visitWhileBlock(FAMMParser::WhileBlockContext* whi
 
     // Генерируем тело цикла
     builder.SetInsertPoint(loopBlock);
-    enterScope(); // Входим в новую область видимости
-    for (const auto line : whileBlockCtx->scope()->line()) {
-        execute(line);
+    execute(whileBlockCtx->scope());
+    // если в скопе вайле есть ретурн, то нет смысле в br
+    if (builder.GetInsertBlock()->getTerminator() == nullptr) {
+        builder.CreateBr(conditionBlock);
     }
-    exitScope(); // Выходим из области видимости
-    builder.CreateBr(conditionBlock);
 
     // Устанавливаем точку вставки в блок после цикла
     builder.SetInsertPoint(afterLoopBlock);
@@ -75,10 +74,19 @@ llvm::Value* LLVMIRGenerator::visitForBlock(FAMMParser::ForBlockContext* forBloc
 
     // Загрузка текущего значения переменной цикла
     llvm::Value* loopVar = builder.CreateLoad(loopVarAlloca->getAllocatedType(), loopVarAlloca, loopVarName);
-
     // Условие выхода из цикла
     llvm::Value* endValue = execute(forBlockCtx->expression(0));
-    llvm::Value* condVal = builder.CreateICmpSLT(loopVar, endValue, "loopcond");
+    EnsureTypeEq(loopVarAlloca->getAllocatedType(), endValue->getType());
+
+    llvm::Value* condVal = nullptr;
+    if (loopVar->getType()->isIntegerTy()) {
+        condVal = builder.CreateICmpSLT(loopVar, endValue, "loopcond");
+    } else if (loopVar->getType()->isFloatingPointTy()) {
+        condVal = builder.CreateFCmpULT(loopVar, endValue, "loopcond");
+    } else {
+        throw std::runtime_error("Can't compare types");
+    }
+
     builder.CreateCondBr(condVal, loopBodyBB, afterLoopBB);
 
     // Тело цикла
@@ -115,26 +123,27 @@ llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContex
         returnType = getLLVMType(node->type());
     }
 
-    // Create a vector of parameter types
+    // Получаем вектор параметров функции
     std::vector<llvm::Type*> paramTypes;
-    for (auto* parameter : node->parameterList()->parameter()) {
-        llvm::Type* paramType = getLLVMType(parameter->type());
-        paramTypes.push_back(paramType);
+    if (node->parameterList()){
+        for (auto* parameter : node->parameterList()->parameter()) {
+            llvm::Type* paramType = getLLVMType(parameter->type());
+            paramTypes.push_back(paramType);
+        }
     }
 
-    // Create the function
-    llvm::FunctionType* functionType = llvm::FunctionType::get(returnType, paramTypes, false);
+    // Создаем функцию
+    llvm::FunctionType* functionType = llvm::FunctionType::get(returnType,paramTypes, false);
     llvm::Function* function =
         llvm::Function::Create(functionType, llvm::Function::ExternalLinkage, functionName, *module);
-
     // Запомним блок
     llvm::BasicBlock* prevBlock = builder.GetInsertBlock();
 
-    // Create a new basic block to start insertion into
+    // создаем тело функции
     llvm::BasicBlock* basicBlock = llvm::BasicBlock::Create(*context, "entry", function);
     builder.SetInsertPoint(basicBlock);
 
-    // Handle function parameters
+    // нужно в скоп добавить все параметры функции
     unsigned idx = 0;
     enterScope();
     for (auto& arg : function->args()) {
@@ -146,11 +155,11 @@ llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContex
         idx++;
     }
 
-    // Visit the function body (block)
+    // посетим скоп функции
     execute(node->scope());
 
-    // Validate the generated code
-    llvm::verifyFunction(*function);
+    // Проверим полученную функцию
+    llvm::verifyFunction(*function, &llvm::errs());
 
     builder.SetInsertPoint(prevBlock);
     exitScope();
@@ -179,7 +188,9 @@ llvm::Value* LLVMIRGenerator::visitIfBlock(FAMMParser::IfBlockContext* ifBlockCt
 
     execute(ifBlockCtx->scope(0));
 
-    builder.CreateBr(mergeBlock);
+    if (builder.GetInsertBlock()->getTerminator() == nullptr) {
+        builder.CreateBr(mergeBlock);
+    }
 
     // Генерируем 'else' блок
     builder.SetInsertPoint(elseBlock);

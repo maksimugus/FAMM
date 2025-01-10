@@ -1,12 +1,10 @@
-
 func fucktorial(var n: int): int = {
     if (n == 0) {
         return 1;
     };
-    return n;
+    return n * fucktorial(n-1);
 };
 
+var n: int = 20;
+display("Fucktorial of number ", n, "=", fucktorial(n));
 
-var i: int = fucktorial(3);
-
-#display();

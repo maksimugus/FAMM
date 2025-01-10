@@ -1,4 +1,4 @@
-#include "Helpers.h"
+#include "ExternalFunctions.h"
 
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Module.h>
@@ -17,6 +17,8 @@ llvm::Value* display(const std::unique_ptr<llvm::Module>& llvm_module, llvm::IRB
         for (const llvm::Value* val : values) {
             if (const llvm::Type* ty = val->getType(); ty->isIntegerTy(1)) {
                 formatStr += "%d ";
+            } else if (ty->isIntegerTy(64)) {
+                formatStr += "%lld ";  // Use %lld for 64-bit integers
             } else if (ty->isIntegerTy()) {
                 formatStr += "%d ";
             } else if (ty->isFloatingPointTy()) {
