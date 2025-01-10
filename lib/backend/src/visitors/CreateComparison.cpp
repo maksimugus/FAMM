@@ -61,3 +61,41 @@ llvm::Value* LLVMIRGenerator::createBoolComparison(
 
     throw std::runtime_error("Unsupported comparison for boolean type. Use only == or !=.");
 }
+
+llvm::Value* LLVMIRGenerator::createStringComparison(
+    FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right) {
+
+    llvm::Function* strcmpFunc = module->getFunction("strcmp");
+    if (!strcmpFunc) {
+        llvm::FunctionType* strcmpType = llvm::FunctionType::get(
+            llvm::Type::getInt32Ty(*context), // Return type: int
+            {llvm::PointerType::get(llvm::Type::getInt8Ty(*context), 0), llvm::PointerType::get(llvm::Type::getInt8Ty(*context), 0)}, // Parameters: char*, char*
+            false);
+        strcmpFunc = llvm::Function::Create(strcmpType, llvm::Function::ExternalLinkage, "strcmp", module.get());
+    }
+
+    llvm::Value* result = builder.CreateCall(strcmpFunc, {left, right});
+
+    llvm::Value* zero = llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context), 0);
+
+    if (compareCtx->compareOp()->EQ()) {
+        return builder.CreateICmpEQ(result, zero);
+    }
+    if (compareCtx->compareOp()->NEQ()) {
+        return builder.CreateICmpNE(result, zero);
+    }
+    if (compareCtx->compareOp()->LT()) {
+        return builder.CreateICmpSLT(result, zero);
+    }
+    if (compareCtx->compareOp()->LE()) {
+        return builder.CreateICmpSLE(result, zero);
+    }
+    if (compareCtx->compareOp()->GT()) {
+        return builder.CreateICmpSGT(result, zero);
+    }
+    if (compareCtx->compareOp()->GE()) {
+        return builder.CreateICmpSGE(result, zero);
+    }
+
+    throw std::runtime_error("Invalid comparison operation for strings.");
+}

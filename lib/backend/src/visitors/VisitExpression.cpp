@@ -88,19 +88,20 @@ llvm::Value* LLVMIRGenerator::visitCompareExpression(FAMMParser::CompareExpressi
     llvm::Value* left  = execute(compareCtx->expression(0));
     llvm::Value* right = execute(compareCtx->expression(1));
 
-    const llvm::Type* leftType  = left->getType();
-    const llvm::Type* rightType = right->getType();
+    EnsureTypeEq(left->getType(), right->getType());
 
-    EnsureTypeEq(leftType, rightType);
-    EnsureIntOrDouble(left);
-    if (leftType->isIntegerTy(64)) {
+    if (IsInt(left)) {
         return createIntComparison(compareCtx, left, right);
     }
-    if (leftType->isDoubleTy()) {
+    if (IsDouble(left)) {
         return createDoubleComparison(compareCtx, left, right);
     }
-    if (leftType->isIntegerTy(1)) {
+    if (IsBool(left)) {
         return createBoolComparison(compareCtx, left, right);
+    }
+
+    if (IsString(left)){
+        return createStringComparison(compareCtx, left, right);
     }
 
     throw std::runtime_error("Unsupported type in comparison operation.");

@@ -48,6 +48,8 @@ public:
         FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
     llvm::Value* createBoolComparison(
         FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
+    llvm::Value* createStringComparison(
+        FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
 
     llvm::Type* getLLVMType(FAMMParser::TypeContext* typeContext);
 

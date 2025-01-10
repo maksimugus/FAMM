@@ -1,4 +1,5 @@
 #pragma once
+#include "externalFunctions/ExternalFunctions.h"
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
@@ -50,6 +51,7 @@ public:
         }
 
         engine->addGlobalMapping("display", reinterpret_cast<uint64_t>(&printf));
+        engine->addGlobalMapping("strcmp", reinterpret_cast<uint64_t>(&strcmp));
 
         const std::vector<llvm::GenericValue> noArgs;
         const llvm::GenericValue result = engine->runFunction(mainFunction, noArgs);
