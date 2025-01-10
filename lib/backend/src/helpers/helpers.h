@@ -1,25 +1,13 @@
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Type.h"
 
-bool IsDouble(llvm::Value* value) {
-    return value->getType()->isDoubleTy();
-}
+bool IsDouble(llvm::Value* value);
 
-bool IsInt(llvm::Value* value) {
-    return value->getType()->isIntegerTy(64);
-}
+bool IsInt(llvm::Value* value);
 
-bool IsBool(llvm::Value* value) {
-    return value->getType()->isIntegerTy(1);
-}
+bool IsBool(llvm::Value* value);
 
-bool IsString(llvm::Value* value) {
-    return value->getType()->isPointerTy();
-}
+bool IsString(llvm::Value* value);
 
-void EnsureIntOrDouble(llvm::Value* value){
-    if (!IsInt(value) && !IsDouble(value)){
-        throw std::runtime_error("The provided value must be Int or Double");
-    }
-}
+void EnsureIntOrDouble(llvm::Value* value);
 
