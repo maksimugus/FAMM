@@ -24,6 +24,16 @@ void run(LLVMIRGenerator& visitor, const bool print_optimised = false) {
     }
 }
 
+bool generateLLVMIR(LLVMIRGenerator& visitor, tree::ParseTree* tree) {
+    try {
+        visitor.visit(tree);
+    } catch (const std::exception& e) {
+        std::cerr << "An error occurred during generating LLVM IR code: \n" << e.what() << std::endl;
+        return false;
+    }
+    return true;
+};
+
 
 void compile(LLVMIRGenerator& visitor, const string& filename) {
     std::string error;
@@ -62,10 +72,11 @@ int main(int argc, const char* argv[]) {
     tree::ParseTree* tree = parser.program();
 
 
-    std::cout << tree->toStringTree(&parser) << std::endl;
+    std::cout << tree->toStringTree(&parser) << "\n\n";
     auto visitor = LLVMIRGenerator();
-    visitor.visit(tree);
-
+    bool success = generateLLVMIR(visitor, tree);
+    if (!success)
+        return 1;
     visitor.printIR();
 
     llvm::InitializeNativeTarget();
