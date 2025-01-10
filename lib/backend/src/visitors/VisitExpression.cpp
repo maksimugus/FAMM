@@ -141,22 +141,17 @@ llvm::Value* LLVMIRGenerator::visitMulDivExpression(FAMMParser::MulDivExpression
     }
 
     if (mulDivCtx->multOp()->DIV()) {
-        if (!IsDouble(left))
-            throw std::runtime_error("Double division can be can only be applied to the double type");
+        ThrowIfNotDouble(left, "Float division can be can only be applied to the float type");
         return builder.CreateFDiv(left, right, "doubleDivtmp");
     }
 
     if (mulDivCtx->multOp()->MOD()) {
-        if (!IsInt(left)){
-            throw std::runtime_error("Mod operation can be can only be applied to the int type");
-        }
+        ThrowIfNotInt(left, "Mod operation can be can only be applied to the int type");
         return builder.CreateSRem(left, right, "modtmp");
     }
 
     if (mulDivCtx->multOp()->FLOOR_DIV()) {
-        if (!IsInt(left)){
-            throw std::runtime_error("Mod operation can be can only be applied to the int type");
-        }
+        ThrowIfNotInt(left, "Mod operation can be can only be applied to the int type");
         return builder.CreateSDiv(left, right, "intDivtmp");
     }
 

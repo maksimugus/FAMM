@@ -47,7 +47,7 @@ llvm::Value* LLVMIRGenerator::createDoubleComparison(
         return builder.CreateFCmpUGE(left, right, "fgetmp");
     }
 
-    throw std::runtime_error("Invalid comparison operation for Doubles.");
+    throw std::runtime_error("Invalid comparison operation for floats.");
 }
 
 llvm::Value* LLVMIRGenerator::createBoolComparison(

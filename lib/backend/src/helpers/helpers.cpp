@@ -13,6 +13,18 @@ bool IsString(llvm::Value* value) {
 }
 void EnsureIntOrDouble(llvm::Value* value) {
     if (!IsInt(value) && !IsDouble(value)){
-        throw std::runtime_error("The provided value must be Int or Double");
+        throw std::runtime_error("The provided value must be Int or Float");
+    }
+}
+
+void ThrowIfNotInt(llvm::Value* value, const std::string& message) {
+    if (!IsInt(value)){
+        throw std::runtime_error(message);
+    }
+}
+
+void ThrowIfNotDouble(llvm::Value* value, const std::string& message) {
+    if (!IsDouble(value)){
+        throw std::runtime_error(message);
     }
 }
