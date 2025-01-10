@@ -26,7 +26,7 @@ llvm::Value* LLVMIRGenerator::createIntComparison(
     throw std::runtime_error("Invalid comparison operation for integers.");
 }
 
-llvm::Value* LLVMIRGenerator::createFloatComparison(
+llvm::Value* LLVMIRGenerator::createDoubleComparison(
     FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right) {
     if (compareCtx->compareOp()->EQ()) {
         return builder.CreateFCmpUEQ(left, right, "feqtmp");
@@ -47,7 +47,7 @@ llvm::Value* LLVMIRGenerator::createFloatComparison(
         return builder.CreateFCmpUGE(left, right, "fgetmp");
     }
 
-    throw std::runtime_error("Invalid comparison operation for floats.");
+    throw std::runtime_error("Invalid comparison operation for Doubles.");
 }
 
 llvm::Value* LLVMIRGenerator::createBoolComparison(

@@ -1,5 +1,6 @@
 #include "Visitor.h"
 #include "llvm/IR/Verifier.h"
+#include "helpers/helpers.h"
 
 llvm::Value* LLVMIRGenerator::visitBlock(FAMMParser::BlockContext* block) {
     if (const auto forLoop = dynamic_cast<FAMMParser::ForBlockContext*>(block)) {
@@ -77,11 +78,11 @@ llvm::Value* LLVMIRGenerator::visitForBlock(FAMMParser::ForBlockContext* forBloc
     // Условие выхода из цикла
     llvm::Value* endValue = execute(forBlockCtx->expression(0));
     EnsureTypeEq(loopVarAlloca->getAllocatedType(), endValue->getType());
-
+    EnsureIntOrDouble(loopVar);
     llvm::Value* condVal = nullptr;
-    if (loopVar->getType()->isIntegerTy()) {
+    if (IsInt(loopVar)) {
         condVal = builder.CreateICmpSLT(loopVar, endValue, "loopcond");
-    } else if (loopVar->getType()->isFloatingPointTy()) {
+    } else if (IsDouble(loopVar)) {
         condVal = builder.CreateFCmpULT(loopVar, endValue, "loopcond");
     } else {
         throw std::runtime_error("Can't compare types");
@@ -98,7 +99,12 @@ llvm::Value* LLVMIRGenerator::visitForBlock(FAMMParser::ForBlockContext* forBloc
     builder.SetInsertPoint(loopIncBB);
     loopVar = builder.CreateLoad(loopVarAlloca->getAllocatedType(), loopVarAlloca, loopVarName);
     llvm::Value* stepValue = execute(forBlockCtx->expression(1));
-    llvm::Value* nextValue = builder.CreateAdd(loopVar, stepValue, "nextValue");
+    llvm::Value* nextValue = nullptr;
+    if (IsInt(loopVar)) {
+        nextValue = builder.CreateAdd(loopVar, stepValue, "nextValue");
+    } else if(IsDouble(loopVar)){
+        nextValue = builder.CreateFAdd(loopVar, stepValue, "nextValue");
+    }
     builder.CreateStore(nextValue, loopVarAlloca);
     builder.CreateBr(loopCondBB);
 

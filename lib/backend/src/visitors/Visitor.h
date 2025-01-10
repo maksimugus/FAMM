@@ -44,7 +44,7 @@ public:
 
     llvm::Value* createIntComparison(
         FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
-    llvm::Value* createFloatComparison(
+    llvm::Value* createDoubleComparison(
         FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
     llvm::Value* createBoolComparison(
         FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);

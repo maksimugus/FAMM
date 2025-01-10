@@ -47,10 +47,11 @@ llvm::Value* LLVMIRGenerator::visitIdentifierExpression(FAMMParser::IdentifierEx
 llvm::Value* LLVMIRGenerator::visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx) {
     llvm::Value* exprValue = execute(negativeCtx->expression());
 
+    EnsureIntOrDouble(exprValue);
     if (exprValue->getType()->isIntegerTy()) {
         return builder.CreateNeg(exprValue, "negtmp");
     }
-    if (exprValue->getType()->isFloatingPointTy()) {
+    if (exprValue->getType()->isDoubleTy()) {
         return builder.CreateFNeg(exprValue, "negtmp");
     }
     throw std::runtime_error("Unsupported type for negation in visitNegativeExpression");
@@ -91,12 +92,12 @@ llvm::Value* LLVMIRGenerator::visitCompareExpression(FAMMParser::CompareExpressi
     const llvm::Type* rightType = right->getType();
 
     EnsureTypeEq(leftType, rightType);
-
+    EnsureIntOrDouble(left);
     if (leftType->isIntegerTy(64)) {
         return createIntComparison(compareCtx, left, right);
     }
-    if (leftType->isFloatTy()) {
-        return createFloatComparison(compareCtx, left, right);
+    if (leftType->isDoubleTy()) {
+        return createDoubleComparison(compareCtx, left, right);
     }
     if (leftType->isIntegerTy(1)) {
         return createBoolComparison(compareCtx, left, right);
@@ -110,12 +111,16 @@ llvm::Value* LLVMIRGenerator::visitAddSubExpression(FAMMParser::AddSubExpression
     llvm::Value* right = execute(addSubCtx->expression(1));
 
     EnsureTypeEq(left->getType(), right->getType());
-    EnsureIntOrFloat(left);
+    EnsureIntOrDouble(left);
     // TODO че делать со стрингами ёлы палы
     if (addSubCtx->addOp()->PLUS()) {
+        if (IsDouble(left))
+            return builder.CreateFAdd(left, right, "addtmp");
         return builder.CreateAdd(left, right, "addtmp");
     }
     if (addSubCtx->addOp()->MINUS()) {
+        if (IsDouble(left))
+            return builder.CreateFSub(left, right, "subtmp");
         return builder.CreateSub(left, right, "subtmp");
     }
 
@@ -127,21 +132,31 @@ llvm::Value* LLVMIRGenerator::visitMulDivExpression(FAMMParser::MulDivExpression
     llvm::Value* right = execute(mulDivCtx->expression(1));
 
     EnsureTypeEq(left->getType(), right->getType());
-    EnsureIntOrFloat(left);
+    EnsureIntOrDouble(left);
     // TODO че делать со стрингами ёлы палы
     if (mulDivCtx->multOp()->MULT()) {
+        if (IsDouble(left))
+            return builder.CreateFMul(left, right, "multmp");
         return builder.CreateMul(left, right, "multmp");
     }
 
     if (mulDivCtx->multOp()->DIV()) {
-        return builder.CreateFDiv(left, right, "floatDivtmp");
+        if (!IsDouble(left))
+            throw std::runtime_error("Double division can be can only be applied to the double type");
+        return builder.CreateFDiv(left, right, "doubleDivtmp");
     }
 
     if (mulDivCtx->multOp()->MOD()) {
+        if (!IsInt(left)){
+            throw std::runtime_error("Mod operation can be can only be applied to the int type");
+        }
         return builder.CreateSRem(left, right, "modtmp");
     }
 
     if (mulDivCtx->multOp()->FLOOR_DIV()) {
+        if (!IsInt(left)){
+            throw std::runtime_error("Mod operation can be can only be applied to the int type");
+        }
         return builder.CreateSDiv(left, right, "intDivtmp");
     }
 
@@ -157,8 +172,8 @@ llvm::Value* LLVMIRGenerator::visitConstantExpression(FAMMParser::ConstantContex
 
     if (constantContext->FLOAT_LIT()) {
         // Convert the float literal text to a float value
-        const float floatValue = std::stof(constantContext->FLOAT_LIT()->getText());
-        return llvm::ConstantFP::get(llvm::Type::getFloatTy(*context), floatValue);
+        const double doubleValue = std::stod(constantContext->FLOAT_LIT()->getText());
+        return llvm::ConstantFP::get(llvm::Type::getDoubleTy(*context), doubleValue);
     }
 
     if (constantContext->STRING_LIT()) {
