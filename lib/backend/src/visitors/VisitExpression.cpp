@@ -224,6 +224,24 @@ llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCa
     if (funcName == "display") {
         return display(module, builder, "", args);
     }
+    if (funcName == "to_int") {
+        if (args.size() > 1) {
+            throw std::runtime_error("Too many args");
+        }
+        return intCast(args[0], builder);
+    }
+    if (funcName == "to_float") {
+        if (args.size() > 1) {
+            throw std::runtime_error("Too many args");
+        }
+        return floatCast(args[0], builder);
+    }
+    if (funcName == "to_bool") {
+        if (args.size() > 1) {
+            throw std::runtime_error("Too many args");
+        }
+        return boolCast(args[0], builder);
+    }
 
     llvm::Function* function = module->getFunction(funcName);
     if (!function) {

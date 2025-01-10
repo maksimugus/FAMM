@@ -55,3 +55,69 @@ llvm::Value* display(const std::unique_ptr<llvm::Module>& llvm_module, llvm::IRB
 
     return builder.CreateCall(displayFunc, displayArgs, "displayCall");
 }
+
+llvm::Value* intCast(llvm::Value* value, llvm::IRBuilder<>& builder) {
+    llvm::Type* sourceType = value->getType();
+    llvm::LLVMContext& context = builder.getContext();
+
+    // Если исходный тип совпадает с целевым, каст не нужен
+    if (sourceType->isIntegerTy(64)) {
+        return value;
+    }
+
+    // Преобразование float -> int
+    if (sourceType->isFloatingPointTy()) {
+        return builder.CreateFPToSI(value, llvm::Type::getInt64Ty(context), "floatToInt");
+    }
+
+    // Преобразование bool -> int
+    if (sourceType->isIntegerTy(1)) {
+        return builder.CreateZExt(value, llvm::Type::getInt64Ty(context), "boolToInt");
+    }
+
+    throw std::runtime_error("Unsupported type cast.");
+}
+
+llvm::Value* floatCast(llvm::Value* value, llvm::IRBuilder<>& builder) {
+    llvm::Type* sourceType     = value->getType();
+    llvm::LLVMContext& context = builder.getContext();
+
+    // Если исходный тип совпадает с целевым, каст не нужен
+    if (sourceType->isDoubleTy()) {
+        return value;
+    }
+
+    // Преобразование int -> float
+    if (sourceType->isIntegerTy(64)) {
+        return builder.CreateSIToFP(value, llvm::Type::getDoubleTy(context), "intToFloat");
+    }
+
+    // Преобразование bool -> float
+    if (sourceType->isIntegerTy(1)) {
+        return builder.CreateUIToFP(value, llvm::Type::getDoubleTy(context), "boolToFloat");
+    }
+
+    throw std::runtime_error("Unsupported type cast.");
+}
+
+llvm::Value* boolCast(llvm::Value* value, llvm::IRBuilder<>& builder) {
+    llvm::Type* sourceType     = value->getType();
+
+    // Если исходный тип совпадает с целевым, каст не нужен
+    if (sourceType->isIntegerTy(1)) {
+        return value;
+    }
+
+    // Преобразование float -> bool
+    if (sourceType->isFloatingPointTy()) {
+        return builder.CreateFCmpONE(
+            value, llvm::ConstantFP::get(sourceType, 0.0), "floatToBool");
+    }
+
+    // Преобразование int -> bool
+    if (sourceType->isIntegerTy(64)) {
+        return builder.CreateICmpNE(value, llvm::ConstantInt::get(sourceType, 0), "intToBool");
+    }
+
+    throw std::runtime_error("Unsupported type cast.");
+}

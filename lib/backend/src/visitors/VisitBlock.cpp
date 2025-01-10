@@ -114,11 +114,12 @@ llvm::Value* LLVMIRGenerator::visitForBlock(FAMMParser::ForBlockContext* forBloc
     return nullptr;
 }
 
+std::set<std::string> LibFunctionNames = {"display", "to_int", "to_float", "to_bool", "to_string"};
 
 llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContext* node) {
     const std::string functionName = node->IDENTIFIER()->getText();
 
-    if (module->getFunction(functionName) or functionName == "display") {
+    if (module->getFunction(functionName) or LibFunctionNames.contains(functionName)) {
         throw std::runtime_error("A function with the same name already exists.");
     }
 
