@@ -7,7 +7,7 @@ llvm::Type* LLVMIRGenerator::getLLVMType(FAMMParser::TypeContext* typeContext) {
         }
 
         if (baseType->FLOAT()) {
-            return llvm::Type::getFloatTy(*context);
+            return llvm::Type::getDoubleTy(*context);
         }
 
         if (baseType->STRING()) {

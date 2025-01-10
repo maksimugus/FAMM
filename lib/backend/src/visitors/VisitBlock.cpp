@@ -81,7 +81,7 @@ llvm::Value* LLVMIRGenerator::visitForBlock(FAMMParser::ForBlockContext* forBloc
     llvm::Value* condVal = nullptr;
     if (loopVar->getType()->isIntegerTy()) {
         condVal = builder.CreateICmpSLT(loopVar, endValue, "loopcond");
-    } else if (loopVar->getType()->isFloatingPointTy()) {
+    } else if (loopVar->getType()->isDoubleTy()) {
         condVal = builder.CreateFCmpULT(loopVar, endValue, "loopcond");
     } else {
         throw std::runtime_error("Can't compare types");

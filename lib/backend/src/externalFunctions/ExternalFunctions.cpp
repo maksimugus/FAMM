@@ -21,7 +21,7 @@ llvm::Value* display(const std::unique_ptr<llvm::Module>& llvm_module, llvm::IRB
                 formatStr += "%lld ";  // Use %lld for 64-bit integers
             } else if (ty->isIntegerTy()) {
                 formatStr += "%d ";
-            } else if (ty->isFloatingPointTy()) {
+            } else if (ty->isDoubleTy()) {
                 formatStr += "%f ";
             } else if (ty->isPointerTy()) {
                 formatStr += "%s ";
@@ -42,7 +42,7 @@ llvm::Value* display(const std::unique_ptr<llvm::Module>& llvm_module, llvm::IRB
 
     std::vector<llvm::Value*> displayArgs;
     displayArgs.push_back(formatStrPtr);
-    for (llvm::Value* val : values) {
+    for (llvm::Value* val : values) { // TODO очень подумать зачем касты
         if (const llvm::Type* valTy = val->getType(); valTy->isIntegerTy(1)) {
             val = builder.CreateIntCast(val, llvm::Type::getInt32Ty(context), false);
         } else if (valTy->isIntegerTy() && valTy->getIntegerBitWidth() < 64) {
