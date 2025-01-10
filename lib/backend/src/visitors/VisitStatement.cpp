@@ -69,7 +69,7 @@ llvm::Value* LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::Declara
         throw std::runtime_error("No active scope to declare variable.");
     }
 
-    builder.CreateStore(initialValue, alloca)->setAlignment(llvm::Align(8));
+    builder.CreateStore(initialValue, alloca);
     return nullptr;
 }
 
@@ -86,7 +86,7 @@ llvm::Value* LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* nod
     EnsureTypeEq(variableType, newValue->getType());
 
     if (node->assignmentOp()->ASSIGNMENT()) {
-        builder.CreateStore(newValue, alloca)->setAlignment(llvm::Align(8));
+        builder.CreateStore(newValue, alloca);
     }
     if (node->assignmentOp()->MULT_ASSIGNMENT()) {
         llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
