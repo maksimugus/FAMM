@@ -1,4 +1,5 @@
 #pragma once
+#include "externalFunctions/ExternalFunctions.h"
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
@@ -49,8 +50,7 @@ public:
             return;
         }
 
-        engine->addGlobalMapping("display", reinterpret_cast<uint64_t>(&printf));
-        engine->addGlobalMapping("strcmp", reinterpret_cast<uint64_t>(&strcmp));
+        initLibFunctions(engine);
 
         const std::vector<llvm::GenericValue> noArgs;
         const llvm::GenericValue result = engine->runFunction(mainFunction, noArgs);
@@ -59,6 +59,12 @@ public:
     }
 
 private:
+    static void initLibFunctions(llvm::ExecutionEngine* engine){
+        engine->addGlobalMapping("display", reinterpret_cast<uint64_t>(&printf));
+        engine->addGlobalMapping("strcmp", reinterpret_cast<uint64_t>(&strcmp));
+        engine->addGlobalMapping("my_stradd", reinterpret_cast<uint64_t>(&my_stradd));
+    }
+
     static void optimizeModule(llvm::Module& module) {
         llvm::legacy::PassManager passManager;
 

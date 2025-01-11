@@ -121,3 +121,59 @@ llvm::Value* boolCast(llvm::Value* value, llvm::IRBuilder<>& builder) {
 
     throw std::runtime_error("Unsupported type cast.");
 }
+
+char* my_stradd(char* left, char* right) {
+        size_t lenLeft = 0;
+    while (left[lenLeft] != '\0') {
+        ++lenLeft;
+    }
+    size_t lenRight = 0;
+    while (right[lenRight] != '\0') {
+        ++lenRight;
+    }
+
+    // Выделяем новую память под итоговую строку (с учётом завершающего '\0')
+    char* result = new char[lenLeft + lenRight + 1];
+
+    // Копируем left
+    for (size_t i = 0; i < lenLeft; ++i) {
+        result[i] = left[i];
+    }
+
+    // Дописываем right
+    for (size_t j = 0; j < lenRight; ++j) {
+        result[lenLeft + j] = right[j];
+    }
+
+    // Ставим завершающий ноль
+    result[lenLeft + lenRight] = '\0';
+
+    return result;
+}
+
+llvm::Value* stringAdd(
+    const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right) {
+    llvm::LLVMContext& ctx = module->getContext();
+    llvm::Function* concatFunc = module->getFunction("my_stradd");
+    if (!concatFunc) {
+        auto charPtrTy = llvm::PointerType::get(llvm::Type::getInt8Ty(ctx), 0);
+        llvm::FunctionType* strcatType = llvm::FunctionType::get(charPtrTy,{charPtrTy, charPtrTy},false);
+        concatFunc = llvm::Function::Create(strcatType,llvm::Function::ExternalLinkage,"my_stradd", *module);
+    }
+
+    return builder.CreateCall(concatFunc, {left, right}, "straddtmp");
+}
+llvm::Value* stringCompare(
+    const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right) {
+    llvm::Function* strcmpFunc = module->getFunction("strcmp");
+    llvm::LLVMContext& context = module->getContext();
+    if (!strcmpFunc) {
+        llvm::FunctionType* strcmpType = llvm::FunctionType::get(
+            llvm::Type::getInt32Ty(context), // Return type: int
+            {llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0), llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0)}, // Parameters: char*, char*
+            false);
+        strcmpFunc = llvm::Function::Create(strcmpType, llvm::Function::ExternalLinkage, "strcmp", module.get());
+    }
+
+    return builder.CreateCall(strcmpFunc, {left, right});
+}

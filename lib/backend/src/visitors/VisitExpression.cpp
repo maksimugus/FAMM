@@ -78,7 +78,7 @@ llvm::Value* LLVMIRGenerator::visitBoolExpression(FAMMParser::BoolExpressionCont
 }
 
 llvm::Value* LLVMIRGenerator::visitNegationExpression(FAMMParser::NegationExpressionContext* negationCtx) {
-    if (llvm::Value* value = execute(negationCtx->expression()); value->getType()->isIntegerTy(1)) {
+    if (llvm::Value* value = execute(negationCtx->expression()); IsBool(value)) {
         return builder.CreateNot(value, "nottmp");
     }
     throw std::runtime_error("Unsupported type of value in bool operation.");
@@ -112,17 +112,26 @@ llvm::Value* LLVMIRGenerator::visitAddSubExpression(FAMMParser::AddSubExpression
     llvm::Value* right = execute(addSubCtx->expression(1));
 
     EnsureTypeEq(left->getType(), right->getType());
-    EnsureIntOrDouble(left);
-    // TODO че делать со стрингами ёлы палы
+    if (IsBool(left)){
+        throw std::runtime_error(R"('+' and '-' can't be applied to bool)");
+    }
     if (addSubCtx->addOp()->PLUS()) {
         if (IsDouble(left))
             return builder.CreateFAdd(left, right, "addtmp");
-        return builder.CreateAdd(left, right, "addtmp");
+        if (IsInt(left))
+            return builder.CreateAdd(left, right, "addtmp");
+        if (IsString(left)){
+            return stringAdd(module, builder, left, right);
+        }
+
+        throw std::runtime_error("Unsupported type for '+'");
     }
     if (addSubCtx->addOp()->MINUS()) {
         if (IsDouble(left))
             return builder.CreateFSub(left, right, "subtmp");
-        return builder.CreateSub(left, right, "subtmp");
+        if (IsInt(left))
+            return builder.CreateSub(left, right, "subtmp");
+        throw std::runtime_error("Unsupported type for '-'");
     }
 
     throw std::runtime_error("Invalid operation. Possible operations: + or -");
