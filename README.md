@@ -34,3 +34,10 @@ sudo ./llvm.sh 18
 sudo mv /usr/include/llvm-18/llvm/ /usr/include/
 sudo mv /usr/include/llvm-c-18/llvm/ /usr/include/
 ```
+
+## Tests
+
+```bash
+chmod +x run_tests.sh
+./run_tests.sh
+```
