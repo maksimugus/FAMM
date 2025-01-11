@@ -121,3 +121,32 @@ llvm::Value* boolCast(llvm::Value* value, llvm::IRBuilder<>& builder) {
 
     throw std::runtime_error("Unsupported type cast.");
 }
+
+char* my_stradd(char* left, char* right) {
+        size_t lenLeft = 0;
+    while (left[lenLeft] != '\0') {
+        ++lenLeft;
+    }
+    size_t lenRight = 0;
+    while (right[lenRight] != '\0') {
+        ++lenRight;
+    }
+
+    // Выделяем новую память под итоговую строку (с учётом завершающего '\0')
+    char* result = new char[lenLeft + lenRight + 1];
+
+    // Копируем left
+    for (size_t i = 0; i < lenLeft; ++i) {
+        result[i] = left[i];
+    }
+
+    // Дописываем right
+    for (size_t j = 0; j < lenRight; ++j) {
+        result[lenLeft + j] = right[j];
+    }
+
+    // Ставим завершающий ноль
+    result[lenLeft + lenRight] = '\0';
+
+    return result;
+}
