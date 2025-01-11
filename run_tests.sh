@@ -12,13 +12,22 @@ for test_file in "$TEST_DIR"/*.famm; do
   ((total_tests++))
   test_name=$(basename "$test_file")
 
-  output=$($COMPILER --file "$test_file")
+  output=$($COMPILER --file "$test_file" 2>&1)
 
-  if [[ "$output" == *"1"* ]]; then
-    echo "$test_name [+]"
-    ((passed_tests++))
+  if [[ "$test_name" == neg_* ]]; then
+    if [[ "$output" == *"error"* || "$output" == *"0"* ]]; then
+      echo "$test_name [+]"
+      ((passed_tests++))
+    else
+      echo "$test_name [-]"
+    fi
   else
-    echo "$test_name [-]"
+    if [[ "$output" == *"1"* ]]; then
+      echo "$test_name [+]"
+      ((passed_tests++))
+    else
+      echo "$test_name [-]"
+    fi
   fi
 done
 
