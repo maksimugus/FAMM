@@ -1,4 +1,5 @@
 #include "Visitor.h"
+#include "externalFunctions/ExternalFunctions.h"
 
 // TODO move from visitors
 
@@ -65,16 +66,7 @@ llvm::Value* LLVMIRGenerator::createBoolComparison(
 llvm::Value* LLVMIRGenerator::createStringComparison(
     FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right) {
 
-    llvm::Function* strcmpFunc = module->getFunction("strcmp");
-    if (!strcmpFunc) {
-        llvm::FunctionType* strcmpType = llvm::FunctionType::get(
-            llvm::Type::getInt32Ty(*context), // Return type: int
-            {llvm::PointerType::get(llvm::Type::getInt8Ty(*context), 0), llvm::PointerType::get(llvm::Type::getInt8Ty(*context), 0)}, // Parameters: char*, char*
-            false);
-        strcmpFunc = llvm::Function::Create(strcmpType, llvm::Function::ExternalLinkage, "strcmp", module.get());
-    }
-
-    llvm::Value* result = builder.CreateCall(strcmpFunc, {left, right});
+    llvm::Value* result = stringCompare(module, builder, left, right);
 
     llvm::Value* zero = llvm::ConstantInt::get(llvm::Type::getInt32Ty(*context), 0);
 

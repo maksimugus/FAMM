@@ -121,14 +121,7 @@ llvm::Value* LLVMIRGenerator::visitAddSubExpression(FAMMParser::AddSubExpression
         if (IsInt(left))
             return builder.CreateAdd(left, right, "addtmp");
         if (IsString(left)){
-            llvm::Function* concatFunc = module->getFunction("my_stradd");
-            if (!concatFunc) {
-                auto charPtrTy = llvm::PointerType::get(llvm::Type::getInt8Ty(*context), 0);
-                llvm::FunctionType* strcatType = llvm::FunctionType::get(charPtrTy,{charPtrTy, charPtrTy},false);
-                concatFunc = llvm::Function::Create(strcatType,llvm::Function::ExternalLinkage,"my_stradd", *module);
-            }
-
-            return builder.CreateCall(concatFunc, {left, right}, "straddtmp");
+            return stringAdd(module, builder, left, right);
         }
 
         throw std::runtime_error("Unsupported type for '+'");

@@ -1,4 +1,5 @@
 #include "Visitor.h"
+#include "externalFunctions/ExternalFunctions.h"
 #include "helpers/helpers.h"
 
 
@@ -85,11 +86,26 @@ llvm::Value* LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* nod
     // Убедимся что с типом всё ок
     llvm::Type* variableType = alloca->getAllocatedType();
     EnsureTypeEq(variableType, newValue->getType());
-    EnsureIntOrDouble(newValue);
 
     if (node->assignmentOp()->ASSIGNMENT()) {
         builder.CreateStore(newValue, alloca);
     }
+
+    if (node->assignmentOp()->PLUS_ASSIGNMENT()) {
+        llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
+        llvm::Value* result = nullptr;
+        if (IsInt(newValue))
+            result = builder.CreateAdd(currentValue, newValue);
+        if (IsDouble(newValue))
+            result = builder.CreateFAdd(currentValue, newValue);
+        if (IsString(newValue)){
+            result = stringAdd(module, builder, currentValue, newValue);
+        }
+        builder.CreateStore(result, alloca);
+        return nullptr;
+    }
+
+    EnsureIntOrDouble(newValue);
     if (node->assignmentOp()->MULT_ASSIGNMENT()) {
         llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
         llvm::Value* result = nullptr;
@@ -98,34 +114,30 @@ llvm::Value* LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* nod
         if (IsDouble(newValue))
             result = builder.CreateFMul(currentValue, newValue);
         builder.CreateStore(result, alloca);
+        return nullptr;
     }
     if (node->assignmentOp()->DIV_ASSIGNMENT()) {
         ThrowIfNotDouble(newValue, "Float division cannot be applied to int");
         llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
         llvm::Value* result       = builder.CreateFDiv(currentValue, newValue);
         builder.CreateStore(result, alloca);
+        return nullptr;
     }
     if (node->assignmentOp()->FLOOR_DIV_ASSIGNMENT()) {
         ThrowIfNotInt(newValue, "Integer division cannot be applied to float");
         llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
         llvm::Value* result       = builder.CreateSDiv(currentValue, newValue); // Assuming integer division
         builder.CreateStore(result, alloca);
+        return nullptr;
     }
     if (node->assignmentOp()->MOD_ASSIGNMENT()) {
         ThrowIfNotInt(newValue, "Mod operation cannot be applied to float");
         llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
         llvm::Value* result       = builder.CreateSRem(currentValue, newValue);
         builder.CreateStore(result, alloca);
+        return nullptr;
     }
-    if (node->assignmentOp()->PLUS_ASSIGNMENT()) {
-        llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
-        llvm::Value* result = nullptr;
-        if (IsInt(newValue))
-            result = builder.CreateAdd(currentValue, newValue);
-        if (IsDouble(newValue))
-            result = builder.CreateFAdd(currentValue, newValue);
-        builder.CreateStore(result, alloca);
-    }
+
     if (node->assignmentOp()->MINUS_ASSIGNMENT()) {
         llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
         llvm::Value* result = nullptr;
@@ -134,6 +146,7 @@ llvm::Value* LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* nod
         if (IsDouble(newValue))
             result = builder.CreateFSub(currentValue, newValue);
         builder.CreateStore(result, alloca);
+        return nullptr;
     }
 
     return nullptr;
