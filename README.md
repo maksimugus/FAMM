@@ -32,4 +32,5 @@ sudo ./llvm.sh 18
 
 ```bash
 sudo mv /usr/include/llvm-18/llvm/ /usr/include/
+sudo mv /usr/include/llvm-c-18/llvm/ /usr/include/
 ```

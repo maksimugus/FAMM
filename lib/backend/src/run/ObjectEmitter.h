@@ -11,7 +11,7 @@
 
 class ObjectEmitter {
 public:
-    static void emit(const std::unique_ptr<llvm::Module>& module, const std::string& filename, std::string& error) {
+    static void emit(const std::unique_ptr<llvm::Module>& module, std::string& error, const CLIManager& cli) {
         const auto targetTriple = llvm::sys::getDefaultTargetTriple();
 
         const auto target = llvm::TargetRegistry::lookupTarget(targetTriple, error);
@@ -31,7 +31,7 @@ public:
         module->setTargetTriple(targetTriple);
 
         std::error_code ec;
-        llvm::raw_fd_ostream dest(filename, ec, llvm::sys::fs::OF_None);
+        llvm::raw_fd_ostream dest(cli.compileFile(), ec, llvm::sys::fs::OF_None);
 
         if (ec) {
             error = "Could not open file: " + ec.message();

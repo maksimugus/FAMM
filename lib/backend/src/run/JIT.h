@@ -1,13 +1,10 @@
 #pragma once
-#include "externalFunctions/ExternalFunctions.h"
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
-#include <llvm/IR/Verifier.h>
-#include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/InstCombine/InstCombine.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Scalar/GVN.h>
@@ -15,7 +12,7 @@
 
 class LLVMJIT {
 public:
-    static void run(std::unique_ptr<llvm::Module> module, std::string& error, const bool print_optimised) {
+    static void run(std::unique_ptr<llvm::Module> module, std::string& error, const CLIManager& cli) {
         if (!module) {
             error = "Module is null.";
             return;
@@ -27,18 +24,20 @@ public:
             error = "Function 'main' not found in module.";
             return;
         }
-//
-//        if (verifyModule(*module, &llvm::errs())) {
-//            error = "Module verification failed.";
-//            return;
-//        }
+        //
+        //        if (verifyModule(*module, &llvm::errs())) {
+        //            error = "Module verification failed.";
+        //            return;
+        //        }
 
-
-        optimizeModule(*module);
-        if (print_optimised) {
-            llvm::outs() << "Optimized IR:\n";
-            module->print(llvm::outs(), nullptr);
+        if (cli.optimize()) {
+            optimizeModule(*module);
+            if (cli.printOptimized()) {
+                llvm::outs() << "Optimized IR:\n";
+                module->print(llvm::outs(), nullptr);
+            }
         }
+
         llvm::ExecutionEngine* engine = llvm::EngineBuilder(std::move(module))
                                             .setErrorStr(&error)
                                             .setEngineKind(llvm::EngineKind::JIT)
