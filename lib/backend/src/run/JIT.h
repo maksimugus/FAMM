@@ -63,6 +63,7 @@ private:
         engine->addGlobalMapping("display", reinterpret_cast<uint64_t>(&printf));
         engine->addGlobalMapping("strcmp", reinterpret_cast<uint64_t>(&strcmp));
         engine->addGlobalMapping("stradd", reinterpret_cast<uint64_t>(&stradd));
+        engine->addGlobalMapping("strmult", reinterpret_cast<uint64_t>(&strmult));
         engine->addGlobalMapping("strneg", reinterpret_cast<uint64_t>(&strneg));
         engine->addGlobalMapping("bool_to_string", reinterpret_cast<uint64_t>(&bool_to_string));
         engine->addGlobalMapping("int_to_string", reinterpret_cast<uint64_t>(&int_to_string));

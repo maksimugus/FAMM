@@ -19,7 +19,10 @@ llvm::Value* boolCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Modu
 llvm::Value* stringCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Module& module);
 
 llvm::Value* stringAdd(const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right);
-char* stradd(char* left, char* right);
+char* stradd(const char* left, const char* right);
+
+llvm::Value* stringMult(llvm::Module& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right);
+char* strmult(const char* val, long long num_iters);
 
 llvm::Value* stringNeg(llvm::Module& module, llvm::IRBuilder<>& builder, llvm::Value* value);
 char* strneg(char* str);

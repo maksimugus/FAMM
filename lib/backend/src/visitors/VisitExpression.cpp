@@ -56,7 +56,8 @@ llvm::Value* LLVMIRGenerator::visitNegativeExpression(FAMMParser::NegativeExpres
     if (IsString(exprValue)) {
         return stringNeg(*module, builder, exprValue);
     }
-    throw std::runtime_error("Unsupported type for negation in visitNegativeExpression (support only string, int or float)");
+    throw std::runtime_error(
+        "Unsupported type for negation in visitNegativeExpression (support only string, int or float)");
 }
 
 llvm::Value* LLVMIRGenerator::visitBoolExpression(FAMMParser::BoolExpressionContext* boolCtx) {
@@ -101,7 +102,7 @@ llvm::Value* LLVMIRGenerator::visitCompareExpression(FAMMParser::CompareExpressi
     if (IsBool(left)) {
         return createBoolComparison(compareCtx, left, right);
     }
-    if (IsString(left)){
+    if (IsString(left)) {
         return createStringComparison(compareCtx, left, right);
     }
 
@@ -113,25 +114,32 @@ llvm::Value* LLVMIRGenerator::visitAddSubExpression(FAMMParser::AddSubExpression
     llvm::Value* right = execute(addSubCtx->expression(1));
 
     EnsureTypeEq(left->getType(), right->getType());
-    if (IsBool(left)){
+    if (IsBool(left)) {
         throw std::runtime_error(R"('+' and '-' can't be applied to bool)");
     }
     if (addSubCtx->addOp()->PLUS()) {
-        if (IsDouble(left))
+        if (IsDouble(left)) {
             return builder.CreateFAdd(left, right, "addtmp");
-        if (IsInt(left))
+        }
+        if (IsInt(left)) {
             return builder.CreateAdd(left, right, "addtmp");
-        if (IsString(left)){
+        }
+        if (IsString(left)) {
             return stringAdd(module, builder, left, right);
         }
 
         throw std::runtime_error("Unsupported type for '+'");
     }
     if (addSubCtx->addOp()->MINUS()) {
-        if (IsDouble(left))
+        if (IsDouble(left)) {
             return builder.CreateFSub(left, right, "subtmp");
-        if (IsInt(left))
+        }
+        if (IsInt(left)) {
             return builder.CreateSub(left, right, "subtmp");
+        }
+        if (IsString(left)) {
+            return stringAdd(module, builder, left, stringNeg(*module, builder, right));
+        }
         throw std::runtime_error("Unsupported type for '-'");
     }
 
@@ -142,15 +150,23 @@ llvm::Value* LLVMIRGenerator::visitMulDivExpression(FAMMParser::MulDivExpression
     llvm::Value* left  = execute(mulDivCtx->expression(0));
     llvm::Value* right = execute(mulDivCtx->expression(1));
 
-    EnsureTypeEq(left->getType(), right->getType());
-    EnsureIntOrDouble(left);
-    // TODO че делать со стрингами ёлы палы
     if (mulDivCtx->multOp()->MULT()) {
-        if (IsDouble(left))
+        if (IsString(left) and IsInt(right)) {
+            return stringMult(*module, builder, left, right);
+        }
+        if (IsString(right) and IsInt(left)) {
+            return stringMult(*module, builder, right, left);
+        }
+
+        EnsureTypeEq(left->getType(), right->getType());
+        EnsureIntOrDouble(left);
+        if (IsDouble(left)) {
             return builder.CreateFMul(left, right, "multmp");
+        }
         return builder.CreateMul(left, right, "multmp");
     }
 
+    EnsureTypeEq(left->getType(), right->getType());
     if (mulDivCtx->multOp()->DIV()) {
         ThrowIfNotDouble(left, "Float division can be can only be applied to the float type");
         return builder.CreateFDiv(left, right, "doubleDivtmp");
@@ -196,24 +212,24 @@ llvm::Value* LLVMIRGenerator::visitConstantExpression(FAMMParser::ConstantContex
         return llvm::ConstantInt::get(llvm::Type::getInt1Ty(*context), boolValue, false);
     }
 
-    if (auto *arrayLiteral = constantContext->arrayLiteral()) {
-        auto expressions = arrayLiteral->expression();
+    if (auto* arrayLiteral = constantContext->arrayLiteral()) {
+        auto expressions          = arrayLiteral->expression();
         llvm::Value* firstElement = visitExpression(expressions[0]);
-        llvm::Type* elementType = firstElement->getType();
+        llvm::Type* elementType   = firstElement->getType();
 
         std::vector<llvm::Constant*> elements;
-        for (auto *expression : expressions) {
+        for (auto* expression : expressions) {
             llvm::Value* elementValue = visitExpression(expression);
             if (elementValue->getType() != elementType) {
                 throw std::runtime_error("Type mismatch in array elements.");
             }
 
-            auto *constantElement = llvm::dyn_cast<llvm::Constant>(elementValue);
+            auto* constantElement = llvm::dyn_cast<llvm::Constant>(elementValue);
 
             elements.push_back(constantElement);
         }
 
-        auto *arrayType = llvm::ArrayType::get(elementType, elements.size());
+        auto* arrayType = llvm::ArrayType::get(elementType, elements.size());
         return llvm::ConstantArray::get(arrayType, elements);
     }
 
