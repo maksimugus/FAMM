@@ -63,6 +63,12 @@ private:
         engine->addGlobalMapping("display", reinterpret_cast<uint64_t>(&printf));
         engine->addGlobalMapping("strcmp", reinterpret_cast<uint64_t>(&strcmp));
         engine->addGlobalMapping("my_stradd", reinterpret_cast<uint64_t>(&my_stradd));
+        engine->addGlobalMapping("bool_to_string", reinterpret_cast<uint64_t>(&bool_to_string));
+        engine->addGlobalMapping("int_to_string", reinterpret_cast<uint64_t>(&int_to_string));
+        engine->addGlobalMapping("float_to_string", reinterpret_cast<uint64_t>(&float_to_string));
+        engine->addGlobalMapping("string_to_int", reinterpret_cast<uint64_t>(&string_to_int));
+        engine->addGlobalMapping("string_to_float", reinterpret_cast<uint64_t>(&string_to_float));
+        engine->addGlobalMapping("string_to_bool", reinterpret_cast<uint64_t>(&string_to_bool));
     }
 
     static void optimizeModule(llvm::Module& module) {

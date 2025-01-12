@@ -99,7 +99,6 @@ llvm::Value* LLVMIRGenerator::visitCompareExpression(FAMMParser::CompareExpressi
     if (IsBool(left)) {
         return createBoolComparison(compareCtx, left, right);
     }
-
     if (IsString(left)){
         return createStringComparison(compareCtx, left, right);
     }
@@ -238,19 +237,25 @@ llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCa
         if (args.size() > 1) {
             throw std::runtime_error("Too many args");
         }
-        return intCast(args[0], builder);
+        return intCast(args[0], builder, *module);
     }
     if (funcName == "to_float") {
         if (args.size() > 1) {
             throw std::runtime_error("Too many args");
         }
-        return floatCast(args[0], builder);
+        return floatCast(args[0], builder, *module);
     }
     if (funcName == "to_bool") {
         if (args.size() > 1) {
             throw std::runtime_error("Too many args");
         }
-        return boolCast(args[0], builder);
+        return boolCast(args[0], builder, *module);
+    }
+    if (funcName == "to_string") {
+        if (args.size() > 1) {
+            throw std::runtime_error("Too many args");
+        }
+        return stringCast(args[0], builder, *module);
     }
 
     llvm::Function* function = module->getFunction(funcName);
