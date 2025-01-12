@@ -262,5 +262,5 @@ llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCa
         throw std::runtime_error("Inconsistency in the number of arguments in a function call " + funcName);
     }
 
-    return builder.CreateCall(function, args, funcName + "_call");
+    return builder.CreateCall(function, args);
 }
