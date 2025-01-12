@@ -1,7 +1,9 @@
 #include "ExternalFunctions.h"
 
 #include <llvm/IR/Constants.h>
+#include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Module.h>
+#include <llvm/IR/Value.h>
 
 llvm::Value* display(const std::unique_ptr<llvm::Module>& llvm_module, llvm::IRBuilder<>& builder,
     const std::string& format, const std::vector<llvm::Value*>& values) {
@@ -18,7 +20,7 @@ llvm::Value* display(const std::unique_ptr<llvm::Module>& llvm_module, llvm::IRB
             if (const llvm::Type* ty = val->getType(); ty->isIntegerTy(1)) {
                 formatStr += "%d ";
             } else if (ty->isIntegerTy(64)) {
-                formatStr += "%lld ";  // Use %lld for 64-bit integers
+                formatStr += "%lld "; // Use %lld for 64-bit integers
             } else if (ty->isIntegerTy()) {
                 formatStr += "%d ";
             } else if (ty->isDoubleTy()) {
@@ -56,8 +58,85 @@ llvm::Value* display(const std::unique_ptr<llvm::Module>& llvm_module, llvm::IRB
     return builder.CreateCall(displayFunc, displayArgs, "displayCall");
 }
 
-llvm::Value* intCast(llvm::Value* value, llvm::IRBuilder<>& builder) {
-    llvm::Type* sourceType = value->getType();
+const char* bool_to_string(bool value) {
+    return value ? "true" : "false";
+}
+
+const char* int_to_string(long long value) {
+    static std::string str;
+    str = std::to_string(value);
+    return str.c_str();
+}
+
+const char* float_to_string(double value) {
+    static std::string str;
+    str = std::to_string(value);
+    return str.c_str();
+}
+
+long long string_to_int(const char* str) {
+    if (str == nullptr || *str == '\0') {
+        throw std::invalid_argument("Invalid input: Null or empty string.");
+    }
+
+    char* end;
+    long long result = std::strtoll(str, &end, 10);
+
+    // Проверка на наличие нечисловых символов
+    if (*end != '\0') {
+        throw std::invalid_argument("String contains invalid characters.");
+    }
+
+    // Проверка на переполнение int
+    if (result < std::numeric_limits<long long>::min() || result > std::numeric_limits<long long>::max()) {
+        throw std::out_of_range("Out of range: The string represents a number too large to fit in an integer.");
+    }
+
+    return static_cast<long long>(result);
+}
+
+double string_to_float(const char* str) {
+    if (str == nullptr || *str == '\0') {
+        throw std::invalid_argument("Invalid input: Null or empty string.");
+    }
+
+    char* end;
+    double result = std::strtod(str, &end);
+
+    // Проверка на наличие нечисловых символов
+    if (*end != '\0') {
+        throw std::invalid_argument("String contains invalid characters.");
+    }
+
+    // Проверка на переполнение double
+    if (result < std::numeric_limits<double>::min() || result > std::numeric_limits<double>::max()) {
+        throw std::out_of_range("Out of range: The string represents a number too large to fit in an integer.");
+    }
+
+    return static_cast<double>(result);
+}
+
+bool string_to_bool(const char* str) {
+    if (str == nullptr || *str == '\0') {
+        throw std::invalid_argument("Invalid input: Null or empty string.");
+    }
+
+    std::string lowerStr;
+    for (size_t i = 0; str[i] != '\0'; ++i) {
+        lowerStr += static_cast<char>(std::tolower(static_cast<unsigned char>(str[i])));
+    }
+
+    if (lowerStr == "true" || lowerStr == "1") {
+        return true;
+    } else if (lowerStr == "false" || lowerStr == "0") {
+        return false;
+    } else {
+        throw std::invalid_argument("Invalid input: String cannot be converted to a boolean.");
+    }
+}
+
+llvm::Value* intCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Module& module) {
+    llvm::Type* sourceType     = value->getType();
     llvm::LLVMContext& context = builder.getContext();
 
     // Если исходный тип совпадает с целевым, каст не нужен
@@ -75,10 +154,19 @@ llvm::Value* intCast(llvm::Value* value, llvm::IRBuilder<>& builder) {
         return builder.CreateZExt(value, llvm::Type::getInt64Ty(context), "boolToInt");
     }
 
+    // Преобразование string -> int
+    if (sourceType->isPointerTy()) {
+        llvm::FunctionType* stringToIntType =
+            llvm::FunctionType::get(llvm::Type::getInt64Ty(context),
+                {llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0)}, false);
+        llvm::FunctionCallee stringToIntFunc = module.getOrInsertFunction("string_to_int", stringToIntType);
+        return builder.CreateCall(stringToIntFunc, {value});
+    }
+
     throw std::runtime_error("Unsupported type cast.");
 }
 
-llvm::Value* floatCast(llvm::Value* value, llvm::IRBuilder<>& builder) {
+llvm::Value* floatCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Module& module) {
     llvm::Type* sourceType     = value->getType();
     llvm::LLVMContext& context = builder.getContext();
 
@@ -97,11 +185,21 @@ llvm::Value* floatCast(llvm::Value* value, llvm::IRBuilder<>& builder) {
         return builder.CreateUIToFP(value, llvm::Type::getDoubleTy(context), "boolToFloat");
     }
 
+    // Преобразование string -> float
+    if (sourceType->isPointerTy()) {
+        llvm::FunctionType* stringToFloatType =
+            llvm::FunctionType::get(llvm::Type::getDoubleTy(context),
+                {llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0)}, false);
+        llvm::FunctionCallee stringToFloatFunc = module.getOrInsertFunction("string_to_float", stringToFloatType);
+        return builder.CreateCall(stringToFloatFunc, {value});
+    }
+
     throw std::runtime_error("Unsupported type cast.");
 }
 
-llvm::Value* boolCast(llvm::Value* value, llvm::IRBuilder<>& builder) {
-    llvm::Type* sourceType     = value->getType();
+llvm::Value* boolCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Module& module) {
+    llvm::Type* sourceType = value->getType();
+    llvm::LLVMContext& context = builder.getContext();
 
     // Если исходный тип совпадает с целевым, каст не нужен
     if (sourceType->isIntegerTy(1)) {
@@ -110,8 +208,7 @@ llvm::Value* boolCast(llvm::Value* value, llvm::IRBuilder<>& builder) {
 
     // Преобразование float -> bool
     if (sourceType->isFloatingPointTy()) {
-        return builder.CreateFCmpONE(
-            value, llvm::ConstantFP::get(sourceType, 0.0), "floatToBool");
+        return builder.CreateFCmpONE(value, llvm::ConstantFP::get(sourceType, 0.0), "floatToBool");
     }
 
     // Преобразование int -> bool
@@ -119,11 +216,49 @@ llvm::Value* boolCast(llvm::Value* value, llvm::IRBuilder<>& builder) {
         return builder.CreateICmpNE(value, llvm::ConstantInt::get(sourceType, 0), "intToBool");
     }
 
+    // Преобразование string -> bool
+    if (sourceType->isPointerTy()) {
+        llvm::FunctionType* stringToBoolType =
+            llvm::FunctionType::get(llvm::Type::getInt1Ty(context),
+                {llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0)}, false);
+        llvm::FunctionCallee stringToBoolFunc = module.getOrInsertFunction("string_to_bool", stringToBoolType);
+        return builder.CreateCall(stringToBoolFunc, {value});
+    }
+
+    throw std::runtime_error("Unsupported type cast.");
+}
+
+llvm::Value* stringCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Module& module) {
+    llvm::LLVMContext& context = module.getContext();
+    llvm::Type* ptrType        = llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0);
+
+    // Преобразование bool -> string
+    if (value->getType()->isIntegerTy(1)) {
+        llvm::FunctionType* boolToStringType =
+            llvm::FunctionType::get(ptrType, {llvm::Type::getInt1Ty(context)}, false);
+        llvm::FunctionCallee boolToStringFunc = module.getOrInsertFunction("bool_to_string", boolToStringType);
+        return builder.CreateCall(boolToStringFunc, {value});
+    }
+    // Преобразование int -> string
+    if (value->getType()->isIntegerTy(64)) {
+        llvm::FunctionType* intToStringType =
+            llvm::FunctionType::get(ptrType, {llvm::Type::getInt32Ty(context)}, false);
+        llvm::FunctionCallee intToStringFunc = module.getOrInsertFunction("int_to_string", intToStringType);
+        return builder.CreateCall(intToStringFunc, {value});
+    }
+    // Преобразование float -> string
+    if (value->getType()->isFloatingPointTy()) {
+        llvm::FunctionType* floatToStringType =
+            llvm::FunctionType::get(ptrType, {llvm::Type::getDoubleTy(context)}, false);
+        llvm::FunctionCallee floatToStringFunc = module.getOrInsertFunction("float_to_string", floatToStringType);
+        return builder.CreateCall(floatToStringFunc, {value});
+    }
+
     throw std::runtime_error("Unsupported type cast.");
 }
 
 char* my_stradd(char* left, char* right) {
-        size_t lenLeft = 0;
+    size_t lenLeft = 0;
     while (left[lenLeft] != '\0') {
         ++lenLeft;
     }
@@ -153,12 +288,12 @@ char* my_stradd(char* left, char* right) {
 
 llvm::Value* stringAdd(
     const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right) {
-    llvm::LLVMContext& ctx = module->getContext();
+    llvm::LLVMContext& ctx     = module->getContext();
     llvm::Function* concatFunc = module->getFunction("my_stradd");
     if (!concatFunc) {
-        auto charPtrTy = llvm::PointerType::get(llvm::Type::getInt8Ty(ctx), 0);
-        llvm::FunctionType* strcatType = llvm::FunctionType::get(charPtrTy,{charPtrTy, charPtrTy},false);
-        concatFunc = llvm::Function::Create(strcatType,llvm::Function::ExternalLinkage,"my_stradd", *module);
+        auto charPtrTy                 = llvm::PointerType::get(llvm::Type::getInt8Ty(ctx), 0);
+        llvm::FunctionType* strcatType = llvm::FunctionType::get(charPtrTy, {charPtrTy, charPtrTy}, false);
+        concatFunc = llvm::Function::Create(strcatType, llvm::Function::ExternalLinkage, "my_stradd", *module);
     }
 
     return builder.CreateCall(concatFunc, {left, right}, "straddtmp");
@@ -168,9 +303,9 @@ llvm::Value* stringCompare(
     llvm::Function* strcmpFunc = module->getFunction("strcmp");
     llvm::LLVMContext& context = module->getContext();
     if (!strcmpFunc) {
-        llvm::FunctionType* strcmpType = llvm::FunctionType::get(
-            llvm::Type::getInt32Ty(context), // Return type: int
-            {llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0), llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0)}, // Parameters: char*, char*
+        llvm::FunctionType* strcmpType = llvm::FunctionType::get(llvm::Type::getInt32Ty(context), // Return type: int
+            {llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0),
+                llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0)}, // Parameters: char*, char*
             false);
         strcmpFunc = llvm::Function::Create(strcmpType, llvm::Function::ExternalLinkage, "strcmp", module.get());
     }
