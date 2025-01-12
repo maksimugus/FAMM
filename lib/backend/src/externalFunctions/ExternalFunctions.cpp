@@ -257,7 +257,7 @@ llvm::Value* stringCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Mo
     throw std::runtime_error("Unsupported type cast.");
 }
 
-char* my_stradd(char* left, char* right) {
+char* stradd(char* left, char* right) {
     size_t lenLeft = 0;
     while (left[lenLeft] != '\0') {
         ++lenLeft;
@@ -286,14 +286,43 @@ char* my_stradd(char* left, char* right) {
     return result;
 }
 
+llvm::Value* stringNeg(llvm::Module& module, llvm::IRBuilder<>& builder, llvm::Value* value) {
+    llvm::LLVMContext& ctx     = module.getContext();
+    llvm::Function* concatFunc = module.getFunction("strneg");
+    if (!concatFunc) {
+        auto charPtrTy                 = llvm::PointerType::get(llvm::Type::getInt8Ty(ctx), 0);
+        llvm::FunctionType* strnegType = llvm::FunctionType::get(charPtrTy, {charPtrTy}, false);
+        concatFunc = llvm::Function::Create(strnegType, llvm::Function::ExternalLinkage, "strneg", module);
+    }
+
+    return builder.CreateCall(concatFunc, {value});
+}
+
+char* strneg(char* str) {
+    if (!str) {
+        throw std::runtime_error("Invalid string value in negation expression");
+    }
+
+    size_t len = std::strlen(str);
+    char* result = new char[len + 1];
+
+    for (size_t i = 0; i < len; ++i) {
+        result[i] = str[len - i - 1];
+    }
+
+    result[len] = '\0';
+
+    return result;
+}
+
 llvm::Value* stringAdd(
     const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right) {
     llvm::LLVMContext& ctx     = module->getContext();
-    llvm::Function* concatFunc = module->getFunction("my_stradd");
+    llvm::Function* concatFunc = module->getFunction("stradd");
     if (!concatFunc) {
         auto charPtrTy                 = llvm::PointerType::get(llvm::Type::getInt8Ty(ctx), 0);
         llvm::FunctionType* strcatType = llvm::FunctionType::get(charPtrTy, {charPtrTy, charPtrTy}, false);
-        concatFunc = llvm::Function::Create(strcatType, llvm::Function::ExternalLinkage, "my_stradd", *module);
+        concatFunc = llvm::Function::Create(strcatType, llvm::Function::ExternalLinkage, "stradd", *module);
     }
 
     return builder.CreateCall(concatFunc, {left, right}, "straddtmp");

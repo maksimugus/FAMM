@@ -19,6 +19,9 @@ llvm::Value* boolCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Modu
 llvm::Value* stringCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Module& module);
 
 llvm::Value* stringAdd(const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right);
-extern "C" char* my_stradd(char* left, char* right);
+char* stradd(char* left, char* right);
+
+llvm::Value* stringNeg(llvm::Module& module, llvm::IRBuilder<>& builder, llvm::Value* value);
+char* strneg(char* str);
 
 llvm::Value* stringCompare(const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right);

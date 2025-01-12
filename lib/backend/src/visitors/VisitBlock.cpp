@@ -115,8 +115,8 @@ llvm::Value* LLVMIRGenerator::visitForBlock(FAMMParser::ForBlockContext* forBloc
 }
 
 // TODO: сейчас мы запрещаем создавать ваще любые функции с такими названиями, даже с другими сигнатурами
-std::set<std::string> LibFunctionNames = {"display", "to_int", "to_float", "to_bool", "to_string", "strcmp", "my_stradd",
-"int_to_string", "float_to_string", "bool_to_string"};
+std::set<std::string> LibFunctionNames = {"display", "to_int", "to_float", "to_bool", "to_string", "strcmp", "stradd",
+"int_to_string", "float_to_string", "bool_to_string", "strneg"};
 
 llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContext* node) {
     const std::string functionName = node->IDENTIFIER()->getText();

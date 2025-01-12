@@ -62,7 +62,8 @@ private:
     static void initLibFunctions(llvm::ExecutionEngine* engine){
         engine->addGlobalMapping("display", reinterpret_cast<uint64_t>(&printf));
         engine->addGlobalMapping("strcmp", reinterpret_cast<uint64_t>(&strcmp));
-        engine->addGlobalMapping("my_stradd", reinterpret_cast<uint64_t>(&my_stradd));
+        engine->addGlobalMapping("stradd", reinterpret_cast<uint64_t>(&stradd));
+        engine->addGlobalMapping("strneg", reinterpret_cast<uint64_t>(&strneg));
         engine->addGlobalMapping("bool_to_string", reinterpret_cast<uint64_t>(&bool_to_string));
         engine->addGlobalMapping("int_to_string", reinterpret_cast<uint64_t>(&int_to_string));
         engine->addGlobalMapping("float_to_string", reinterpret_cast<uint64_t>(&float_to_string));

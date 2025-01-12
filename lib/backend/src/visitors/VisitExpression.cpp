@@ -47,14 +47,16 @@ llvm::Value* LLVMIRGenerator::visitIdentifierExpression(FAMMParser::IdentifierEx
 llvm::Value* LLVMIRGenerator::visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx) {
     llvm::Value* exprValue = execute(negativeCtx->expression());
 
-    EnsureIntOrDouble(exprValue);
-    if (exprValue->getType()->isIntegerTy()) {
+    if (IsInt(exprValue)) {
         return builder.CreateNeg(exprValue, "negtmp");
     }
-    if (exprValue->getType()->isDoubleTy()) {
+    if (IsDouble(exprValue)) {
         return builder.CreateFNeg(exprValue, "negtmp");
     }
-    throw std::runtime_error("Unsupported type for negation in visitNegativeExpression");
+    if (IsString(exprValue)) {
+        return stringNeg(*module, builder, exprValue);
+    }
+    throw std::runtime_error("Unsupported type for negation in visitNegativeExpression (support only string, int or float)");
 }
 
 llvm::Value* LLVMIRGenerator::visitBoolExpression(FAMMParser::BoolExpressionContext* boolCtx) {
@@ -63,7 +65,7 @@ llvm::Value* LLVMIRGenerator::visitBoolExpression(FAMMParser::BoolExpressionCont
 
     EnsureTypeEq(left->getType(), right->getType());
 
-    if (!left->getType()->isIntegerTy(1)) {
+    if (!IsBool(left)) {
         throw std::runtime_error("Unsupported type of value in bool operation.");
     }
 
