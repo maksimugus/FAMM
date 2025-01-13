@@ -54,8 +54,9 @@ void fammParserInitialize() {
     std::vector<std::string>{
       "program", "line", "statement", "block", "parameterList", "parameter", 
       "scope", "definition", "declarationWithDefinition", "declarationWithoutDefinition", 
-      "expression", "functionCall", "assignmentOp", "multOp", "addOp", "compareOp", 
-      "boolOp", "type", "arrayType", "size", "baseType", "constant", "arrayLiteral"
+      "expression", "arrayAccess", "functionCall", "assignmentOp", "multOp", 
+      "addOp", "compareOp", "boolOp", "type", "arrayType", "size", "baseType", 
+      "constant", "arrayLiteral"
     },
     std::vector<std::string>{
       "", "'var'", "'func'", "'if'", "'else'", "'while'", "'for'", "'by'", 
@@ -77,88 +78,92 @@ void fammParserInitialize() {
     }
   );
   static const int32_t serializedATNSegment[] = {
-  	4,1,54,256,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
+  	4,1,54,266,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
   	7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,2,14,7,
   	14,2,15,7,15,2,16,7,16,2,17,7,17,2,18,7,18,2,19,7,19,2,20,7,20,2,21,7,
-  	21,2,22,7,22,1,0,5,0,48,8,0,10,0,12,0,51,9,0,1,0,1,0,1,1,1,1,1,1,1,1,
-  	1,1,1,1,3,1,61,8,1,1,2,1,2,1,2,1,2,1,2,3,2,68,8,2,1,2,3,2,71,8,2,1,3,
-  	1,3,1,3,1,3,1,3,1,3,1,3,3,3,80,8,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,
-  	3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,3,3,102,8,3,1,3,1,3,1,3,
-  	1,3,3,3,108,8,3,1,3,1,3,3,3,112,8,3,1,4,1,4,1,4,5,4,117,8,4,10,4,12,4,
-  	120,9,4,1,5,1,5,1,5,1,5,1,6,1,6,5,6,128,8,6,10,6,12,6,131,9,6,1,6,1,6,
-  	1,7,1,7,1,7,1,7,1,8,1,8,1,8,1,8,1,8,1,8,1,8,1,9,1,9,1,9,1,9,5,9,150,8,
-  	9,10,9,12,9,153,9,9,1,9,1,9,1,9,1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,
-  	10,1,10,1,10,1,10,1,10,3,10,170,8,10,1,10,1,10,1,10,1,10,1,10,1,10,1,
-  	10,1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,
-  	10,5,10,193,8,10,10,10,12,10,196,9,10,1,11,1,11,1,11,1,11,1,11,5,11,203,
-  	8,11,10,11,12,11,206,9,11,3,11,208,8,11,1,11,1,11,1,12,1,12,1,13,1,13,
-  	1,14,1,14,1,15,1,15,1,16,1,16,1,17,1,17,3,17,224,8,17,1,18,1,18,1,18,
-  	1,18,1,18,1,18,1,19,1,19,1,20,1,20,1,21,1,21,1,21,1,21,1,21,3,21,241,
-  	8,21,1,22,1,22,1,22,1,22,5,22,247,8,22,10,22,12,22,250,9,22,3,22,252,
-  	8,22,1,22,1,22,1,22,0,1,20,23,0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,
-  	30,32,34,36,38,40,42,44,0,6,1,0,11,17,1,0,18,21,1,0,22,23,1,0,24,29,1,
-  	0,30,31,1,0,41,44,267,0,49,1,0,0,0,2,60,1,0,0,0,4,70,1,0,0,0,6,111,1,
-  	0,0,0,8,113,1,0,0,0,10,121,1,0,0,0,12,125,1,0,0,0,14,134,1,0,0,0,16,138,
-  	1,0,0,0,18,145,1,0,0,0,20,169,1,0,0,0,22,197,1,0,0,0,24,211,1,0,0,0,26,
-  	213,1,0,0,0,28,215,1,0,0,0,30,217,1,0,0,0,32,219,1,0,0,0,34,223,1,0,0,
-  	0,36,225,1,0,0,0,38,231,1,0,0,0,40,233,1,0,0,0,42,240,1,0,0,0,44,242,
-  	1,0,0,0,46,48,3,2,1,0,47,46,1,0,0,0,48,51,1,0,0,0,49,47,1,0,0,0,49,50,
-  	1,0,0,0,50,52,1,0,0,0,51,49,1,0,0,0,52,53,5,0,0,1,53,1,1,0,0,0,54,55,
-  	3,20,10,0,55,56,5,36,0,0,56,61,1,0,0,0,57,58,3,4,2,0,58,59,5,36,0,0,59,
-  	61,1,0,0,0,60,54,1,0,0,0,60,57,1,0,0,0,61,3,1,0,0,0,62,71,3,16,8,0,63,
-  	71,3,18,9,0,64,71,3,14,7,0,65,67,5,8,0,0,66,68,3,20,10,0,67,66,1,0,0,
-  	0,67,68,1,0,0,0,68,71,1,0,0,0,69,71,3,6,3,0,70,62,1,0,0,0,70,63,1,0,0,
-  	0,70,64,1,0,0,0,70,65,1,0,0,0,70,69,1,0,0,0,71,5,1,0,0,0,72,73,5,3,0,
-  	0,73,74,5,32,0,0,74,75,3,20,10,0,75,76,5,33,0,0,76,79,3,12,6,0,77,78,
-  	5,4,0,0,78,80,3,12,6,0,79,77,1,0,0,0,79,80,1,0,0,0,80,112,1,0,0,0,81,
-  	82,5,5,0,0,82,83,5,32,0,0,83,84,3,20,10,0,84,85,5,33,0,0,85,86,3,12,6,
-  	0,86,112,1,0,0,0,87,88,5,6,0,0,88,89,5,32,0,0,89,90,3,16,8,0,90,91,5,
-  	9,0,0,91,92,3,20,10,0,92,93,5,7,0,0,93,94,3,20,10,0,94,95,5,33,0,0,95,
-  	96,3,12,6,0,96,112,1,0,0,0,97,98,5,2,0,0,98,99,5,52,0,0,99,101,5,32,0,
-  	0,100,102,3,8,4,0,101,100,1,0,0,0,101,102,1,0,0,0,102,103,1,0,0,0,103,
-  	104,5,33,0,0,104,107,5,37,0,0,105,108,3,34,17,0,106,108,5,49,0,0,107,
-  	105,1,0,0,0,107,106,1,0,0,0,108,109,1,0,0,0,109,110,5,11,0,0,110,112,
-  	3,12,6,0,111,72,1,0,0,0,111,81,1,0,0,0,111,87,1,0,0,0,111,97,1,0,0,0,
-  	112,7,1,0,0,0,113,118,3,10,5,0,114,115,5,38,0,0,115,117,3,10,5,0,116,
-  	114,1,0,0,0,117,120,1,0,0,0,118,116,1,0,0,0,118,119,1,0,0,0,119,9,1,0,
-  	0,0,120,118,1,0,0,0,121,122,5,52,0,0,122,123,5,37,0,0,123,124,3,34,17,
-  	0,124,11,1,0,0,0,125,129,5,34,0,0,126,128,3,2,1,0,127,126,1,0,0,0,128,
-  	131,1,0,0,0,129,127,1,0,0,0,129,130,1,0,0,0,130,132,1,0,0,0,131,129,1,
-  	0,0,0,132,133,5,35,0,0,133,13,1,0,0,0,134,135,5,52,0,0,135,136,3,24,12,
-  	0,136,137,3,20,10,0,137,15,1,0,0,0,138,139,5,1,0,0,139,140,5,52,0,0,140,
-  	141,5,37,0,0,141,142,3,34,17,0,142,143,5,11,0,0,143,144,3,20,10,0,144,
-  	17,1,0,0,0,145,146,5,1,0,0,146,151,5,52,0,0,147,148,5,38,0,0,148,150,
-  	5,52,0,0,149,147,1,0,0,0,150,153,1,0,0,0,151,149,1,0,0,0,151,152,1,0,
-  	0,0,152,154,1,0,0,0,153,151,1,0,0,0,154,155,5,37,0,0,155,156,3,34,17,
-  	0,156,19,1,0,0,0,157,158,6,10,-1,0,158,170,3,42,21,0,159,170,3,22,11,
-  	0,160,170,5,52,0,0,161,162,5,32,0,0,162,163,3,20,10,0,163,164,5,33,0,
-  	0,164,170,1,0,0,0,165,166,5,10,0,0,166,170,3,20,10,6,167,168,5,23,0,0,
-  	168,170,3,20,10,5,169,157,1,0,0,0,169,159,1,0,0,0,169,160,1,0,0,0,169,
-  	161,1,0,0,0,169,165,1,0,0,0,169,167,1,0,0,0,170,194,1,0,0,0,171,172,10,
-  	4,0,0,172,173,3,26,13,0,173,174,3,20,10,5,174,193,1,0,0,0,175,176,10,
-  	3,0,0,176,177,3,28,14,0,177,178,3,20,10,4,178,193,1,0,0,0,179,180,10,
-  	2,0,0,180,181,3,30,15,0,181,182,3,20,10,3,182,193,1,0,0,0,183,184,10,
-  	1,0,0,184,185,3,32,16,0,185,186,3,20,10,2,186,193,1,0,0,0,187,188,10,
-  	8,0,0,188,189,5,39,0,0,189,190,3,20,10,0,190,191,5,40,0,0,191,193,1,0,
-  	0,0,192,171,1,0,0,0,192,175,1,0,0,0,192,179,1,0,0,0,192,183,1,0,0,0,192,
-  	187,1,0,0,0,193,196,1,0,0,0,194,192,1,0,0,0,194,195,1,0,0,0,195,21,1,
-  	0,0,0,196,194,1,0,0,0,197,198,5,52,0,0,198,207,5,32,0,0,199,204,3,20,
-  	10,0,200,201,5,38,0,0,201,203,3,20,10,0,202,200,1,0,0,0,203,206,1,0,0,
-  	0,204,202,1,0,0,0,204,205,1,0,0,0,205,208,1,0,0,0,206,204,1,0,0,0,207,
-  	199,1,0,0,0,207,208,1,0,0,0,208,209,1,0,0,0,209,210,5,33,0,0,210,23,1,
-  	0,0,0,211,212,7,0,0,0,212,25,1,0,0,0,213,214,7,1,0,0,214,27,1,0,0,0,215,
-  	216,7,2,0,0,216,29,1,0,0,0,217,218,7,3,0,0,218,31,1,0,0,0,219,220,7,4,
-  	0,0,220,33,1,0,0,0,221,224,3,40,20,0,222,224,3,36,18,0,223,221,1,0,0,
-  	0,223,222,1,0,0,0,224,35,1,0,0,0,225,226,5,39,0,0,226,227,3,34,17,0,227,
-  	228,5,38,0,0,228,229,3,38,19,0,229,230,5,40,0,0,230,37,1,0,0,0,231,232,
-  	5,45,0,0,232,39,1,0,0,0,233,234,7,5,0,0,234,41,1,0,0,0,235,241,5,45,0,
-  	0,236,241,5,46,0,0,237,241,5,47,0,0,238,241,5,48,0,0,239,241,3,44,22,
-  	0,240,235,1,0,0,0,240,236,1,0,0,0,240,237,1,0,0,0,240,238,1,0,0,0,240,
-  	239,1,0,0,0,241,43,1,0,0,0,242,251,5,39,0,0,243,248,3,20,10,0,244,245,
-  	5,38,0,0,245,247,3,20,10,0,246,244,1,0,0,0,247,250,1,0,0,0,248,246,1,
-  	0,0,0,248,249,1,0,0,0,249,252,1,0,0,0,250,248,1,0,0,0,251,243,1,0,0,0,
-  	251,252,1,0,0,0,252,253,1,0,0,0,253,254,5,40,0,0,254,45,1,0,0,0,20,49,
-  	60,67,70,79,101,107,111,118,129,151,169,192,194,204,207,223,240,248,251
+  	21,2,22,7,22,2,23,7,23,1,0,5,0,50,8,0,10,0,12,0,53,9,0,1,0,1,0,1,1,1,
+  	1,1,1,1,1,1,1,1,1,3,1,63,8,1,1,2,1,2,1,2,1,2,1,2,3,2,70,8,2,1,2,3,2,73,
+  	8,2,1,3,1,3,1,3,1,3,1,3,1,3,1,3,3,3,82,8,3,1,3,1,3,1,3,1,3,1,3,1,3,1,
+  	3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,3,3,3,104,8,3,1,3,
+  	1,3,1,3,1,3,3,3,110,8,3,1,3,1,3,3,3,114,8,3,1,4,1,4,1,4,5,4,119,8,4,10,
+  	4,12,4,122,9,4,1,5,1,5,1,5,1,5,1,6,1,6,5,6,130,8,6,10,6,12,6,133,9,6,
+  	1,6,1,6,1,7,1,7,3,7,139,8,7,1,7,1,7,1,7,1,8,1,8,1,8,1,8,1,8,1,8,1,8,1,
+  	9,1,9,1,9,1,9,5,9,155,8,9,10,9,12,9,158,9,9,1,9,1,9,1,9,1,10,1,10,1,10,
+  	1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,10,3,10,175,8,10,1,10,1,10,
+  	1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,10,
+  	1,10,1,10,1,10,1,10,1,10,5,10,198,8,10,10,10,12,10,201,9,10,1,11,1,11,
+  	1,11,1,11,1,11,1,12,1,12,1,12,1,12,1,12,5,12,213,8,12,10,12,12,12,216,
+  	9,12,3,12,218,8,12,1,12,1,12,1,13,1,13,1,14,1,14,1,15,1,15,1,16,1,16,
+  	1,17,1,17,1,18,1,18,3,18,234,8,18,1,19,1,19,1,19,1,19,1,19,1,19,1,20,
+  	1,20,1,21,1,21,1,22,1,22,1,22,1,22,1,22,3,22,251,8,22,1,23,1,23,1,23,
+  	1,23,5,23,257,8,23,10,23,12,23,260,9,23,3,23,262,8,23,1,23,1,23,1,23,
+  	0,1,20,24,0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,
+  	44,46,0,6,1,0,11,17,1,0,18,21,1,0,22,23,1,0,24,29,1,0,30,31,1,0,41,44,
+  	277,0,51,1,0,0,0,2,62,1,0,0,0,4,72,1,0,0,0,6,113,1,0,0,0,8,115,1,0,0,
+  	0,10,123,1,0,0,0,12,127,1,0,0,0,14,138,1,0,0,0,16,143,1,0,0,0,18,150,
+  	1,0,0,0,20,174,1,0,0,0,22,202,1,0,0,0,24,207,1,0,0,0,26,221,1,0,0,0,28,
+  	223,1,0,0,0,30,225,1,0,0,0,32,227,1,0,0,0,34,229,1,0,0,0,36,233,1,0,0,
+  	0,38,235,1,0,0,0,40,241,1,0,0,0,42,243,1,0,0,0,44,250,1,0,0,0,46,252,
+  	1,0,0,0,48,50,3,2,1,0,49,48,1,0,0,0,50,53,1,0,0,0,51,49,1,0,0,0,51,52,
+  	1,0,0,0,52,54,1,0,0,0,53,51,1,0,0,0,54,55,5,0,0,1,55,1,1,0,0,0,56,57,
+  	3,20,10,0,57,58,5,36,0,0,58,63,1,0,0,0,59,60,3,4,2,0,60,61,5,36,0,0,61,
+  	63,1,0,0,0,62,56,1,0,0,0,62,59,1,0,0,0,63,3,1,0,0,0,64,73,3,16,8,0,65,
+  	73,3,18,9,0,66,73,3,14,7,0,67,69,5,8,0,0,68,70,3,20,10,0,69,68,1,0,0,
+  	0,69,70,1,0,0,0,70,73,1,0,0,0,71,73,3,6,3,0,72,64,1,0,0,0,72,65,1,0,0,
+  	0,72,66,1,0,0,0,72,67,1,0,0,0,72,71,1,0,0,0,73,5,1,0,0,0,74,75,5,3,0,
+  	0,75,76,5,32,0,0,76,77,3,20,10,0,77,78,5,33,0,0,78,81,3,12,6,0,79,80,
+  	5,4,0,0,80,82,3,12,6,0,81,79,1,0,0,0,81,82,1,0,0,0,82,114,1,0,0,0,83,
+  	84,5,5,0,0,84,85,5,32,0,0,85,86,3,20,10,0,86,87,5,33,0,0,87,88,3,12,6,
+  	0,88,114,1,0,0,0,89,90,5,6,0,0,90,91,5,32,0,0,91,92,3,16,8,0,92,93,5,
+  	9,0,0,93,94,3,20,10,0,94,95,5,7,0,0,95,96,3,20,10,0,96,97,5,33,0,0,97,
+  	98,3,12,6,0,98,114,1,0,0,0,99,100,5,2,0,0,100,101,5,52,0,0,101,103,5,
+  	32,0,0,102,104,3,8,4,0,103,102,1,0,0,0,103,104,1,0,0,0,104,105,1,0,0,
+  	0,105,106,5,33,0,0,106,109,5,37,0,0,107,110,3,36,18,0,108,110,5,49,0,
+  	0,109,107,1,0,0,0,109,108,1,0,0,0,110,111,1,0,0,0,111,112,5,11,0,0,112,
+  	114,3,12,6,0,113,74,1,0,0,0,113,83,1,0,0,0,113,89,1,0,0,0,113,99,1,0,
+  	0,0,114,7,1,0,0,0,115,120,3,10,5,0,116,117,5,38,0,0,117,119,3,10,5,0,
+  	118,116,1,0,0,0,119,122,1,0,0,0,120,118,1,0,0,0,120,121,1,0,0,0,121,9,
+  	1,0,0,0,122,120,1,0,0,0,123,124,5,52,0,0,124,125,5,37,0,0,125,126,3,36,
+  	18,0,126,11,1,0,0,0,127,131,5,34,0,0,128,130,3,2,1,0,129,128,1,0,0,0,
+  	130,133,1,0,0,0,131,129,1,0,0,0,131,132,1,0,0,0,132,134,1,0,0,0,133,131,
+  	1,0,0,0,134,135,5,35,0,0,135,13,1,0,0,0,136,139,5,52,0,0,137,139,3,22,
+  	11,0,138,136,1,0,0,0,138,137,1,0,0,0,139,140,1,0,0,0,140,141,3,26,13,
+  	0,141,142,3,20,10,0,142,15,1,0,0,0,143,144,5,1,0,0,144,145,5,52,0,0,145,
+  	146,5,37,0,0,146,147,3,36,18,0,147,148,5,11,0,0,148,149,3,20,10,0,149,
+  	17,1,0,0,0,150,151,5,1,0,0,151,156,5,52,0,0,152,153,5,38,0,0,153,155,
+  	5,52,0,0,154,152,1,0,0,0,155,158,1,0,0,0,156,154,1,0,0,0,156,157,1,0,
+  	0,0,157,159,1,0,0,0,158,156,1,0,0,0,159,160,5,37,0,0,160,161,3,36,18,
+  	0,161,19,1,0,0,0,162,163,6,10,-1,0,163,175,3,44,22,0,164,175,3,24,12,
+  	0,165,175,5,52,0,0,166,167,5,32,0,0,167,168,3,20,10,0,168,169,5,33,0,
+  	0,169,175,1,0,0,0,170,171,5,10,0,0,171,175,3,20,10,6,172,173,5,23,0,0,
+  	173,175,3,20,10,5,174,162,1,0,0,0,174,164,1,0,0,0,174,165,1,0,0,0,174,
+  	166,1,0,0,0,174,170,1,0,0,0,174,172,1,0,0,0,175,199,1,0,0,0,176,177,10,
+  	4,0,0,177,178,3,28,14,0,178,179,3,20,10,5,179,198,1,0,0,0,180,181,10,
+  	3,0,0,181,182,3,30,15,0,182,183,3,20,10,4,183,198,1,0,0,0,184,185,10,
+  	2,0,0,185,186,3,32,16,0,186,187,3,20,10,3,187,198,1,0,0,0,188,189,10,
+  	1,0,0,189,190,3,34,17,0,190,191,3,20,10,2,191,198,1,0,0,0,192,193,10,
+  	8,0,0,193,194,5,39,0,0,194,195,3,20,10,0,195,196,5,40,0,0,196,198,1,0,
+  	0,0,197,176,1,0,0,0,197,180,1,0,0,0,197,184,1,0,0,0,197,188,1,0,0,0,197,
+  	192,1,0,0,0,198,201,1,0,0,0,199,197,1,0,0,0,199,200,1,0,0,0,200,21,1,
+  	0,0,0,201,199,1,0,0,0,202,203,3,20,10,0,203,204,5,39,0,0,204,205,3,20,
+  	10,0,205,206,5,40,0,0,206,23,1,0,0,0,207,208,5,52,0,0,208,217,5,32,0,
+  	0,209,214,3,20,10,0,210,211,5,38,0,0,211,213,3,20,10,0,212,210,1,0,0,
+  	0,213,216,1,0,0,0,214,212,1,0,0,0,214,215,1,0,0,0,215,218,1,0,0,0,216,
+  	214,1,0,0,0,217,209,1,0,0,0,217,218,1,0,0,0,218,219,1,0,0,0,219,220,5,
+  	33,0,0,220,25,1,0,0,0,221,222,7,0,0,0,222,27,1,0,0,0,223,224,7,1,0,0,
+  	224,29,1,0,0,0,225,226,7,2,0,0,226,31,1,0,0,0,227,228,7,3,0,0,228,33,
+  	1,0,0,0,229,230,7,4,0,0,230,35,1,0,0,0,231,234,3,42,21,0,232,234,3,38,
+  	19,0,233,231,1,0,0,0,233,232,1,0,0,0,234,37,1,0,0,0,235,236,5,39,0,0,
+  	236,237,3,36,18,0,237,238,5,38,0,0,238,239,3,40,20,0,239,240,5,40,0,0,
+  	240,39,1,0,0,0,241,242,5,45,0,0,242,41,1,0,0,0,243,244,7,5,0,0,244,43,
+  	1,0,0,0,245,251,5,45,0,0,246,251,5,46,0,0,247,251,5,47,0,0,248,251,5,
+  	48,0,0,249,251,3,46,23,0,250,245,1,0,0,0,250,246,1,0,0,0,250,247,1,0,
+  	0,0,250,248,1,0,0,0,250,249,1,0,0,0,251,45,1,0,0,0,252,261,5,39,0,0,253,
+  	258,3,20,10,0,254,255,5,38,0,0,255,257,3,20,10,0,256,254,1,0,0,0,257,
+  	260,1,0,0,0,258,256,1,0,0,0,258,259,1,0,0,0,259,262,1,0,0,0,260,258,1,
+  	0,0,0,261,253,1,0,0,0,261,262,1,0,0,0,262,263,1,0,0,0,263,264,5,40,0,
+  	0,264,47,1,0,0,0,21,51,62,69,72,81,103,109,113,120,131,138,156,174,197,
+  	199,214,217,233,250,258,261
   };
   staticData->serializedATN = antlr4::atn::SerializedATNView(serializedATNSegment, sizeof(serializedATNSegment) / sizeof(serializedATNSegment[0]));
 
@@ -256,18 +261,18 @@ FAMMParser::ProgramContext* FAMMParser::program() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(49);
+    setState(51);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while ((((_la & ~ 0x3fULL) == 0) &&
       ((1ULL << _la) & 5031919267874158) != 0)) {
-      setState(46);
+      setState(48);
       line();
-      setState(51);
+      setState(53);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
-    setState(52);
+    setState(54);
     match(FAMMParser::EOF);
    
   }
@@ -351,15 +356,15 @@ FAMMParser::LineContext* FAMMParser::line() {
     exitRule();
   });
   try {
-    setState(60);
+    setState(62);
     _errHandler->sync(this);
     switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 1, _ctx)) {
     case 1: {
       _localctx = _tracker.createInstance<FAMMParser::ExpressionLineContext>(_localctx);
       enterOuterAlt(_localctx, 1);
-      setState(54);
+      setState(56);
       expression(0);
-      setState(55);
+      setState(57);
       match(FAMMParser::SEMICOLON);
       break;
     }
@@ -367,9 +372,9 @@ FAMMParser::LineContext* FAMMParser::line() {
     case 2: {
       _localctx = _tracker.createInstance<FAMMParser::StatementLineContext>(_localctx);
       enterOuterAlt(_localctx, 2);
-      setState(57);
+      setState(59);
       statement();
-      setState(58);
+      setState(60);
       match(FAMMParser::SEMICOLON);
       break;
     }
@@ -510,13 +515,13 @@ FAMMParser::StatementContext* FAMMParser::statement() {
     exitRule();
   });
   try {
-    setState(70);
+    setState(72);
     _errHandler->sync(this);
     switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 3, _ctx)) {
     case 1: {
       _localctx = _tracker.createInstance<FAMMParser::DeclarationWithDefinitionStatementContext>(_localctx);
       enterOuterAlt(_localctx, 1);
-      setState(62);
+      setState(64);
       declarationWithDefinition();
       break;
     }
@@ -524,7 +529,7 @@ FAMMParser::StatementContext* FAMMParser::statement() {
     case 2: {
       _localctx = _tracker.createInstance<FAMMParser::DeclarationWithoutDefinitionStatementContext>(_localctx);
       enterOuterAlt(_localctx, 2);
-      setState(63);
+      setState(65);
       declarationWithoutDefinition();
       break;
     }
@@ -532,7 +537,7 @@ FAMMParser::StatementContext* FAMMParser::statement() {
     case 3: {
       _localctx = _tracker.createInstance<FAMMParser::DefinitionStatementContext>(_localctx);
       enterOuterAlt(_localctx, 3);
-      setState(64);
+      setState(66);
       definition();
       break;
     }
@@ -540,15 +545,15 @@ FAMMParser::StatementContext* FAMMParser::statement() {
     case 4: {
       _localctx = _tracker.createInstance<FAMMParser::ReturnStatementContext>(_localctx);
       enterOuterAlt(_localctx, 4);
-      setState(65);
-      match(FAMMParser::RETURN);
       setState(67);
+      match(FAMMParser::RETURN);
+      setState(69);
       _errHandler->sync(this);
 
       _la = _input->LA(1);
       if ((((_la & ~ 0x3fULL) == 0) &&
         ((1ULL << _la) & 5031919267873792) != 0)) {
-        setState(66);
+        setState(68);
         expression(0);
       }
       break;
@@ -557,7 +562,7 @@ FAMMParser::StatementContext* FAMMParser::statement() {
     case 5: {
       _localctx = _tracker.createInstance<FAMMParser::BlockStatementContext>(_localctx);
       enterOuterAlt(_localctx, 5);
-      setState(69);
+      setState(71);
       block();
       break;
     }
@@ -784,30 +789,30 @@ FAMMParser::BlockContext* FAMMParser::block() {
     exitRule();
   });
   try {
-    setState(111);
+    setState(113);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
       case FAMMParser::IF: {
         _localctx = _tracker.createInstance<FAMMParser::IfBlockContext>(_localctx);
         enterOuterAlt(_localctx, 1);
-        setState(72);
-        match(FAMMParser::IF);
-        setState(73);
-        match(FAMMParser::LPAR);
         setState(74);
-        expression(0);
+        match(FAMMParser::IF);
         setState(75);
-        match(FAMMParser::RPAR);
+        match(FAMMParser::LPAR);
         setState(76);
+        expression(0);
+        setState(77);
+        match(FAMMParser::RPAR);
+        setState(78);
         scope();
-        setState(79);
+        setState(81);
         _errHandler->sync(this);
 
         _la = _input->LA(1);
         if (_la == FAMMParser::ELSE) {
-          setState(77);
+          setState(79);
           match(FAMMParser::ELSE);
-          setState(78);
+          setState(80);
           scope();
         }
         break;
@@ -816,15 +821,15 @@ FAMMParser::BlockContext* FAMMParser::block() {
       case FAMMParser::WHILE: {
         _localctx = _tracker.createInstance<FAMMParser::WhileBlockContext>(_localctx);
         enterOuterAlt(_localctx, 2);
-        setState(81);
-        match(FAMMParser::WHILE);
-        setState(82);
-        match(FAMMParser::LPAR);
         setState(83);
-        expression(0);
+        match(FAMMParser::WHILE);
         setState(84);
-        match(FAMMParser::RPAR);
+        match(FAMMParser::LPAR);
         setState(85);
+        expression(0);
+        setState(86);
+        match(FAMMParser::RPAR);
+        setState(87);
         scope();
         break;
       }
@@ -832,23 +837,23 @@ FAMMParser::BlockContext* FAMMParser::block() {
       case FAMMParser::FOR: {
         _localctx = _tracker.createInstance<FAMMParser::ForBlockContext>(_localctx);
         enterOuterAlt(_localctx, 3);
-        setState(87);
-        match(FAMMParser::FOR);
-        setState(88);
-        match(FAMMParser::LPAR);
         setState(89);
-        declarationWithDefinition();
+        match(FAMMParser::FOR);
         setState(90);
-        match(FAMMParser::ARROW);
+        match(FAMMParser::LPAR);
         setState(91);
-        expression(0);
+        declarationWithDefinition();
         setState(92);
-        match(FAMMParser::BY);
+        match(FAMMParser::ARROW);
         setState(93);
         expression(0);
         setState(94);
-        match(FAMMParser::RPAR);
+        match(FAMMParser::BY);
         setState(95);
+        expression(0);
+        setState(96);
+        match(FAMMParser::RPAR);
+        setState(97);
         scope();
         break;
       }
@@ -856,25 +861,25 @@ FAMMParser::BlockContext* FAMMParser::block() {
       case FAMMParser::FUNC: {
         _localctx = _tracker.createInstance<FAMMParser::FunctionBlockContext>(_localctx);
         enterOuterAlt(_localctx, 4);
-        setState(97);
-        match(FAMMParser::FUNC);
-        setState(98);
-        match(FAMMParser::IDENTIFIER);
         setState(99);
-        match(FAMMParser::LPAR);
+        match(FAMMParser::FUNC);
+        setState(100);
+        match(FAMMParser::IDENTIFIER);
         setState(101);
+        match(FAMMParser::LPAR);
+        setState(103);
         _errHandler->sync(this);
 
         _la = _input->LA(1);
         if (_la == FAMMParser::IDENTIFIER) {
-          setState(100);
+          setState(102);
           parameterList();
         }
-        setState(103);
+        setState(105);
         match(FAMMParser::RPAR);
-        setState(104);
+        setState(106);
         match(FAMMParser::COLON);
-        setState(107);
+        setState(109);
         _errHandler->sync(this);
         switch (_input->LA(1)) {
           case FAMMParser::LBRACKET:
@@ -882,13 +887,13 @@ FAMMParser::BlockContext* FAMMParser::block() {
           case FAMMParser::FLOAT:
           case FAMMParser::STRING:
           case FAMMParser::BOOL: {
-            setState(105);
+            setState(107);
             type();
             break;
           }
 
           case FAMMParser::NIH_LIT: {
-            setState(106);
+            setState(108);
             match(FAMMParser::NIH_LIT);
             break;
           }
@@ -896,9 +901,9 @@ FAMMParser::BlockContext* FAMMParser::block() {
         default:
           throw NoViableAltException(this);
         }
-        setState(109);
+        setState(111);
         match(FAMMParser::ASSIGNMENT);
-        setState(110);
+        setState(112);
         scope();
         break;
       }
@@ -970,17 +975,17 @@ FAMMParser::ParameterListContext* FAMMParser::parameterList() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(113);
+    setState(115);
     parameter();
-    setState(118);
+    setState(120);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == FAMMParser::COMMA) {
-      setState(114);
+      setState(116);
       match(FAMMParser::COMMA);
-      setState(115);
+      setState(117);
       parameter();
-      setState(120);
+      setState(122);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
@@ -1043,11 +1048,11 @@ FAMMParser::ParameterContext* FAMMParser::parameter() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(121);
-    match(FAMMParser::IDENTIFIER);
-    setState(122);
-    match(FAMMParser::COLON);
     setState(123);
+    match(FAMMParser::IDENTIFIER);
+    setState(124);
+    match(FAMMParser::COLON);
+    setState(125);
     type();
    
   }
@@ -1113,20 +1118,20 @@ FAMMParser::ScopeContext* FAMMParser::scope() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(125);
+    setState(127);
     match(FAMMParser::LBRACE);
-    setState(129);
+    setState(131);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while ((((_la & ~ 0x3fULL) == 0) &&
       ((1ULL << _la) & 5031919267874158) != 0)) {
-      setState(126);
+      setState(128);
       line();
-      setState(131);
+      setState(133);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
-    setState(132);
+    setState(134);
     match(FAMMParser::RBRACE);
    
   }
@@ -1145,16 +1150,20 @@ FAMMParser::DefinitionContext::DefinitionContext(ParserRuleContext *parent, size
   : ParserRuleContext(parent, invokingState) {
 }
 
-tree::TerminalNode* FAMMParser::DefinitionContext::IDENTIFIER() {
-  return getToken(FAMMParser::IDENTIFIER, 0);
-}
-
 FAMMParser::AssignmentOpContext* FAMMParser::DefinitionContext::assignmentOp() {
   return getRuleContext<FAMMParser::AssignmentOpContext>(0);
 }
 
 FAMMParser::ExpressionContext* FAMMParser::DefinitionContext::expression() {
   return getRuleContext<FAMMParser::ExpressionContext>(0);
+}
+
+tree::TerminalNode* FAMMParser::DefinitionContext::IDENTIFIER() {
+  return getToken(FAMMParser::IDENTIFIER, 0);
+}
+
+FAMMParser::ArrayAccessContext* FAMMParser::DefinitionContext::arrayAccess() {
+  return getRuleContext<FAMMParser::ArrayAccessContext>(0);
 }
 
 
@@ -1187,11 +1196,27 @@ FAMMParser::DefinitionContext* FAMMParser::definition() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(134);
-    match(FAMMParser::IDENTIFIER);
-    setState(135);
+    setState(138);
+    _errHandler->sync(this);
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 10, _ctx)) {
+    case 1: {
+      setState(136);
+      match(FAMMParser::IDENTIFIER);
+      break;
+    }
+
+    case 2: {
+      setState(137);
+      arrayAccess();
+      break;
+    }
+
+    default:
+      break;
+    }
+    setState(140);
     assignmentOp();
-    setState(136);
+    setState(141);
     expression(0);
    
   }
@@ -1264,17 +1289,17 @@ FAMMParser::DeclarationWithDefinitionContext* FAMMParser::declarationWithDefinit
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(138);
-    match(FAMMParser::VAR);
-    setState(139);
-    match(FAMMParser::IDENTIFIER);
-    setState(140);
-    match(FAMMParser::COLON);
-    setState(141);
-    type();
-    setState(142);
-    match(FAMMParser::ASSIGNMENT);
     setState(143);
+    match(FAMMParser::VAR);
+    setState(144);
+    match(FAMMParser::IDENTIFIER);
+    setState(145);
+    match(FAMMParser::COLON);
+    setState(146);
+    type();
+    setState(147);
+    match(FAMMParser::ASSIGNMENT);
+    setState(148);
     expression(0);
    
   }
@@ -1352,25 +1377,25 @@ FAMMParser::DeclarationWithoutDefinitionContext* FAMMParser::declarationWithoutD
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(145);
+    setState(150);
     match(FAMMParser::VAR);
-    setState(146);
-    match(FAMMParser::IDENTIFIER);
     setState(151);
+    match(FAMMParser::IDENTIFIER);
+    setState(156);
     _errHandler->sync(this);
     _la = _input->LA(1);
     while (_la == FAMMParser::COMMA) {
-      setState(147);
+      setState(152);
       match(FAMMParser::COMMA);
-      setState(148);
-      match(FAMMParser::IDENTIFIER);
       setState(153);
+      match(FAMMParser::IDENTIFIER);
+      setState(158);
       _errHandler->sync(this);
       _la = _input->LA(1);
     }
-    setState(154);
+    setState(159);
     match(FAMMParser::COLON);
-    setState(155);
+    setState(160);
     type();
    
   }
@@ -1682,15 +1707,15 @@ FAMMParser::ExpressionContext* FAMMParser::expression(int precedence) {
   try {
     size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(169);
+    setState(174);
     _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 11, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 12, _ctx)) {
     case 1: {
       _localctx = _tracker.createInstance<ConstantExpressionContext>(_localctx);
       _ctx = _localctx;
       previousContext = _localctx;
 
-      setState(158);
+      setState(163);
       constant();
       break;
     }
@@ -1699,7 +1724,7 @@ FAMMParser::ExpressionContext* FAMMParser::expression(int precedence) {
       _localctx = _tracker.createInstance<FunctionCallExpressionContext>(_localctx);
       _ctx = _localctx;
       previousContext = _localctx;
-      setState(159);
+      setState(164);
       functionCall();
       break;
     }
@@ -1708,7 +1733,7 @@ FAMMParser::ExpressionContext* FAMMParser::expression(int precedence) {
       _localctx = _tracker.createInstance<IdentifierExpressionContext>(_localctx);
       _ctx = _localctx;
       previousContext = _localctx;
-      setState(160);
+      setState(165);
       match(FAMMParser::IDENTIFIER);
       break;
     }
@@ -1717,11 +1742,11 @@ FAMMParser::ExpressionContext* FAMMParser::expression(int precedence) {
       _localctx = _tracker.createInstance<ParenExpressionContext>(_localctx);
       _ctx = _localctx;
       previousContext = _localctx;
-      setState(161);
+      setState(166);
       match(FAMMParser::LPAR);
-      setState(162);
+      setState(167);
       expression(0);
-      setState(163);
+      setState(168);
       match(FAMMParser::RPAR);
       break;
     }
@@ -1730,9 +1755,9 @@ FAMMParser::ExpressionContext* FAMMParser::expression(int precedence) {
       _localctx = _tracker.createInstance<NegationExpressionContext>(_localctx);
       _ctx = _localctx;
       previousContext = _localctx;
-      setState(165);
+      setState(170);
       match(FAMMParser::NOT);
-      setState(166);
+      setState(171);
       expression(6);
       break;
     }
@@ -1741,9 +1766,9 @@ FAMMParser::ExpressionContext* FAMMParser::expression(int precedence) {
       _localctx = _tracker.createInstance<NegativeExpressionContext>(_localctx);
       _ctx = _localctx;
       previousContext = _localctx;
-      setState(167);
+      setState(172);
       match(FAMMParser::MINUS);
-      setState(168);
+      setState(173);
       expression(5);
       break;
     }
@@ -1752,27 +1777,27 @@ FAMMParser::ExpressionContext* FAMMParser::expression(int precedence) {
       break;
     }
     _ctx->stop = _input->LT(-1);
-    setState(194);
+    setState(199);
     _errHandler->sync(this);
-    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 13, _ctx);
+    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 14, _ctx);
     while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
       if (alt == 1) {
         if (!_parseListeners.empty())
           triggerExitRuleEvent();
         previousContext = _localctx;
-        setState(192);
+        setState(197);
         _errHandler->sync(this);
-        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 12, _ctx)) {
+        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 13, _ctx)) {
         case 1: {
           auto newContext = _tracker.createInstance<MulDivExpressionContext>(_tracker.createInstance<ExpressionContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpression);
-          setState(171);
+          setState(176);
 
           if (!(precpred(_ctx, 4))) throw FailedPredicateException(this, "precpred(_ctx, 4)");
-          setState(172);
+          setState(177);
           multOp();
-          setState(173);
+          setState(178);
           expression(5);
           break;
         }
@@ -1781,12 +1806,12 @@ FAMMParser::ExpressionContext* FAMMParser::expression(int precedence) {
           auto newContext = _tracker.createInstance<AddSubExpressionContext>(_tracker.createInstance<ExpressionContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpression);
-          setState(175);
+          setState(180);
 
           if (!(precpred(_ctx, 3))) throw FailedPredicateException(this, "precpred(_ctx, 3)");
-          setState(176);
+          setState(181);
           addOp();
-          setState(177);
+          setState(182);
           expression(4);
           break;
         }
@@ -1795,12 +1820,12 @@ FAMMParser::ExpressionContext* FAMMParser::expression(int precedence) {
           auto newContext = _tracker.createInstance<CompareExpressionContext>(_tracker.createInstance<ExpressionContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpression);
-          setState(179);
+          setState(184);
 
           if (!(precpred(_ctx, 2))) throw FailedPredicateException(this, "precpred(_ctx, 2)");
-          setState(180);
+          setState(185);
           compareOp();
-          setState(181);
+          setState(186);
           expression(3);
           break;
         }
@@ -1809,12 +1834,12 @@ FAMMParser::ExpressionContext* FAMMParser::expression(int precedence) {
           auto newContext = _tracker.createInstance<BoolExpressionContext>(_tracker.createInstance<ExpressionContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpression);
-          setState(183);
+          setState(188);
 
           if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
-          setState(184);
+          setState(189);
           boolOp();
-          setState(185);
+          setState(190);
           expression(2);
           break;
         }
@@ -1823,14 +1848,14 @@ FAMMParser::ExpressionContext* FAMMParser::expression(int precedence) {
           auto newContext = _tracker.createInstance<ArrayAccessExpressionContext>(_tracker.createInstance<ExpressionContext>(parentContext, parentState));
           _localctx = newContext;
           pushNewRecursionContext(newContext, startState, RuleExpression);
-          setState(187);
+          setState(192);
 
           if (!(precpred(_ctx, 8))) throw FailedPredicateException(this, "precpred(_ctx, 8)");
-          setState(188);
+          setState(193);
           match(FAMMParser::LBRACKET);
-          setState(189);
+          setState(194);
           expression(0);
-          setState(190);
+          setState(195);
           match(FAMMParser::RBRACKET);
           break;
         }
@@ -1839,9 +1864,9 @@ FAMMParser::ExpressionContext* FAMMParser::expression(int precedence) {
           break;
         } 
       }
-      setState(196);
+      setState(201);
       _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 13, _ctx);
+      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 14, _ctx);
     }
   }
   catch (RecognitionException &e) {
@@ -1849,6 +1874,77 @@ FAMMParser::ExpressionContext* FAMMParser::expression(int precedence) {
     _localctx->exception = std::current_exception();
     _errHandler->recover(this, _localctx->exception);
   }
+  return _localctx;
+}
+
+//----------------- ArrayAccessContext ------------------------------------------------------------------
+
+FAMMParser::ArrayAccessContext::ArrayAccessContext(ParserRuleContext *parent, size_t invokingState)
+  : ParserRuleContext(parent, invokingState) {
+}
+
+std::vector<FAMMParser::ExpressionContext *> FAMMParser::ArrayAccessContext::expression() {
+  return getRuleContexts<FAMMParser::ExpressionContext>();
+}
+
+FAMMParser::ExpressionContext* FAMMParser::ArrayAccessContext::expression(size_t i) {
+  return getRuleContext<FAMMParser::ExpressionContext>(i);
+}
+
+tree::TerminalNode* FAMMParser::ArrayAccessContext::LBRACKET() {
+  return getToken(FAMMParser::LBRACKET, 0);
+}
+
+tree::TerminalNode* FAMMParser::ArrayAccessContext::RBRACKET() {
+  return getToken(FAMMParser::RBRACKET, 0);
+}
+
+
+size_t FAMMParser::ArrayAccessContext::getRuleIndex() const {
+  return FAMMParser::RuleArrayAccess;
+}
+
+void FAMMParser::ArrayAccessContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<FAMMListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterArrayAccess(this);
+}
+
+void FAMMParser::ArrayAccessContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<FAMMListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitArrayAccess(this);
+}
+
+FAMMParser::ArrayAccessContext* FAMMParser::arrayAccess() {
+  ArrayAccessContext *_localctx = _tracker.createInstance<ArrayAccessContext>(_ctx, getState());
+  enterRule(_localctx, 22, FAMMParser::RuleArrayAccess);
+
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
+  auto onExit = finally([=] {
+#endif
+    exitRule();
+  });
+  try {
+    enterOuterAlt(_localctx, 1);
+    setState(202);
+    expression(0);
+    setState(203);
+    match(FAMMParser::LBRACKET);
+    setState(204);
+    expression(0);
+    setState(205);
+    match(FAMMParser::RBRACKET);
+   
+  }
+  catch (RecognitionException &e) {
+    _errHandler->reportError(this, e);
+    _localctx->exception = std::current_exception();
+    _errHandler->recover(this, _localctx->exception);
+  }
+
   return _localctx;
 }
 
@@ -1905,7 +2001,7 @@ void FAMMParser::FunctionCallContext::exitRule(tree::ParseTreeListener *listener
 
 FAMMParser::FunctionCallContext* FAMMParser::functionCall() {
   FunctionCallContext *_localctx = _tracker.createInstance<FunctionCallContext>(_ctx, getState());
-  enterRule(_localctx, 22, FAMMParser::RuleFunctionCall);
+  enterRule(_localctx, 24, FAMMParser::RuleFunctionCall);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -1917,32 +2013,32 @@ FAMMParser::FunctionCallContext* FAMMParser::functionCall() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(197);
-    match(FAMMParser::IDENTIFIER);
-    setState(198);
-    match(FAMMParser::LPAR);
     setState(207);
+    match(FAMMParser::IDENTIFIER);
+    setState(208);
+    match(FAMMParser::LPAR);
+    setState(217);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if ((((_la & ~ 0x3fULL) == 0) &&
       ((1ULL << _la) & 5031919267873792) != 0)) {
-      setState(199);
+      setState(209);
       expression(0);
-      setState(204);
+      setState(214);
       _errHandler->sync(this);
       _la = _input->LA(1);
       while (_la == FAMMParser::COMMA) {
-        setState(200);
+        setState(210);
         match(FAMMParser::COMMA);
-        setState(201);
+        setState(211);
         expression(0);
-        setState(206);
+        setState(216);
         _errHandler->sync(this);
         _la = _input->LA(1);
       }
     }
-    setState(209);
+    setState(219);
     match(FAMMParser::RPAR);
    
   }
@@ -2008,7 +2104,7 @@ void FAMMParser::AssignmentOpContext::exitRule(tree::ParseTreeListener *listener
 
 FAMMParser::AssignmentOpContext* FAMMParser::assignmentOp() {
   AssignmentOpContext *_localctx = _tracker.createInstance<AssignmentOpContext>(_ctx, getState());
-  enterRule(_localctx, 24, FAMMParser::RuleAssignmentOp);
+  enterRule(_localctx, 26, FAMMParser::RuleAssignmentOp);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -2020,7 +2116,7 @@ FAMMParser::AssignmentOpContext* FAMMParser::assignmentOp() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(211);
+    setState(221);
     _la = _input->LA(1);
     if (!((((_la & ~ 0x3fULL) == 0) &&
       ((1ULL << _la) & 260096) != 0))) {
@@ -2082,7 +2178,7 @@ void FAMMParser::MultOpContext::exitRule(tree::ParseTreeListener *listener) {
 
 FAMMParser::MultOpContext* FAMMParser::multOp() {
   MultOpContext *_localctx = _tracker.createInstance<MultOpContext>(_ctx, getState());
-  enterRule(_localctx, 26, FAMMParser::RuleMultOp);
+  enterRule(_localctx, 28, FAMMParser::RuleMultOp);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -2094,7 +2190,7 @@ FAMMParser::MultOpContext* FAMMParser::multOp() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(213);
+    setState(223);
     _la = _input->LA(1);
     if (!((((_la & ~ 0x3fULL) == 0) &&
       ((1ULL << _la) & 3932160) != 0))) {
@@ -2148,7 +2244,7 @@ void FAMMParser::AddOpContext::exitRule(tree::ParseTreeListener *listener) {
 
 FAMMParser::AddOpContext* FAMMParser::addOp() {
   AddOpContext *_localctx = _tracker.createInstance<AddOpContext>(_ctx, getState());
-  enterRule(_localctx, 28, FAMMParser::RuleAddOp);
+  enterRule(_localctx, 30, FAMMParser::RuleAddOp);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -2160,7 +2256,7 @@ FAMMParser::AddOpContext* FAMMParser::addOp() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(215);
+    setState(225);
     _la = _input->LA(1);
     if (!(_la == FAMMParser::PLUS
 
@@ -2231,7 +2327,7 @@ void FAMMParser::CompareOpContext::exitRule(tree::ParseTreeListener *listener) {
 
 FAMMParser::CompareOpContext* FAMMParser::compareOp() {
   CompareOpContext *_localctx = _tracker.createInstance<CompareOpContext>(_ctx, getState());
-  enterRule(_localctx, 30, FAMMParser::RuleCompareOp);
+  enterRule(_localctx, 32, FAMMParser::RuleCompareOp);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -2243,7 +2339,7 @@ FAMMParser::CompareOpContext* FAMMParser::compareOp() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(217);
+    setState(227);
     _la = _input->LA(1);
     if (!((((_la & ~ 0x3fULL) == 0) &&
       ((1ULL << _la) & 1056964608) != 0))) {
@@ -2297,7 +2393,7 @@ void FAMMParser::BoolOpContext::exitRule(tree::ParseTreeListener *listener) {
 
 FAMMParser::BoolOpContext* FAMMParser::boolOp() {
   BoolOpContext *_localctx = _tracker.createInstance<BoolOpContext>(_ctx, getState());
-  enterRule(_localctx, 32, FAMMParser::RuleBoolOp);
+  enterRule(_localctx, 34, FAMMParser::RuleBoolOp);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -2309,7 +2405,7 @@ FAMMParser::BoolOpContext* FAMMParser::boolOp() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(219);
+    setState(229);
     _la = _input->LA(1);
     if (!(_la == FAMMParser::AND
 
@@ -2364,7 +2460,7 @@ void FAMMParser::TypeContext::exitRule(tree::ParseTreeListener *listener) {
 
 FAMMParser::TypeContext* FAMMParser::type() {
   TypeContext *_localctx = _tracker.createInstance<TypeContext>(_ctx, getState());
-  enterRule(_localctx, 34, FAMMParser::RuleType);
+  enterRule(_localctx, 36, FAMMParser::RuleType);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -2374,7 +2470,7 @@ FAMMParser::TypeContext* FAMMParser::type() {
     exitRule();
   });
   try {
-    setState(223);
+    setState(233);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
       case FAMMParser::INT:
@@ -2382,14 +2478,14 @@ FAMMParser::TypeContext* FAMMParser::type() {
       case FAMMParser::STRING:
       case FAMMParser::BOOL: {
         enterOuterAlt(_localctx, 1);
-        setState(221);
+        setState(231);
         baseType();
         break;
       }
 
       case FAMMParser::LBRACKET: {
         enterOuterAlt(_localctx, 2);
-        setState(222);
+        setState(232);
         arrayType();
         break;
       }
@@ -2453,7 +2549,7 @@ void FAMMParser::ArrayTypeContext::exitRule(tree::ParseTreeListener *listener) {
 
 FAMMParser::ArrayTypeContext* FAMMParser::arrayType() {
   ArrayTypeContext *_localctx = _tracker.createInstance<ArrayTypeContext>(_ctx, getState());
-  enterRule(_localctx, 36, FAMMParser::RuleArrayType);
+  enterRule(_localctx, 38, FAMMParser::RuleArrayType);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -2464,15 +2560,15 @@ FAMMParser::ArrayTypeContext* FAMMParser::arrayType() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(225);
+    setState(235);
     match(FAMMParser::LBRACKET);
-    setState(226);
+    setState(236);
     type();
-    setState(227);
+    setState(237);
     match(FAMMParser::COMMA);
-    setState(228);
+    setState(238);
     size();
-    setState(229);
+    setState(239);
     match(FAMMParser::RBRACKET);
    
   }
@@ -2514,7 +2610,7 @@ void FAMMParser::SizeContext::exitRule(tree::ParseTreeListener *listener) {
 
 FAMMParser::SizeContext* FAMMParser::size() {
   SizeContext *_localctx = _tracker.createInstance<SizeContext>(_ctx, getState());
-  enterRule(_localctx, 38, FAMMParser::RuleSize);
+  enterRule(_localctx, 40, FAMMParser::RuleSize);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -2525,7 +2621,7 @@ FAMMParser::SizeContext* FAMMParser::size() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(231);
+    setState(241);
     match(FAMMParser::INTEGER_LIT);
    
   }
@@ -2579,7 +2675,7 @@ void FAMMParser::BaseTypeContext::exitRule(tree::ParseTreeListener *listener) {
 
 FAMMParser::BaseTypeContext* FAMMParser::baseType() {
   BaseTypeContext *_localctx = _tracker.createInstance<BaseTypeContext>(_ctx, getState());
-  enterRule(_localctx, 40, FAMMParser::RuleBaseType);
+  enterRule(_localctx, 42, FAMMParser::RuleBaseType);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -2591,7 +2687,7 @@ FAMMParser::BaseTypeContext* FAMMParser::baseType() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(233);
+    setState(243);
     _la = _input->LA(1);
     if (!((((_la & ~ 0x3fULL) == 0) &&
       ((1ULL << _la) & 32985348833280) != 0))) {
@@ -2657,7 +2753,7 @@ void FAMMParser::ConstantContext::exitRule(tree::ParseTreeListener *listener) {
 
 FAMMParser::ConstantContext* FAMMParser::constant() {
   ConstantContext *_localctx = _tracker.createInstance<ConstantContext>(_ctx, getState());
-  enterRule(_localctx, 42, FAMMParser::RuleConstant);
+  enterRule(_localctx, 44, FAMMParser::RuleConstant);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -2667,40 +2763,40 @@ FAMMParser::ConstantContext* FAMMParser::constant() {
     exitRule();
   });
   try {
-    setState(240);
+    setState(250);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
       case FAMMParser::INTEGER_LIT: {
         enterOuterAlt(_localctx, 1);
-        setState(235);
+        setState(245);
         match(FAMMParser::INTEGER_LIT);
         break;
       }
 
       case FAMMParser::FLOAT_LIT: {
         enterOuterAlt(_localctx, 2);
-        setState(236);
+        setState(246);
         match(FAMMParser::FLOAT_LIT);
         break;
       }
 
       case FAMMParser::STRING_LIT: {
         enterOuterAlt(_localctx, 3);
-        setState(237);
+        setState(247);
         match(FAMMParser::STRING_LIT);
         break;
       }
 
       case FAMMParser::BOOL_LIT: {
         enterOuterAlt(_localctx, 4);
-        setState(238);
+        setState(248);
         match(FAMMParser::BOOL_LIT);
         break;
       }
 
       case FAMMParser::LBRACKET: {
         enterOuterAlt(_localctx, 5);
-        setState(239);
+        setState(249);
         arrayLiteral();
         break;
       }
@@ -2768,7 +2864,7 @@ void FAMMParser::ArrayLiteralContext::exitRule(tree::ParseTreeListener *listener
 
 FAMMParser::ArrayLiteralContext* FAMMParser::arrayLiteral() {
   ArrayLiteralContext *_localctx = _tracker.createInstance<ArrayLiteralContext>(_ctx, getState());
-  enterRule(_localctx, 44, FAMMParser::RuleArrayLiteral);
+  enterRule(_localctx, 46, FAMMParser::RuleArrayLiteral);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -2780,30 +2876,30 @@ FAMMParser::ArrayLiteralContext* FAMMParser::arrayLiteral() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(242);
+    setState(252);
     match(FAMMParser::LBRACKET);
-    setState(251);
+    setState(261);
     _errHandler->sync(this);
 
     _la = _input->LA(1);
     if ((((_la & ~ 0x3fULL) == 0) &&
       ((1ULL << _la) & 5031919267873792) != 0)) {
-      setState(243);
+      setState(253);
       expression(0);
-      setState(248);
+      setState(258);
       _errHandler->sync(this);
       _la = _input->LA(1);
       while (_la == FAMMParser::COMMA) {
-        setState(244);
+        setState(254);
         match(FAMMParser::COMMA);
-        setState(245);
+        setState(255);
         expression(0);
-        setState(250);
+        setState(260);
         _errHandler->sync(this);
         _la = _input->LA(1);
       }
     }
-    setState(253);
+    setState(263);
     match(FAMMParser::RBRACKET);
    
   }

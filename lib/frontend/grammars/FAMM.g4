@@ -29,7 +29,7 @@ parameter: IDENTIFIER COLON type;
 
 scope: LBRACE line* RBRACE;
 
-definition: IDENTIFIER assignmentOp expression;
+definition: (IDENTIFIER | arrayAccess) assignmentOp expression; // TODO: сделать еще массивы и строки слева
 declarationWithDefinition: VAR IDENTIFIER COLON type ASSIGNMENT expression;
 declarationWithoutDefinition: VAR IDENTIFIER (COMMA IDENTIFIER)* COLON type;
 
@@ -46,6 +46,8 @@ expression
     | expression compareOp expression          # CompareExpression
     | expression boolOp expression             # BoolExpression
     ;
+
+arrayAccess: expression LBRACKET expression RBRACKET;
 
 functionCall: IDENTIFIER LPAR (expression (COMMA expression)*)? RPAR;
 

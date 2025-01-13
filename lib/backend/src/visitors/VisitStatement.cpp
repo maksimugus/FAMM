@@ -71,6 +71,10 @@ llvm::Value* LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::Declara
         throw std::runtime_error("No active scope to declare variable.");
     }
 
+    if (llvmType->isArrayTy()) {
+        builder.CreateStore(initialValue, alloca)->setAlignment(llvm::Align(8));
+        return nullptr;
+    }
     builder.CreateStore(initialValue, alloca);
     return nullptr;
 }

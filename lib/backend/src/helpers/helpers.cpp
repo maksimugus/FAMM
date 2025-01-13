@@ -11,6 +11,9 @@ bool IsBool(llvm::Value* value) {
 bool IsString(llvm::Value* value) {
     return value->getType()->isPointerTy();
 }
+bool IsArray(llvm::Value* value) {
+    return value->getType()->isArrayTy();
+}
 void EnsureIntOrDouble(llvm::Value* value) {
     if (!IsInt(value) && !IsDouble(value)){
         throw std::runtime_error("The provided value must be Int or Float");

@@ -33,6 +33,9 @@ llvm::Value* LLVMIRGenerator::visitExpression(FAMMParser::ExpressionContext* exp
     if (const auto negativeCtx = dynamic_cast<FAMMParser::NegativeExpressionContext*>(expressionContext)) {
         return visitNegativeExpression(negativeCtx);
     }
+    if (const auto arrayAccessCtx = dynamic_cast<FAMMParser::ArrayAccessExpressionContext*>(expressionContext)) {
+        return visitArrayAccessExpression(arrayAccessCtx);
+    }
 
     throw std::runtime_error("Unknown expression type");
 }
@@ -41,7 +44,16 @@ llvm::Value* LLVMIRGenerator::visitIdentifierExpression(FAMMParser::IdentifierEx
     const std::string varName = identCtx->IDENTIFIER()->getText();
 
     llvm::AllocaInst* alloca = findVariable(varName);
-    return builder.CreateLoad(alloca->getAllocatedType(), alloca, varName + "_load");
+
+    // Проверить, является ли тип массива
+    if (alloca->getAllocatedType()->isArrayTy()) {
+        // Если переменная — массив, вернуть указатель на массив
+        return alloca;
+    }
+
+    // Если переменная не массив, вернуть значение через загрузку
+    llvm::LoadInst* loadInst = builder.CreateLoad(alloca->getAllocatedType(), alloca, varName + "_load");
+    return loadInst;
 }
 
 llvm::Value* LLVMIRGenerator::visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx) {
@@ -286,4 +298,43 @@ llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCa
     }
 
     return builder.CreateCall(function, args, funcName + "_call");
+}
+
+llvm::Value* LLVMIRGenerator::visitArrayAccessExpression(FAMMParser::ArrayAccessExpressionContext* arrayAccessCtx) {
+    llvm::Value* left  = execute(arrayAccessCtx->expression(0));
+    llvm::Value* right = execute(arrayAccessCtx->expression(1));
+
+    if (!right->getType()->isIntegerTy(64)) {
+        throw std::runtime_error("Array index must be an integer.");
+    }
+
+    if (!left->getType()->isPointerTy()) {
+        throw std::runtime_error("Left expression must be a pointer to an array.");
+    }
+
+    // Получение типа элемента массива
+    llvm::Type* pointedType = left->getType()->getContainedType(0);
+
+    // Проверить, что базовый тип — это массив
+    if (!pointedType->isArrayTy()) {
+        throw std::runtime_error("Left expression must point to an array.");
+    }
+
+    // Привести к типу массива
+    auto* arrayType = llvm::cast<llvm::ArrayType>(pointedType);
+
+    // Получить тип элементов массива
+    llvm::Type* elementType = arrayType->getElementType();
+
+    // Создание GEP (GetElementPointer) для получения указателя на элемент массива
+    llvm::Value* elementPtr = builder.CreateGEP(
+        arrayType,      // Тип массива
+        left,           // Указатель на массив
+        {builder.getInt32(0), right}, // Смещение: 0 для массива, `right` для индекса
+        "arrayElementPtr"
+    );
+
+    // Загрузка значения из массива
+    llvm::Value* element = builder.CreateLoad(elementType, elementPtr, "arrayLoad");
+    return element;
 }

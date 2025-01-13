@@ -9,6 +9,8 @@ bool IsBool(llvm::Value* value);
 
 bool IsString(llvm::Value* value);
 
+bool IsArray(llvm::Value* value);
+
 void EnsureIntOrDouble(llvm::Value* value);
 
 void ThrowIfNotInt(llvm::Value* value, const std::string& message);

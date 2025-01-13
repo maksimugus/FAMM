@@ -41,6 +41,7 @@ public:
     llvm::Value* visitFunctionCallExpression(FAMMParser::FunctionCallContext* node);
     llvm::Value* visitIdentifierExpression(FAMMParser::IdentifierExpressionContext* identCtx);
     llvm::Value* visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx);
+    llvm::Value* visitArrayAccessExpression(FAMMParser::ArrayAccessExpressionContext* arrayAccessCtx);
 
     llvm::Value* createIntComparison(
         FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
