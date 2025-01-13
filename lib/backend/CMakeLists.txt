@@ -37,6 +37,8 @@ set(SOURCE_FILES
         src/run/JIT.h
         src/helpers/helpers.cpp
         src/helpers/helpers.h
+        src/gc/gc.h
+        src/gc/gc.cpp
 )
 
 # Create the static backend library

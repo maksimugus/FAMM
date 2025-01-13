@@ -89,6 +89,7 @@ llvm::Value* LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* nod
 
     if (node->assignmentOp()->ASSIGNMENT()) {
         builder.CreateStore(newValue, alloca);
+        return nullptr;
     }
 
     if (node->assignmentOp()->PLUS_ASSIGNMENT()) {

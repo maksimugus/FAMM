@@ -1,5 +1,6 @@
 #pragma once
 #include "externalFunctions/ExternalFunctions.h"
+#include "gc/gc.h"
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
@@ -51,14 +52,31 @@ public:
         }
 
         initLibFunctions(engine);
+        initGCFunctions(engine);
 
         const std::vector<llvm::GenericValue> noArgs;
         const llvm::GenericValue result = engine->runFunction(mainFunction, noArgs);
 
+        // Запуск сборки мусора перед завершением
+        CustomGC::getInstance().collect();
         llvm::outs() << "Exit Code: " << result.IntVal << "\n";
     }
 
 private:
+    static void setGCForModule(llvm::Module& module) {
+        for (auto& function : module) {
+            if (!function.isDeclaration()) {
+                function.setGC("custom-gc");
+            }
+        }
+    }
+
+    static void initGCFunctions(llvm::ExecutionEngine* engine) {
+        engine->addGlobalMapping("gc_allocate", reinterpret_cast<uint64_t>(&CustomGC::allocateMemory));
+        engine->addGlobalMapping("gc_add_root", reinterpret_cast<uint64_t>(&CustomGC::addRoot));
+        engine->addGlobalMapping("gc_remove_root", reinterpret_cast<uint64_t>(&CustomGC::removeRoot));
+    }
+
     static void initLibFunctions(llvm::ExecutionEngine* engine){
         engine->addGlobalMapping("display", reinterpret_cast<uint64_t>(&printf));
         engine->addGlobalMapping("strcmp", reinterpret_cast<uint64_t>(&strcmp));
