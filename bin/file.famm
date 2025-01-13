@@ -1,7 +1,4 @@
-func a(b:int): nih = {
-for (var i:float = 0. -> 10. by 1.) {
+var i: int = 1;
 
+func f(n:int): nih {display(n); return;
 };
-return;
-};
-a(1);

@@ -21,7 +21,7 @@ public:
         }
 
         llvm::Function* mainFunction = module->getFunction("main");
-
+        setGCForModule(*module);
         if (!mainFunction) {
             error = "Function 'main' not found in module.";
             return;
@@ -77,7 +77,7 @@ private:
         engine->addGlobalMapping("gc_remove_root", reinterpret_cast<uint64_t>(&CustomGC::removeRoot));
     }
 
-    static void initLibFunctions(llvm::ExecutionEngine* engine){
+    static void initLibFunctions(llvm::ExecutionEngine* engine) {
         engine->addGlobalMapping("display", reinterpret_cast<uint64_t>(&printf));
         engine->addGlobalMapping("strcmp", reinterpret_cast<uint64_t>(&strcmp));
         engine->addGlobalMapping("my_stradd", reinterpret_cast<uint64_t>(&my_stradd));
