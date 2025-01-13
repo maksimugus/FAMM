@@ -5,6 +5,8 @@
 
 llvm::Value* display(const std::unique_ptr<llvm::Module>& llvm_module, llvm::IRBuilder<>& builder,
     const std::string& format, const std::vector<llvm::Value*>& values = {});
+llvm::Value* allocateMemory(const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* size);
+llvm::Value* addRoot(const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* value);
 
 const char* bool_to_string(bool value);
 const char* int_to_string(long long value);
@@ -18,7 +20,9 @@ llvm::Value* floatCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Mod
 llvm::Value* boolCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Module& module);
 llvm::Value* stringCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Module& module);
 
-llvm::Value* stringAdd(const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right);
+llvm::Value* stringAdd(
+    const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right);
 extern "C" char* my_stradd(char* left, char* right);
 
-llvm::Value* stringCompare(const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right);
+llvm::Value* stringCompare(
+    const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right);

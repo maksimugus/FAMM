@@ -72,9 +72,9 @@ private:
     }
 
     static void initGCFunctions(llvm::ExecutionEngine* engine) {
-        engine->addGlobalMapping("gc_allocate", reinterpret_cast<uint64_t>(&CustomGC::allocateMemory));
+        engine->addGlobalMapping("gc_allocate_memory", reinterpret_cast<uint64_t>(&CustomGC::allocateMemory));
         engine->addGlobalMapping("gc_add_root", reinterpret_cast<uint64_t>(&CustomGC::addRoot));
-        engine->addGlobalMapping("gc_remove_root", reinterpret_cast<uint64_t>(&CustomGC::removeRoot));
+        // engine->addGlobalMapping("gc_remove_root", reinterpret_cast<uint64_t>(&CustomGC::removeRoot));
     }
 
     static void initLibFunctions(llvm::ExecutionEngine* engine) {

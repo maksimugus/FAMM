@@ -181,12 +181,44 @@ llvm::Value* LLVMIRGenerator::visitConstantExpression(FAMMParser::ConstantContex
     }
 
     if (constantContext->STRING_LIT()) {
-        // Get the string literal text, assuming it is properly escaped
         std::string strValue = constantContext->STRING_LIT()->getText();
-        // Remove quotes if necessary
         strValue = strValue.substr(1, strValue.length() - 2);
-        return builder.CreateGlobalStringPtr(strValue, "strtmp");
+
+        const size_t strSize = strValue.size() + 1;
+        llvm::Value* sizeValue = llvm::ConstantInt::get(llvm::Type::getInt64Ty(*context), strSize);
+
+        llvm::Value* allocatedMem = allocateMemory(module, builder, sizeValue); // ссылка на отслеживаемую память
+        addRoot(module, builder, allocatedMem);
+
+        llvm::Constant* strConstant = llvm::ConstantDataArray::getString(*context, strValue, true);
+
+        const auto strGlobal = new llvm::GlobalVariable(
+            *module,
+            strConstant->getType(),
+            true,
+            llvm::GlobalValue::PrivateLinkage,
+            strConstant,
+            "strConst"
+        );
+
+        llvm::Value* strPtr = builder.CreateBitCast(
+            strGlobal,
+            llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(*context))
+        );
+
+        builder.CreateMemCpyInline(
+            allocatedMem,
+            llvm::MaybeAlign(),
+            strPtr,
+            llvm::MaybeAlign(),
+            sizeValue
+        );
+
+
+
+        return allocatedMem;
     }
+
 
     if (constantContext->BOOL_LIT()) {
         // Convert the boolean literal text to a boolean value
