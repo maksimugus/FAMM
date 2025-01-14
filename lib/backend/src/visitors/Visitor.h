@@ -60,6 +60,7 @@ public:
     llvm::Value* visitDeclarationWithoutDefinition(FAMMParser::DeclarationWithoutDefinitionContext* node);
     llvm::Value* visitReturnStatement(FAMMParser::ReturnStatementContext* returnCtx);
     llvm::Value* visitDefinition(FAMMParser::DefinitionContext* node);
+    llvm::Value* visitArrayElementDefinition(FAMMParser::ArrayElementDefinitionContext* arrayElementCtx);
 
     llvm::Value* visitBlock(FAMMParser::BlockContext* block); // big if
 

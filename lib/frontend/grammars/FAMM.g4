@@ -31,7 +31,7 @@ parameter: IDENTIFIER COLON type;
 scope: LBRACE line* RBRACE;
 
 definition: IDENTIFIER assignmentOp expression;
-arrayElementDefinition: arrayAccessPtr assignmentOp expression;
+arrayElementDefinition: expression LBRACKET expression RBRACKET assignmentOp expression; // returns ptr и присваевает ему
 declarationWithDefinition: VAR IDENTIFIER COLON type ASSIGNMENT expression;
 declarationWithoutDefinition: VAR IDENTIFIER (COMMA IDENTIFIER)* COLON type;
 
@@ -39,7 +39,7 @@ expression
     : constant                                 # ConstantExpression
     | functionCall                             # FunctionCallExpression
     | IDENTIFIER                               # IdentifierExpression
-    | expression LBRACKET expression RBRACKET  # ArrayAccessExpression
+    | expression LBRACKET expression RBRACKET  # ArrayAccessExpression // а тут не ptr returns
     | LPAR expression RPAR                     # ParenExpression
     | NOT expression                           # NegationExpression
     | MINUS expression                         # NegativeExpression
@@ -48,8 +48,6 @@ expression
     | expression compareOp expression          # CompareExpression
     | expression boolOp expression             # BoolExpression
     ;
-
-arrayAccessPtr: expression LBRACKET expression RBRACKET;
 
 functionCall: IDENTIFIER LPAR (expression (COMMA expression)*)? RPAR;
 

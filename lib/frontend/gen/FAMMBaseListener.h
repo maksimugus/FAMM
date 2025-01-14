@@ -109,9 +109,6 @@ public:
   virtual void enterBoolExpression(FAMMParser::BoolExpressionContext * /*ctx*/) override { }
   virtual void exitBoolExpression(FAMMParser::BoolExpressionContext * /*ctx*/) override { }
 
-  virtual void enterArrayAccessPtr(FAMMParser::ArrayAccessPtrContext * /*ctx*/) override { }
-  virtual void exitArrayAccessPtr(FAMMParser::ArrayAccessPtrContext * /*ctx*/) override { }
-
   virtual void enterFunctionCall(FAMMParser::FunctionCallContext * /*ctx*/) override { }
   virtual void exitFunctionCall(FAMMParser::FunctionCallContext * /*ctx*/) override { }
 

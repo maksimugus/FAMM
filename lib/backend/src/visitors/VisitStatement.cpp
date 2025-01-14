@@ -19,6 +19,9 @@ llvm::Value* LLVMIRGenerator::visitStatement(FAMMParser::StatementContext* node)
     if (const auto blockStatement = dynamic_cast<FAMMParser::BlockStatementContext*>(node)) {
         return visitBlock(blockStatement->block());
     }
+    if (const auto arrayElementStatement = dynamic_cast<FAMMParser::ArrayElementDefinitionStatementContext*>(node)) {
+        return visitArrayElementDefinition(arrayElementStatement->arrayElementDefinition());
+    }
 
     throw std::runtime_error("Unknown statement context");
 }
@@ -97,12 +100,14 @@ llvm::Value* LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* nod
 
     if (node->assignmentOp()->PLUS_ASSIGNMENT()) {
         llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
-        llvm::Value* result = nullptr;
-        if (IsInt(newValue))
+        llvm::Value* result       = nullptr;
+        if (IsInt(newValue)) {
             result = builder.CreateAdd(currentValue, newValue);
-        if (IsDouble(newValue))
+        }
+        if (IsDouble(newValue)) {
             result = builder.CreateFAdd(currentValue, newValue);
-        if (IsString(newValue)){
+        }
+        if (IsString(newValue)) {
             result = stringAdd(module, builder, currentValue, newValue);
         }
         builder.CreateStore(result, alloca);
@@ -112,11 +117,13 @@ llvm::Value* LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* nod
     EnsureIntOrDouble(newValue);
     if (node->assignmentOp()->MULT_ASSIGNMENT()) {
         llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
-        llvm::Value* result = nullptr;
-        if (IsInt(newValue))
+        llvm::Value* result       = nullptr;
+        if (IsInt(newValue)) {
             result = builder.CreateMul(currentValue, newValue);
-        if (IsDouble(newValue))
+        }
+        if (IsDouble(newValue)) {
             result = builder.CreateFMul(currentValue, newValue);
+        }
         builder.CreateStore(result, alloca);
         return nullptr;
     }
@@ -144,17 +151,81 @@ llvm::Value* LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* nod
 
     if (node->assignmentOp()->MINUS_ASSIGNMENT()) {
         llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
-        llvm::Value* result = nullptr;
-        if (IsInt(newValue))
+        llvm::Value* result       = nullptr;
+        if (IsInt(newValue)) {
             result = builder.CreateSub(currentValue, newValue);
-        if (IsDouble(newValue))
+        }
+        if (IsDouble(newValue)) {
             result = builder.CreateFSub(currentValue, newValue);
+        }
         builder.CreateStore(result, alloca);
         return nullptr;
     }
 
     return nullptr;
 }
+llvm::Value* LLVMIRGenerator::visitArrayElementDefinition(FAMMParser::ArrayElementDefinitionContext* arrayElementCtx) {
+    auto res = execute(arrayElementCtx->expression(0));
+    llvm::Type* pointedType;
+    bool isAlloca = llvm::isa<llvm::AllocaInst>(res);
+
+    // Определяем базовый тип массива
+    if (isAlloca) {
+        // Если res это результат alloca, берем тип, на который он указывает
+        pointedType = res->getType()->getContainedType(0);
+    } else {
+        // Для значения массива берем его тип напрямую
+        pointedType = res->getType();
+    }
+
+    // Получаем индекс
+    llvm::Value* index = execute(arrayElementCtx->expression(1));
+    if (!index->getType()->isIntegerTy(64)) {
+        throw std::runtime_error("Array index must be an integer.");
+    }
+
+    // Проверяем, что это действительно массив
+    if (!pointedType->isArrayTy()) {
+        throw std::runtime_error("Left expression must be an array type.");
+    }
+
+    auto* arrayType = llvm::cast<llvm::ArrayType>(pointedType);
+    llvm::Type* elementType = arrayType->getElementType();
+
+    // Если res не является результатом alloca, нам нужно создать временное хранилище
+    llvm::Value* arrayPtr;
+    if (!isAlloca) {
+        // Создаем временное хранилище для массива
+        arrayPtr = builder.CreateAlloca(pointedType, nullptr, "arrayTemp");
+        builder.CreateStore(res, arrayPtr);
+    } else {
+        arrayPtr = res;
+    }
+
+    // Создаем указатель на элемент массива
+    std::vector<llvm::Value*> indices = {
+        builder.getInt64(0),  // Первый индекс всегда 0 для разыменования указателя
+        index                 // Индекс элемента массива
+    };
+
+    llvm::Value* elementPtr = builder.CreateInBoundsGEP(
+        pointedType,
+        arrayPtr,
+        indices,
+        "arrayElementPtr"
+    );
+    llvm::Value* valueToStore = execute(arrayElementCtx->expression(2));
+    if (valueToStore->getType() != elementType) {
+        throw std::runtime_error("Type mismatch: Cannot store value in array element.");
+    }
+
+    builder.CreateStore(valueToStore, elementPtr);
+
+    return nullptr;
+
+}
+
+
 
 llvm::Value* LLVMIRGenerator::visitReturnStatement(FAMMParser::ReturnStatementContext* returnCtx) {
     const llvm::Function* currentFunction = builder.GetInsertBlock()->getParent();

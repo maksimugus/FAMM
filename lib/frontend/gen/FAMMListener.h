@@ -107,9 +107,6 @@ public:
   virtual void enterBoolExpression(FAMMParser::BoolExpressionContext *ctx) = 0;
   virtual void exitBoolExpression(FAMMParser::BoolExpressionContext *ctx) = 0;
 
-  virtual void enterArrayAccessPtr(FAMMParser::ArrayAccessPtrContext *ctx) = 0;
-  virtual void exitArrayAccessPtr(FAMMParser::ArrayAccessPtrContext *ctx) = 0;
-
   virtual void enterFunctionCall(FAMMParser::FunctionCallContext *ctx) = 0;
   virtual void exitFunctionCall(FAMMParser::FunctionCallContext *ctx) = 0;
 
