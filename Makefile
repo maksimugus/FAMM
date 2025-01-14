@@ -1,7 +1,6 @@
 TO_INSTALL_DIR := third_party
 
 ANTLR_DIR := $(TO_INSTALL_DIR)/antlr4
-ANTLR_RUNTIME_DIR := $(TO_INSTALL_DIR)/antlr4-cpp-runtime
 
 DOCKER_IMAGE := antlr/antlr4
 
