@@ -46,10 +46,11 @@ llvm::Value* LLVMIRGenerator::visitIdentifierExpression(FAMMParser::IdentifierEx
     llvm::AllocaInst* alloca = findVariable(varName);
 
     // Проверить, является ли тип массива
-    if (alloca->getAllocatedType()->isArrayTy()) {
-        // Если переменная — массив, вернуть указатель на массив
-        return alloca;
-    }
+//    if (alloca->getAllocatedType()->isArrayTy()) {
+//        // Если переменная — массив, вернуть указатель на массив
+//        llvm::Value* a = alloca;
+//        return alloca;
+//    }
 
     // Если переменная не массив, вернуть значение через загрузку
     llvm::LoadInst* loadInst = builder.CreateLoad(alloca->getAllocatedType(), alloca, varName + "_load");
@@ -301,40 +302,56 @@ llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCa
 }
 
 llvm::Value* LLVMIRGenerator::visitArrayAccessExpression(FAMMParser::ArrayAccessExpressionContext* arrayAccessCtx) {
-    llvm::Value* left  = execute(arrayAccessCtx->expression(0));
-    llvm::Value* right = execute(arrayAccessCtx->expression(1));
+    auto res = execute(arrayAccessCtx->expression(0));
+    llvm::Type* pointedType;
+    bool isAlloca = llvm::isa<llvm::AllocaInst>(res);
 
-    if (!right->getType()->isIntegerTy(64)) {
+    // Определяем базовый тип массива
+    if (isAlloca) {
+        // Если res это результат alloca, берем тип, на который он указывает
+        pointedType = res->getType()->getContainedType(0);
+    } else {
+        // Для значения массива берем его тип напрямую
+        pointedType = res->getType();
+    }
+
+    // Получаем индекс
+    llvm::Value* index = execute(arrayAccessCtx->expression(1));
+    if (!index->getType()->isIntegerTy(64)) {
         throw std::runtime_error("Array index must be an integer.");
     }
 
-    if (!left->getType()->isPointerTy()) {
-        throw std::runtime_error("Left expression must be a pointer to an array.");
-    }
-
-    // Получение типа элемента массива
-    llvm::Type* pointedType = left->getType()->getContainedType(0);
-
-    // Проверить, что базовый тип — это массив
+    // Проверяем, что это действительно массив
     if (!pointedType->isArrayTy()) {
-        throw std::runtime_error("Left expression must point to an array.");
+        throw std::runtime_error("Left expression must be an array type.");
     }
 
-    // Привести к типу массива
     auto* arrayType = llvm::cast<llvm::ArrayType>(pointedType);
-
-    // Получить тип элементов массива
     llvm::Type* elementType = arrayType->getElementType();
 
-    // Создание GEP (GetElementPointer) для получения указателя на элемент массива
-    llvm::Value* elementPtr = builder.CreateGEP(
-        arrayType,      // Тип массива
-        left,           // Указатель на массив
-        {builder.getInt32(0), right}, // Смещение: 0 для массива, `right` для индекса
+    // Если res не является результатом alloca, нам нужно создать временное хранилище
+    llvm::Value* arrayPtr;
+    if (!isAlloca) {
+        // Создаем временное хранилище для массива
+        arrayPtr = builder.CreateAlloca(pointedType, nullptr, "arrayTemp");
+        builder.CreateStore(res, arrayPtr);
+    } else {
+        arrayPtr = res;
+    }
+
+    // Создаем указатель на элемент массива
+    std::vector<llvm::Value*> indices = {
+        builder.getInt64(0),  // Первый индекс всегда 0 для разыменования указателя
+        index                 // Индекс элемента массива
+    };
+
+    llvm::Value* elementPtr = builder.CreateInBoundsGEP(
+        pointedType,
+        arrayPtr,
+        indices,
         "arrayElementPtr"
     );
 
-    // Загрузка значения из массива
-    llvm::Value* element = builder.CreateLoad(elementType, elementPtr, "arrayLoad");
-    return element;
+    // Загружаем значение
+    return builder.CreateLoad(elementType, elementPtr, "arrayLoad");
 }
