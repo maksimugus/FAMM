@@ -32,6 +32,9 @@ public:
   virtual void enterDefinitionStatement(FAMMParser::DefinitionStatementContext *ctx) = 0;
   virtual void exitDefinitionStatement(FAMMParser::DefinitionStatementContext *ctx) = 0;
 
+  virtual void enterArrayElementDefinitionStatement(FAMMParser::ArrayElementDefinitionStatementContext *ctx) = 0;
+  virtual void exitArrayElementDefinitionStatement(FAMMParser::ArrayElementDefinitionStatementContext *ctx) = 0;
+
   virtual void enterReturnStatement(FAMMParser::ReturnStatementContext *ctx) = 0;
   virtual void exitReturnStatement(FAMMParser::ReturnStatementContext *ctx) = 0;
 
@@ -61,6 +64,9 @@ public:
 
   virtual void enterDefinition(FAMMParser::DefinitionContext *ctx) = 0;
   virtual void exitDefinition(FAMMParser::DefinitionContext *ctx) = 0;
+
+  virtual void enterArrayElementDefinition(FAMMParser::ArrayElementDefinitionContext *ctx) = 0;
+  virtual void exitArrayElementDefinition(FAMMParser::ArrayElementDefinitionContext *ctx) = 0;
 
   virtual void enterDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext *ctx) = 0;
   virtual void exitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext *ctx) = 0;
@@ -101,8 +107,8 @@ public:
   virtual void enterBoolExpression(FAMMParser::BoolExpressionContext *ctx) = 0;
   virtual void exitBoolExpression(FAMMParser::BoolExpressionContext *ctx) = 0;
 
-  virtual void enterArrayAccess(FAMMParser::ArrayAccessContext *ctx) = 0;
-  virtual void exitArrayAccess(FAMMParser::ArrayAccessContext *ctx) = 0;
+  virtual void enterArrayAccessPtr(FAMMParser::ArrayAccessPtrContext *ctx) = 0;
+  virtual void exitArrayAccessPtr(FAMMParser::ArrayAccessPtrContext *ctx) = 0;
 
   virtual void enterFunctionCall(FAMMParser::FunctionCallContext *ctx) = 0;
   virtual void exitFunctionCall(FAMMParser::FunctionCallContext *ctx) = 0;

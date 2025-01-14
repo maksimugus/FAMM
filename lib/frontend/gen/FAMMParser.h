@@ -26,11 +26,12 @@ public:
 
   enum {
     RuleProgram = 0, RuleLine = 1, RuleStatement = 2, RuleBlock = 3, RuleParameterList = 4, 
-    RuleParameter = 5, RuleScope = 6, RuleDefinition = 7, RuleDeclarationWithDefinition = 8, 
-    RuleDeclarationWithoutDefinition = 9, RuleExpression = 10, RuleArrayAccess = 11, 
-    RuleFunctionCall = 12, RuleAssignmentOp = 13, RuleMultOp = 14, RuleAddOp = 15, 
-    RuleCompareOp = 16, RuleBoolOp = 17, RuleType = 18, RuleArrayType = 19, 
-    RuleSize = 20, RuleBaseType = 21, RuleConstant = 22, RuleArrayLiteral = 23
+    RuleParameter = 5, RuleScope = 6, RuleDefinition = 7, RuleArrayElementDefinition = 8, 
+    RuleDeclarationWithDefinition = 9, RuleDeclarationWithoutDefinition = 10, 
+    RuleExpression = 11, RuleArrayAccessPtr = 12, RuleFunctionCall = 13, 
+    RuleAssignmentOp = 14, RuleMultOp = 15, RuleAddOp = 16, RuleCompareOp = 17, 
+    RuleBoolOp = 18, RuleType = 19, RuleArrayType = 20, RuleSize = 21, RuleBaseType = 22, 
+    RuleConstant = 23, RuleArrayLiteral = 24
   };
 
   explicit FAMMParser(antlr4::TokenStream *input);
@@ -58,10 +59,11 @@ public:
   class ParameterContext;
   class ScopeContext;
   class DefinitionContext;
+  class ArrayElementDefinitionContext;
   class DeclarationWithDefinitionContext;
   class DeclarationWithoutDefinitionContext;
   class ExpressionContext;
-  class ArrayAccessContext;
+  class ArrayAccessPtrContext;
   class FunctionCallContext;
   class AssignmentOpContext;
   class MultOpContext;
@@ -180,6 +182,15 @@ public:
     DeclarationWithoutDefinitionStatementContext(StatementContext *ctx);
 
     DeclarationWithoutDefinitionContext *declarationWithoutDefinition();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  ArrayElementDefinitionStatementContext : public StatementContext {
+  public:
+    ArrayElementDefinitionStatementContext(StatementContext *ctx);
+
+    ArrayElementDefinitionContext *arrayElementDefinition();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
@@ -315,10 +326,9 @@ public:
   public:
     DefinitionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *IDENTIFIER();
     AssignmentOpContext *assignmentOp();
     ExpressionContext *expression();
-    antlr4::tree::TerminalNode *IDENTIFIER();
-    ArrayAccessContext *arrayAccess();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -326,6 +336,21 @@ public:
   };
 
   DefinitionContext* definition();
+
+  class  ArrayElementDefinitionContext : public antlr4::ParserRuleContext {
+  public:
+    ArrayElementDefinitionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    ArrayAccessPtrContext *arrayAccessPtr();
+    AssignmentOpContext *assignmentOp();
+    ExpressionContext *expression();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  ArrayElementDefinitionContext* arrayElementDefinition();
 
   class  DeclarationWithDefinitionContext : public antlr4::ParserRuleContext {
   public:
@@ -493,9 +518,9 @@ public:
 
   ExpressionContext* expression();
   ExpressionContext* expression(int precedence);
-  class  ArrayAccessContext : public antlr4::ParserRuleContext {
+  class  ArrayAccessPtrContext : public antlr4::ParserRuleContext {
   public:
-    ArrayAccessContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    ArrayAccessPtrContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<ExpressionContext *> expression();
     ExpressionContext* expression(size_t i);
@@ -507,7 +532,7 @@ public:
    
   };
 
-  ArrayAccessContext* arrayAccess();
+  ArrayAccessPtrContext* arrayAccessPtr();
 
   class  FunctionCallContext : public antlr4::ParserRuleContext {
   public:

@@ -12,6 +12,7 @@ statement
     : declarationWithDefinition      # DeclarationWithDefinitionStatement
     | declarationWithoutDefinition   # DeclarationWithoutDefinitionStatement
     | definition                     # DefinitionStatement
+    | arrayElementDefinition         # ArrayElementDefinitionStatement
     | RETURN expression?             # ReturnStatement
     | block                          # BlockStatement
     ;
@@ -29,7 +30,8 @@ parameter: IDENTIFIER COLON type;
 
 scope: LBRACE line* RBRACE;
 
-definition: (IDENTIFIER | arrayAccess) assignmentOp expression; // TODO: сделать еще массивы и строки слева
+definition: IDENTIFIER assignmentOp expression;
+arrayElementDefinition: arrayAccessPtr assignmentOp expression;
 declarationWithDefinition: VAR IDENTIFIER COLON type ASSIGNMENT expression;
 declarationWithoutDefinition: VAR IDENTIFIER (COMMA IDENTIFIER)* COLON type;
 
@@ -47,7 +49,7 @@ expression
     | expression boolOp expression             # BoolExpression
     ;
 
-arrayAccess: expression LBRACKET expression RBRACKET;
+arrayAccessPtr: expression LBRACKET expression RBRACKET;
 
 functionCall: IDENTIFIER LPAR (expression (COMMA expression)*)? RPAR;
 

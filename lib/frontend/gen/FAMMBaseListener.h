@@ -34,6 +34,9 @@ public:
   virtual void enterDefinitionStatement(FAMMParser::DefinitionStatementContext * /*ctx*/) override { }
   virtual void exitDefinitionStatement(FAMMParser::DefinitionStatementContext * /*ctx*/) override { }
 
+  virtual void enterArrayElementDefinitionStatement(FAMMParser::ArrayElementDefinitionStatementContext * /*ctx*/) override { }
+  virtual void exitArrayElementDefinitionStatement(FAMMParser::ArrayElementDefinitionStatementContext * /*ctx*/) override { }
+
   virtual void enterReturnStatement(FAMMParser::ReturnStatementContext * /*ctx*/) override { }
   virtual void exitReturnStatement(FAMMParser::ReturnStatementContext * /*ctx*/) override { }
 
@@ -63,6 +66,9 @@ public:
 
   virtual void enterDefinition(FAMMParser::DefinitionContext * /*ctx*/) override { }
   virtual void exitDefinition(FAMMParser::DefinitionContext * /*ctx*/) override { }
+
+  virtual void enterArrayElementDefinition(FAMMParser::ArrayElementDefinitionContext * /*ctx*/) override { }
+  virtual void exitArrayElementDefinition(FAMMParser::ArrayElementDefinitionContext * /*ctx*/) override { }
 
   virtual void enterDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext * /*ctx*/) override { }
   virtual void exitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext * /*ctx*/) override { }
@@ -103,8 +109,8 @@ public:
   virtual void enterBoolExpression(FAMMParser::BoolExpressionContext * /*ctx*/) override { }
   virtual void exitBoolExpression(FAMMParser::BoolExpressionContext * /*ctx*/) override { }
 
-  virtual void enterArrayAccess(FAMMParser::ArrayAccessContext * /*ctx*/) override { }
-  virtual void exitArrayAccess(FAMMParser::ArrayAccessContext * /*ctx*/) override { }
+  virtual void enterArrayAccessPtr(FAMMParser::ArrayAccessPtrContext * /*ctx*/) override { }
+  virtual void exitArrayAccessPtr(FAMMParser::ArrayAccessPtrContext * /*ctx*/) override { }
 
   virtual void enterFunctionCall(FAMMParser::FunctionCallContext * /*ctx*/) override { }
   virtual void exitFunctionCall(FAMMParser::FunctionCallContext * /*ctx*/) override { }
