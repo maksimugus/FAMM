@@ -1,0 +1,24 @@
+var array: [int, 10000];
+
+for (var k: int = 0 -> 10000 by 1) {
+    array[k] = 10000 - k;
+};
+
+var n: int = 10000;
+
+for (var i: int = 1 -> n by 1) {
+    var key: int = array[i];
+    var j: int = i - 1;
+
+    while (j >= 0 and array[j] > key) {
+        array[j + 1] = array[j];
+        j = j - 1;
+    };
+
+    array[j + 1] = key;
+};
+
+
+for (var j: int = 0 -> 10000 by 1) {
+    display(array[j]);
+};
