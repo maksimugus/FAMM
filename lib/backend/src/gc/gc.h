@@ -1,58 +1,47 @@
 #pragma once
-#include <llvm/CodeGen/GCMetadata.h>
-#include <llvm/CodeGen/GCMetadataPrinter.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Module.h>
-#include <llvm/Support/Compiler.h>
-#include <unordered_map>
-#include <vector>
+#include <cstdlib>
+#include <iostream>
+#include <unordered_set>
 
-// Создаем свой класс для печати метаданных GC
-class CustomGCMetadataPrinter final : public llvm::GCMetadataPrinter {
+class CustomGC {
+    std::unordered_set<void*> allocations;
+
 public:
-    void beginAssembly(llvm::Module& M, llvm::GCModuleInfo& Info, llvm::AsmPrinter& AP) override {}
-    void finishAssembly(llvm::Module& M, llvm::GCModuleInfo& Info, llvm::AsmPrinter& AP) override {}
-};
+    void* alloc(const size_t size) {
+        void* ptr = std::malloc(size);
+        if (!ptr) {
+            throw std::bad_alloc();
+        }
+        allocations.insert(ptr);
+        return ptr;
+    }
 
-// Регистрируем принтер метаданных
-static llvm::GCMetadataPrinterRegistry::Add<CustomGCMetadataPrinter> Y("custom-gc", "Custom GC Metadata Printer");
+    void collect(void* ptr) {
+        if (allocations.contains(ptr)) {
+            std::free(ptr);
+            allocations.erase(ptr);
+        } else {
+            std::cerr << "Pointer not found in GC pool.\n";
+        }
+    }
 
-// Обновляем класс CustomGCStrategy
-class CustomGCStrategy final : public llvm::GCStrategy {
-public:
-    CustomGCStrategy() {
-        UsesMetadata = true;
-        // Указываем, что используем свой принтер метаданных
-        NeededSafePoints = true;
+    ~CustomGC() {
+        for (void* ptr : allocations) {
+            std::free(ptr);
+        }
+        allocations.clear();
     }
 };
 
-// Регистрация стратегии остается той же
-static llvm::GCRegistry::Add<CustomGCStrategy> X("custom-gc", "Custom garbage collector implementation");
 
-class CustomGC {
-    struct GCNode {
-        void* ptr{};
-        size_t size{};
-        bool marked{};
-        std::vector<void*> references;
-    };
+inline CustomGC gc;
 
-    std::unordered_map<void*, GCNode> allocatedObjects;
-    std::vector<void*> roots;
+extern "C" {
+inline void* gc_alloc(const size_t size) {
+    return gc.alloc(size);
+}
 
-public:
-    static void* allocateMemory(size_t size);
-
-    static void addRoot(void* ptr);
-
-    static void removeRoot(void* ptr);
-
-    void mark(void* ptr);
-
-    void sweep();
-
-    void collect();
-
-    static CustomGC& getInstance();
-};
+inline void gc_collect(void* ptr) {
+    gc.collect(ptr);
+}
+}

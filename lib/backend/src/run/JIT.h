@@ -58,7 +58,7 @@ public:
         const llvm::GenericValue result = engine->runFunction(mainFunction, noArgs);
 
         // Запуск сборки мусора перед завершением
-        CustomGC::getInstance().collect();
+
         llvm::outs() << "Exit Code: " << result.IntVal << "\n";
     }
 
@@ -72,9 +72,8 @@ private:
     }
 
     static void initGCFunctions(llvm::ExecutionEngine* engine) {
-        engine->addGlobalMapping("gc_allocate_memory", reinterpret_cast<uint64_t>(&CustomGC::allocateMemory));
-        engine->addGlobalMapping("gc_add_root", reinterpret_cast<uint64_t>(&CustomGC::addRoot));
-        // engine->addGlobalMapping("gc_remove_root", reinterpret_cast<uint64_t>(&CustomGC::removeRoot));
+        engine->addGlobalMapping("gc_alloc", reinterpret_cast<uint64_t>(&gc_alloc));
+        engine->addGlobalMapping("gc_collect", reinterpret_cast<uint64_t>(&gc_collect));
     }
 
     static void initLibFunctions(llvm::ExecutionEngine* engine) {
