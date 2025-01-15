@@ -34,6 +34,9 @@ public:
   virtual void enterDefinitionStatement(FAMMParser::DefinitionStatementContext * /*ctx*/) override { }
   virtual void exitDefinitionStatement(FAMMParser::DefinitionStatementContext * /*ctx*/) override { }
 
+  virtual void enterArrayElementDefinitionStatement(FAMMParser::ArrayElementDefinitionStatementContext * /*ctx*/) override { }
+  virtual void exitArrayElementDefinitionStatement(FAMMParser::ArrayElementDefinitionStatementContext * /*ctx*/) override { }
+
   virtual void enterReturnStatement(FAMMParser::ReturnStatementContext * /*ctx*/) override { }
   virtual void exitReturnStatement(FAMMParser::ReturnStatementContext * /*ctx*/) override { }
 
@@ -63,6 +66,9 @@ public:
 
   virtual void enterDefinition(FAMMParser::DefinitionContext * /*ctx*/) override { }
   virtual void exitDefinition(FAMMParser::DefinitionContext * /*ctx*/) override { }
+
+  virtual void enterArrayElementDefinition(FAMMParser::ArrayElementDefinitionContext * /*ctx*/) override { }
+  virtual void exitArrayElementDefinition(FAMMParser::ArrayElementDefinitionContext * /*ctx*/) override { }
 
   virtual void enterDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext * /*ctx*/) override { }
   virtual void exitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext * /*ctx*/) override { }

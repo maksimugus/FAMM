@@ -33,6 +33,9 @@ llvm::Value* LLVMIRGenerator::visitExpression(FAMMParser::ExpressionContext* exp
     if (const auto negativeCtx = dynamic_cast<FAMMParser::NegativeExpressionContext*>(expressionContext)) {
         return visitNegativeExpression(negativeCtx);
     }
+    if (const auto arrayAccessCtx = dynamic_cast<FAMMParser::ArrayAccessExpressionContext*>(expressionContext)) {
+        return visitArrayAccessExpression(arrayAccessCtx);
+    }
 
     throw std::runtime_error("Unknown expression type");
 }
@@ -41,20 +44,33 @@ llvm::Value* LLVMIRGenerator::visitIdentifierExpression(FAMMParser::IdentifierEx
     const std::string varName = identCtx->IDENTIFIER()->getText();
 
     llvm::AllocaInst* alloca = findVariable(varName);
-    return builder.CreateLoad(alloca->getAllocatedType(), alloca, varName + "_load");
+
+    // Проверить, является ли тип массива
+//    if (alloca->getAllocatedType()->isArrayTy()) {
+//        // Если переменная — массив, вернуть указатель на массив
+//        llvm::Value* a = alloca;
+//        return alloca;
+//    }
+
+    // Если переменная не массив, вернуть значение через загрузку
+    llvm::LoadInst* loadInst = builder.CreateLoad(alloca->getAllocatedType(), alloca, varName + "_load");
+    return loadInst;
 }
 
 llvm::Value* LLVMIRGenerator::visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx) {
     llvm::Value* exprValue = execute(negativeCtx->expression());
 
-    EnsureIntOrDouble(exprValue);
-    if (exprValue->getType()->isIntegerTy()) {
+    if (IsInt(exprValue)) {
         return builder.CreateNeg(exprValue, "negtmp");
     }
-    if (exprValue->getType()->isDoubleTy()) {
+    if (IsDouble(exprValue)) {
         return builder.CreateFNeg(exprValue, "negtmp");
     }
-    throw std::runtime_error("Unsupported type for negation in visitNegativeExpression");
+    if (IsString(exprValue)) {
+        return stringNeg(*module, builder, exprValue);
+    }
+    throw std::runtime_error(
+        "Unsupported type for negation in visitNegativeExpression (support only string, int or float)");
 }
 
 llvm::Value* LLVMIRGenerator::visitBoolExpression(FAMMParser::BoolExpressionContext* boolCtx) {
@@ -63,7 +79,7 @@ llvm::Value* LLVMIRGenerator::visitBoolExpression(FAMMParser::BoolExpressionCont
 
     EnsureTypeEq(left->getType(), right->getType());
 
-    if (!left->getType()->isIntegerTy(1)) {
+    if (!IsBool(left)) {
         throw std::runtime_error("Unsupported type of value in bool operation.");
     }
 
@@ -99,7 +115,7 @@ llvm::Value* LLVMIRGenerator::visitCompareExpression(FAMMParser::CompareExpressi
     if (IsBool(left)) {
         return createBoolComparison(compareCtx, left, right);
     }
-    if (IsString(left)){
+    if (IsString(left)) {
         return createStringComparison(compareCtx, left, right);
     }
 
@@ -111,25 +127,32 @@ llvm::Value* LLVMIRGenerator::visitAddSubExpression(FAMMParser::AddSubExpression
     llvm::Value* right = execute(addSubCtx->expression(1));
 
     EnsureTypeEq(left->getType(), right->getType());
-    if (IsBool(left)){
+    if (IsBool(left)) {
         throw std::runtime_error(R"('+' and '-' can't be applied to bool)");
     }
     if (addSubCtx->addOp()->PLUS()) {
-        if (IsDouble(left))
+        if (IsDouble(left)) {
             return builder.CreateFAdd(left, right, "addtmp");
-        if (IsInt(left))
+        }
+        if (IsInt(left)) {
             return builder.CreateAdd(left, right, "addtmp");
-        if (IsString(left)){
+        }
+        if (IsString(left)) {
             return stringAdd(module, builder, left, right);
         }
 
         throw std::runtime_error("Unsupported type for '+'");
     }
     if (addSubCtx->addOp()->MINUS()) {
-        if (IsDouble(left))
+        if (IsDouble(left)) {
             return builder.CreateFSub(left, right, "subtmp");
-        if (IsInt(left))
+        }
+        if (IsInt(left)) {
             return builder.CreateSub(left, right, "subtmp");
+        }
+        if (IsString(left)) {
+            return stringAdd(module, builder, left, stringNeg(*module, builder, right));
+        }
         throw std::runtime_error("Unsupported type for '-'");
     }
 
@@ -140,15 +163,23 @@ llvm::Value* LLVMIRGenerator::visitMulDivExpression(FAMMParser::MulDivExpression
     llvm::Value* left  = execute(mulDivCtx->expression(0));
     llvm::Value* right = execute(mulDivCtx->expression(1));
 
-    EnsureTypeEq(left->getType(), right->getType());
-    EnsureIntOrDouble(left);
-    // TODO че делать со стрингами ёлы палы
     if (mulDivCtx->multOp()->MULT()) {
-        if (IsDouble(left))
+        if (IsString(left) and IsInt(right)) {
+            return stringMult(*module, builder, left, right);
+        }
+        if (IsString(right) and IsInt(left)) {
+            return stringMult(*module, builder, right, left);
+        }
+
+        EnsureTypeEq(left->getType(), right->getType());
+        EnsureIntOrDouble(left);
+        if (IsDouble(left)) {
             return builder.CreateFMul(left, right, "multmp");
+        }
         return builder.CreateMul(left, right, "multmp");
     }
 
+    EnsureTypeEq(left->getType(), right->getType());
     if (mulDivCtx->multOp()->DIV()) {
         ThrowIfNotDouble(left, "Float division can be can only be applied to the float type");
         return builder.CreateFDiv(left, right, "doubleDivtmp");
@@ -194,24 +225,24 @@ llvm::Value* LLVMIRGenerator::visitConstantExpression(FAMMParser::ConstantContex
         return llvm::ConstantInt::get(llvm::Type::getInt1Ty(*context), boolValue, false);
     }
 
-    if (auto *arrayLiteral = constantContext->arrayLiteral()) {
-        auto expressions = arrayLiteral->expression();
+    if (auto* arrayLiteral = constantContext->arrayLiteral()) {
+        auto expressions          = arrayLiteral->expression();
         llvm::Value* firstElement = visitExpression(expressions[0]);
-        llvm::Type* elementType = firstElement->getType();
+        llvm::Type* elementType   = firstElement->getType();
 
         std::vector<llvm::Constant*> elements;
-        for (auto *expression : expressions) {
+        for (auto* expression : expressions) {
             llvm::Value* elementValue = visitExpression(expression);
             if (elementValue->getType() != elementType) {
                 throw std::runtime_error("Type mismatch in array elements.");
             }
 
-            auto *constantElement = llvm::dyn_cast<llvm::Constant>(elementValue);
+            auto* constantElement = llvm::dyn_cast<llvm::Constant>(elementValue);
 
             elements.push_back(constantElement);
         }
 
-        auto *arrayType = llvm::ArrayType::get(elementType, elements.size());
+        auto* arrayType = llvm::ArrayType::get(elementType, elements.size());
         return llvm::ConstantArray::get(arrayType, elements);
     }
 
@@ -268,4 +299,42 @@ llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCa
     }
 
     return builder.CreateCall(function, args);
+}
+
+llvm::Value* LLVMIRGenerator::visitArrayAccessExpression(FAMMParser::ArrayAccessExpressionContext* arrayAccessCtx) {
+    auto identCtx = dynamic_cast<FAMMParser::IdentifierExpressionContext*>(arrayAccessCtx->expression(0));
+    if (!identCtx)
+        throw std::runtime_error("No access to array expression");
+
+    const std::string varName = identCtx->IDENTIFIER()->getText();
+    llvm::AllocaInst* alloca = findVariable(varName);
+    llvm::Type* elementType = alloca->getAllocatedType()->getContainedType(0);
+
+    // Получаем индекс
+    llvm::Value* index = execute(arrayAccessCtx->expression(1));
+    if (!index->getType()->isIntegerTy(64)) {
+        throw std::runtime_error("Array index must be an integer.");
+    }
+
+    auto* arrayType = alloca->getAllocatedType();
+    // Проверяем, что это действительно массив
+    if (!arrayType->isArrayTy()) {
+        throw std::runtime_error("Left expression must be an array type.");
+    }
+
+    // Создаем указатель на элемент массива
+    std::vector<llvm::Value*> indices = {
+        builder.getInt64(0),  // Первый индекс всегда 0 для разыменования указателя
+        index                 // Индекс элемента массива
+    };
+
+    llvm::Value* elementPtr = builder.CreateInBoundsGEP(
+        arrayType,
+        alloca,
+        indices,
+        "arrayElementPtr"
+    );
+
+    // Загружаем значение
+    return builder.CreateLoad(elementType, elementPtr, "arrayLoad");
 }

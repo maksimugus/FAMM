@@ -156,9 +156,8 @@ llvm::Value* intCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Modul
 
     // Преобразование string -> int
     if (sourceType->isPointerTy()) {
-        llvm::FunctionType* stringToIntType =
-            llvm::FunctionType::get(llvm::Type::getInt64Ty(context),
-                {llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0)}, false);
+        llvm::FunctionType* stringToIntType = llvm::FunctionType::get(
+            llvm::Type::getInt64Ty(context), {llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0)}, false);
         llvm::FunctionCallee stringToIntFunc = module.getOrInsertFunction("string_to_int", stringToIntType);
         return builder.CreateCall(stringToIntFunc, {value});
     }
@@ -187,9 +186,8 @@ llvm::Value* floatCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Mod
 
     // Преобразование string -> float
     if (sourceType->isPointerTy()) {
-        llvm::FunctionType* stringToFloatType =
-            llvm::FunctionType::get(llvm::Type::getDoubleTy(context),
-                {llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0)}, false);
+        llvm::FunctionType* stringToFloatType = llvm::FunctionType::get(
+            llvm::Type::getDoubleTy(context), {llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0)}, false);
         llvm::FunctionCallee stringToFloatFunc = module.getOrInsertFunction("string_to_float", stringToFloatType);
         return builder.CreateCall(stringToFloatFunc, {value});
     }
@@ -198,7 +196,7 @@ llvm::Value* floatCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Mod
 }
 
 llvm::Value* boolCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Module& module) {
-    llvm::Type* sourceType = value->getType();
+    llvm::Type* sourceType     = value->getType();
     llvm::LLVMContext& context = builder.getContext();
 
     // Если исходный тип совпадает с целевым, каст не нужен
@@ -218,9 +216,8 @@ llvm::Value* boolCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Modu
 
     // Преобразование string -> bool
     if (sourceType->isPointerTy()) {
-        llvm::FunctionType* stringToBoolType =
-            llvm::FunctionType::get(llvm::Type::getInt1Ty(context),
-                {llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0)}, false);
+        llvm::FunctionType* stringToBoolType = llvm::FunctionType::get(
+            llvm::Type::getInt1Ty(context), {llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0)}, false);
         llvm::FunctionCallee stringToBoolFunc = module.getOrInsertFunction("string_to_bool", stringToBoolType);
         return builder.CreateCall(stringToBoolFunc, {value});
     }
@@ -257,7 +254,55 @@ llvm::Value* stringCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Mo
     throw std::runtime_error("Unsupported type cast.");
 }
 
-char* my_stradd(char* left, char* right) {
+llvm::Value* stringMult(llvm::Module& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right) {
+    llvm::LLVMContext& context = module.getContext();
+    llvm::Function* concatFunc = module.getFunction("stradd");
+
+    if (!concatFunc) {
+        auto charPtrTy = llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0);
+        llvm::FunctionType* strcatType =
+            llvm::FunctionType::get(charPtrTy, {charPtrTy, llvm::Type::getInt64Ty(context)}, false);
+        concatFunc = llvm::Function::Create(strcatType, llvm::Function::ExternalLinkage, "strmult", module);
+    }
+
+    return builder.CreateCall(concatFunc, {left, right});
+}
+
+char* strmult(const char* val, long long num_iters) {
+    size_t lenVal = 0;
+    while (val[lenVal] != '\0') {
+        ++lenVal;
+    }
+
+    char* result;
+
+    // Записываем val (num_iters раз)
+    if (num_iters < 0) {
+        num_iters = -num_iters;
+        // Выделяем новую память под итоговую строку (с учётом завершающего '\0')
+        result = new char[lenVal + (lenVal * num_iters) + 1];
+        for (int i = 0; i < num_iters; ++i) {
+            for (size_t j = 0; j < lenVal; ++j) {
+                result[i * lenVal + j] = val[lenVal - j - 1];
+            }
+        }
+    } else {
+        // Выделяем новую память под итоговую строку (с учётом завершающего '\0')
+        result = new char[lenVal + (lenVal * num_iters) + 1];
+        for (int i = 0; i < num_iters; ++i) {
+            for (size_t j = 0; j < lenVal; ++j) {
+                result[i * lenVal + j] = val[j];
+            }
+        }
+    }
+
+    // Ставим завершающий ноль
+    result[lenVal * num_iters] = '\0';
+
+    return result;
+}
+
+char* stradd(const char* left, const char* right) {
     size_t lenLeft = 0;
     while (left[lenLeft] != '\0') {
         ++lenLeft;
@@ -286,14 +331,43 @@ char* my_stradd(char* left, char* right) {
     return result;
 }
 
+llvm::Value* stringNeg(llvm::Module& module, llvm::IRBuilder<>& builder, llvm::Value* value) {
+    llvm::LLVMContext& ctx     = module.getContext();
+    llvm::Function* concatFunc = module.getFunction("strneg");
+    if (!concatFunc) {
+        auto charPtrTy                 = llvm::PointerType::get(llvm::Type::getInt8Ty(ctx), 0);
+        llvm::FunctionType* strnegType = llvm::FunctionType::get(charPtrTy, {charPtrTy}, false);
+        concatFunc = llvm::Function::Create(strnegType, llvm::Function::ExternalLinkage, "strneg", module);
+    }
+
+    return builder.CreateCall(concatFunc, {value});
+}
+
+char* strneg(char* str) {
+    if (!str) {
+        throw std::runtime_error("Invalid string value in negation expression");
+    }
+
+    size_t len   = std::strlen(str);
+    char* result = new char[len + 1];
+
+    for (size_t i = 0; i < len; ++i) {
+        result[i] = str[len - i - 1];
+    }
+
+    result[len] = '\0';
+
+    return result;
+}
+
 llvm::Value* stringAdd(
     const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right) {
     llvm::LLVMContext& ctx     = module->getContext();
-    llvm::Function* concatFunc = module->getFunction("my_stradd");
+    llvm::Function* concatFunc = module->getFunction("stradd");
     if (!concatFunc) {
         auto charPtrTy                 = llvm::PointerType::get(llvm::Type::getInt8Ty(ctx), 0);
         llvm::FunctionType* strcatType = llvm::FunctionType::get(charPtrTy, {charPtrTy, charPtrTy}, false);
-        concatFunc = llvm::Function::Create(strcatType, llvm::Function::ExternalLinkage, "my_stradd", *module);
+        concatFunc = llvm::Function::Create(strcatType, llvm::Function::ExternalLinkage, "stradd", *module);
     }
 
     return builder.CreateCall(concatFunc, {left, right}, "straddtmp");

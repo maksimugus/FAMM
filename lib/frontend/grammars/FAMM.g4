@@ -12,6 +12,7 @@ statement
     : declarationWithDefinition      # DeclarationWithDefinitionStatement
     | declarationWithoutDefinition   # DeclarationWithoutDefinitionStatement
     | definition                     # DefinitionStatement
+    | arrayElementDefinition         # ArrayElementDefinitionStatement
     | RETURN expression?             # ReturnStatement
     | block                          # BlockStatement
     ;
@@ -30,6 +31,7 @@ parameter: IDENTIFIER COLON type;
 scope: LBRACE line* RBRACE;
 
 definition: IDENTIFIER assignmentOp expression;
+arrayElementDefinition: expression LBRACKET expression RBRACKET assignmentOp expression; // returns ptr и присваевает ему
 declarationWithDefinition: VAR IDENTIFIER COLON type ASSIGNMENT expression;
 declarationWithoutDefinition: VAR IDENTIFIER (COMMA IDENTIFIER)* COLON type;
 
@@ -37,7 +39,7 @@ expression
     : constant                                 # ConstantExpression
     | functionCall                             # FunctionCallExpression
     | IDENTIFIER                               # IdentifierExpression
-    | expression LBRACKET expression RBRACKET  # ArrayAccessExpression
+    | expression LBRACKET expression RBRACKET  # ArrayAccessExpression // а тут не ptr returns
     | LPAR expression RPAR                     # ParenExpression
     | NOT expression                           # NegationExpression
     | MINUS expression                         # NegativeExpression

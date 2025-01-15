@@ -1,7 +1,46 @@
-func a(b:int): nih = {
-for (var i:float = 0. -> 10. by 1.) {
+func swap(arr: [int, 10], i: int, j: int): [int, 10] = {
+    var temp: int = arr[i];
+    arr[i] = arr[j];
+    arr[j] = temp;
+    for (var i: int = 0 -> 10 by 1) {
+        display(arr[i]);
+    };
+    return arr;
+};
 
+func partition(arr: [int, 10], low: int, high: int): int = {
+    var pivot: int = arr[high];
+    var i: int = low - 1;
+
+    for (var j: int = low -> high by 1) {
+        if (arr[j] <= pivot) {
+            i = i + 1;
+            arr = swap(arr, i, j);
+        };
+    };
+
+    arr = swap(arr, i + 1, high);
+    return i + 1;
 };
-return;
+
+func quickSortHelper(arr: [int, 10], low: int, high: int): [int, 10] = {
+    if (low < high) {
+        var pi: int = partition(arr, low, high);
+
+        arr = quickSortHelper(arr, low, pi - 1);
+        arr = quickSortHelper(arr, pi + 1, high);
+    };
+    return arr;
 };
-a(1);
+
+func quickSort(arr: [int, 10]): [int, 10] = {
+    return quickSortHelper(arr, 0, 9);
+};
+
+
+
+var array: [int, 10] = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
+array[0] = array[5];
+
+display(array[0], array[5]);
+

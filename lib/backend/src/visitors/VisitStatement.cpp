@@ -19,6 +19,9 @@ llvm::Value* LLVMIRGenerator::visitStatement(FAMMParser::StatementContext* node)
     if (const auto blockStatement = dynamic_cast<FAMMParser::BlockStatementContext*>(node)) {
         return visitBlock(blockStatement->block());
     }
+    if (const auto arrayElementStatement = dynamic_cast<FAMMParser::ArrayElementDefinitionStatementContext*>(node)) {
+        return visitArrayElementDefinition(arrayElementStatement->arrayElementDefinition());
+    }
 
     throw std::runtime_error("Unknown statement context");
 }
@@ -71,6 +74,10 @@ llvm::Value* LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::Declara
         throw std::runtime_error("No active scope to declare variable.");
     }
 
+    if (llvmType->isArrayTy()) {
+        builder.CreateStore(initialValue, alloca)->setAlignment(llvm::Align(8));
+        return nullptr;
+    }
     builder.CreateStore(initialValue, alloca);
     return nullptr;
 }
@@ -89,16 +96,19 @@ llvm::Value* LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* nod
 
     if (node->assignmentOp()->ASSIGNMENT()) {
         builder.CreateStore(newValue, alloca);
+        return nullptr;
     }
 
     if (node->assignmentOp()->PLUS_ASSIGNMENT()) {
         llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
-        llvm::Value* result = nullptr;
-        if (IsInt(newValue))
+        llvm::Value* result       = nullptr;
+        if (IsInt(newValue)) {
             result = builder.CreateAdd(currentValue, newValue);
-        if (IsDouble(newValue))
+        }
+        if (IsDouble(newValue)) {
             result = builder.CreateFAdd(currentValue, newValue);
-        if (IsString(newValue)){
+        }
+        if (IsString(newValue)) {
             result = stringAdd(module, builder, currentValue, newValue);
         }
         builder.CreateStore(result, alloca);
@@ -108,11 +118,13 @@ llvm::Value* LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* nod
     EnsureIntOrDouble(newValue);
     if (node->assignmentOp()->MULT_ASSIGNMENT()) {
         llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
-        llvm::Value* result = nullptr;
-        if (IsInt(newValue))
+        llvm::Value* result       = nullptr;
+        if (IsInt(newValue)) {
             result = builder.CreateMul(currentValue, newValue);
-        if (IsDouble(newValue))
+        }
+        if (IsDouble(newValue)) {
             result = builder.CreateFMul(currentValue, newValue);
+        }
         builder.CreateStore(result, alloca);
         return nullptr;
     }
@@ -140,17 +152,64 @@ llvm::Value* LLVMIRGenerator::visitDefinition(FAMMParser::DefinitionContext* nod
 
     if (node->assignmentOp()->MINUS_ASSIGNMENT()) {
         llvm::Value* currentValue = builder.CreateLoad(variableType, alloca, variableName + "_load");
-        llvm::Value* result = nullptr;
-        if (IsInt(newValue))
+        llvm::Value* result       = nullptr;
+        if (IsInt(newValue)) {
             result = builder.CreateSub(currentValue, newValue);
-        if (IsDouble(newValue))
+        }
+        if (IsDouble(newValue)) {
             result = builder.CreateFSub(currentValue, newValue);
+        }
         builder.CreateStore(result, alloca);
         return nullptr;
     }
 
     return nullptr;
 }
+llvm::Value* LLVMIRGenerator::visitArrayElementDefinition(FAMMParser::ArrayElementDefinitionContext* arrayElementCtx) {
+    auto identCtx = dynamic_cast<FAMMParser::IdentifierExpressionContext*>(arrayElementCtx->expression(0));
+    if (!identCtx)
+        throw std::runtime_error("No access to array expression");
+
+    const std::string varName = identCtx->IDENTIFIER()->getText();
+    llvm::AllocaInst* alloca = findVariable(varName);
+    llvm::Type* pointedType = alloca->getAllocatedType()->getContainedType(0);
+
+    // Получаем индекс
+    llvm::Value* index = execute(arrayElementCtx->expression(1));
+    if (!index->getType()->isIntegerTy(64)) {
+        throw std::runtime_error("Array index must be an integer.");
+    }
+
+    auto* arrayType = alloca->getAllocatedType();
+    // Проверяем, что это действительно массив
+    if (!arrayType->isArrayTy()) {
+        throw std::runtime_error("Left expression must be an array type.");
+    }
+
+    // Создаем указатель на элемент массива
+    std::vector<llvm::Value*> indices = {
+        builder.getInt64(0),  // Первый индекс всегда 0 для разыменования указателя
+        index                 // Индекс элемента массива
+    };
+
+    llvm::Value* elementPtr = builder.CreateInBoundsGEP(
+        arrayType,
+        alloca,
+        indices,
+        "arrayElementPtr"
+    );
+    llvm::Value* valueToStore = execute(arrayElementCtx->expression(2));
+    if (valueToStore->getType() != pointedType) {
+        throw std::runtime_error("Type mismatch: Cannot store value in array element.");
+    }
+
+    builder.CreateStore(valueToStore, elementPtr);
+
+    return nullptr;
+
+}
+
+
 
 llvm::Value* LLVMIRGenerator::visitReturnStatement(FAMMParser::ReturnStatementContext* returnCtx) {
     const llvm::Function* currentFunction = builder.GetInsertBlock()->getParent();

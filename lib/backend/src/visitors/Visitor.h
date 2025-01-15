@@ -41,6 +41,7 @@ public:
     llvm::Value* visitFunctionCallExpression(FAMMParser::FunctionCallContext* node);
     llvm::Value* visitIdentifierExpression(FAMMParser::IdentifierExpressionContext* identCtx);
     llvm::Value* visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx);
+    llvm::Value* visitArrayAccessExpression(FAMMParser::ArrayAccessExpressionContext* arrayAccessCtx);
 
     llvm::Value* createIntComparison(
         FAMMParser::CompareExpressionContext* compareCtx, llvm::Value* left, llvm::Value* right);
@@ -59,6 +60,7 @@ public:
     llvm::Value* visitDeclarationWithoutDefinition(FAMMParser::DeclarationWithoutDefinitionContext* node);
     llvm::Value* visitReturnStatement(FAMMParser::ReturnStatementContext* returnCtx);
     llvm::Value* visitDefinition(FAMMParser::DefinitionContext* node);
+    llvm::Value* visitArrayElementDefinition(FAMMParser::ArrayElementDefinitionContext* arrayElementCtx);
 
     llvm::Value* visitBlock(FAMMParser::BlockContext* block); // big if
 

@@ -12,6 +12,7 @@ llvm_map_components_to_libnames(llvm_libs
         ExecutionEngine
         MCJIT
         native
+        interpreter
 #        ScalarOpts
 #        TransformUtils
 #        Analysis
