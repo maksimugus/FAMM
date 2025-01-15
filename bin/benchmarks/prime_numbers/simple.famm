@@ -1,0 +1,30 @@
+func isDivider(number: int, divider: int): bool = {
+    if (number % divider == 0){
+        return true;
+    };
+    return false;
+};
+
+func isPrime(number: int): bool = {
+    var possibleDivider: int = 2;
+    while (possibleDivider * possibleDivider <= number) {
+        if (isDivider(number, possibleDivider)) {
+            return false;
+        };
+        possibleDivider+=1;
+    };
+
+    return true;
+};
+
+var n: int = 100000;
+var total: int = 0;
+display("Prime numbers:");
+for (var number: int = 2 -> n + 1 by 1) {
+    if (isPrime(number)) {
+        total += 1;
+        display(number);
+    };
+};
+
+display("Total count:", total);

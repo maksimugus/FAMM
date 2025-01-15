@@ -1,0 +1,28 @@
+func sieve(): nih = {
+    var is_prime: [bool, 100000];
+    var is_prime2: [bool, 100000];
+    is_prime2[0] = true;
+    is_prime[1] = false;
+
+    for (var i: int = 2 -> 100000 by 1) {
+        is_prime[i] = true;
+    };
+
+    var k: int = 2;
+    while(k * k <= 100000) {
+        if (is_prime[k]) {
+            for (var j: int = k * k -> 100000 + 1 by k) {
+                is_prime[j] = false;
+            };
+        };
+        k += 1;
+    };
+
+    for (var j: int = 1 -> 100000 by 1) {
+        if (is_prime[j]) {
+            display(j);
+        };
+    };
+};
+
+sieve();

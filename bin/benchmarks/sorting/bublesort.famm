@@ -1,0 +1,21 @@
+var n: int = 100000;
+var arr: [int, n];
+
+
+for (var k: int = 0 -> n by 1) {
+    arr[k] = n - k;
+};
+
+for (var i: int = 0 -> n - 1 by 1) {
+    for (var j: int = 0 -> n - i - 2 by 1) {
+        if (arr[j] > arr[j + 1]) {
+            var temp: int = arr[j];
+            arr[j] = arr[j + 1];
+            arr[j + 1] = temp;
+        };
+    };
+};
+
+for (var i: int = 0 -> n by 1) {
+    display(arr[i]);
+};

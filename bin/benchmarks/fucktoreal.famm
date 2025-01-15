@@ -1,0 +1,9 @@
+func fucktoreal(var n: int): int = {
+    if (n == 0) {
+        return 1;
+    };
+    return n * fucktoreal(n-1);
+};
+
+var n: int = 12;
+display("Fucktoreal of number ", n, "=", fucktoreal(n));
