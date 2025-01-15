@@ -2,6 +2,7 @@
 #include "externalFunctions/ExternalFunctions.h"
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/GenericValue.h>
+#include <llvm/ExecutionEngine/Interpreter.h>
 #include <llvm/ExecutionEngine/Orc/LLJIT.h>
 #include <llvm/ExecutionEngine/SectionMemoryManager.h>
 #include <llvm/IR/LegacyPassManager.h>
@@ -10,7 +11,6 @@
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Scalar/GVN.h>
 #include <llvm/Transforms/Utils.h>
-#include <llvm/ExecutionEngine/Interpreter.h>
 
 class LLVMJIT {
 public:
@@ -40,12 +40,23 @@ public:
             }
         }
 
-//        LLVMLinkInInterpreter();
-        llvm::ExecutionEngine* engine = llvm::EngineBuilder(std::move(module))
-                                            .setErrorStr(&error)
-                                            .setEngineKind(llvm::EngineKind::JIT) // todo интерпретатор надо прикрутить
-                                            .setMCJITMemoryManager(std::make_unique<llvm::SectionMemoryManager>())
-                                            .create();
+        llvm::ExecutionEngine* engine;
+        if (cli.jit()) {
+            engine = llvm::EngineBuilder(std::move(module))
+                         .setErrorStr(&error)
+                         .setEngineKind(llvm::EngineKind::JIT)
+                         .setMCJITMemoryManager(std::make_unique<llvm::SectionMemoryManager>())
+                         .create();
+
+        } else {
+            LLVMLinkInInterpreter();
+            engine = llvm::EngineBuilder(std::move(module))
+                         .setErrorStr(&error)
+                         .setEngineKind(llvm::EngineKind::Interpreter)
+                         .create();
+        }
+
+
 
         if (!engine) {
             error = "Failed to create ExecutionEngine: " + error;
@@ -61,8 +72,7 @@ public:
     }
 
 private:
-    static void initLibFunctions(llvm::ExecutionEngine* engine){
-        engine->addGlobalMapping("display", reinterpret_cast<uint64_t>(&printf));
+    static void initLibFunctions(llvm::ExecutionEngine* engine) {
         engine->addGlobalMapping("strcmp", reinterpret_cast<uint64_t>(&strcmp));
         engine->addGlobalMapping("stradd", reinterpret_cast<uint64_t>(&stradd));
         engine->addGlobalMapping("strmult", reinterpret_cast<uint64_t>(&strmult));
@@ -73,6 +83,8 @@ private:
         engine->addGlobalMapping("string_to_int", reinterpret_cast<uint64_t>(&string_to_int));
         engine->addGlobalMapping("string_to_float", reinterpret_cast<uint64_t>(&string_to_float));
         engine->addGlobalMapping("string_to_bool", reinterpret_cast<uint64_t>(&string_to_bool));
+        engine->addGlobalMapping("display", reinterpret_cast<uint64_t>(&printf));
+        engine->addGlobalMapping("sdisplay", reinterpret_cast<uint64_t>(&printf));
     }
 
     static void optimizeModule(llvm::Module& module) {

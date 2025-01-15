@@ -46,11 +46,11 @@ llvm::Value* LLVMIRGenerator::visitIdentifierExpression(FAMMParser::IdentifierEx
     llvm::AllocaInst* alloca = findVariable(varName);
 
     // Проверить, является ли тип массива
-//    if (alloca->getAllocatedType()->isArrayTy()) {
-//        // Если переменная — массив, вернуть указатель на массив
-//        llvm::Value* a = alloca;
-//        return alloca;
-//    }
+    //    if (alloca->getAllocatedType()->isArrayTy()) {
+    //        // Если переменная — массив, вернуть указатель на массив
+    //        llvm::Value* a = alloca;
+    //        return alloca;
+    //    }
 
     // Если переменная не массив, вернуть значение через загрузку
     llvm::LoadInst* loadInst = builder.CreateLoad(alloca->getAllocatedType(), alloca, varName + "_load");
@@ -262,8 +262,12 @@ llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCa
     }
 
     if (funcName == "display") {
-        return display(module, builder, "", args);
+        if (args.size() > 1) {
+            return display(module, builder, "", args);
+        }
+        return sdisplay(module, builder, args[0]);
     }
+
     if (funcName == "to_int") {
         if (args.size() > 1) {
             throw std::runtime_error("Too many args");
@@ -303,12 +307,13 @@ llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCa
 
 llvm::Value* LLVMIRGenerator::visitArrayAccessExpression(FAMMParser::ArrayAccessExpressionContext* arrayAccessCtx) {
     auto identCtx = dynamic_cast<FAMMParser::IdentifierExpressionContext*>(arrayAccessCtx->expression(0));
-    if (!identCtx)
+    if (!identCtx) {
         throw std::runtime_error("No access to array expression");
+    }
 
     const std::string varName = identCtx->IDENTIFIER()->getText();
-    llvm::AllocaInst* alloca = findVariable(varName);
-    llvm::Type* elementType = alloca->getAllocatedType()->getContainedType(0);
+    llvm::AllocaInst* alloca  = findVariable(varName);
+    llvm::Type* elementType   = alloca->getAllocatedType()->getContainedType(0);
 
     // Получаем индекс
     llvm::Value* index = execute(arrayAccessCtx->expression(1));
@@ -324,16 +329,11 @@ llvm::Value* LLVMIRGenerator::visitArrayAccessExpression(FAMMParser::ArrayAccess
 
     // Создаем указатель на элемент массива
     std::vector<llvm::Value*> indices = {
-        builder.getInt64(0),  // Первый индекс всегда 0 для разыменования указателя
-        index                 // Индекс элемента массива
+        builder.getInt64(0), // Первый индекс всегда 0 для разыменования указателя
+        index // Индекс элемента массива
     };
 
-    llvm::Value* elementPtr = builder.CreateInBoundsGEP(
-        arrayType,
-        alloca,
-        indices,
-        "arrayElementPtr"
-    );
+    llvm::Value* elementPtr = builder.CreateInBoundsGEP(arrayType, alloca, indices, "arrayElementPtr");
 
     // Загружаем значение
     return builder.CreateLoad(elementType, elementPtr, "arrayLoad");

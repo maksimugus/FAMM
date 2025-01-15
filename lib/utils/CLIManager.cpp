@@ -9,6 +9,8 @@ void CLIManager::parseArgs(const int argc, const char* argv[]) {
         if (std::string arg = argv[i]; arg == "--compile" && i + 1 < argc) {
             compile_     = true;
             compileFile_ = argv[++i];
+        } else if (arg == "--noJit") {
+            jit_ = false;
         } else if (arg == "--file" && i + 1 < argc) {
             inputFile_ = argv[++i];
         } else if (arg == "--printAll") {
@@ -40,6 +42,7 @@ void CLIManager::printHelp() {
               << "  --printAll             Print all information (unoptimized, optimized, tree)\n"
               << "  --printUnoptimized     Print unoptimized code\n"
               << "  --noOptimize           Dont optimize the code\n"
+              << "  --noJit                Disable JIT\n"
               << "  --printOptimized       Print optimized code\n"
               << "  --printTree            Print the abstract syntax tree\n"
               << std::endl;

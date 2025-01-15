@@ -5,6 +5,8 @@
 
 llvm::Value* display(const std::unique_ptr<llvm::Module>& llvm_module, llvm::IRBuilder<>& builder,
     const std::string& format, const std::vector<llvm::Value*>& values = {});
+llvm::Value* sdisplay(
+    const std::unique_ptr<llvm::Module>& llvm_module, llvm::IRBuilder<>& builder, llvm::Value* arg);
 
 const char* bool_to_string(bool value);
 const char* int_to_string(long long value);
@@ -18,7 +20,8 @@ llvm::Value* floatCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Mod
 llvm::Value* boolCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Module& module);
 llvm::Value* stringCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Module& module);
 
-llvm::Value* stringAdd(const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right);
+llvm::Value* stringAdd(
+    const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right);
 char* stradd(const char* left, const char* right);
 
 llvm::Value* stringMult(llvm::Module& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right);
@@ -27,4 +30,7 @@ char* strmult(const char* val, long long num_iters);
 llvm::Value* stringNeg(llvm::Module& module, llvm::IRBuilder<>& builder, llvm::Value* value);
 char* strneg(char* str);
 
-llvm::Value* stringCompare(const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right);
+llvm::Value* stringCompare(
+    const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right);
+
+void display_wrapper(const char* message);
