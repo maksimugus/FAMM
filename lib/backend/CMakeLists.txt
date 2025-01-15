@@ -12,12 +12,6 @@ llvm_map_components_to_libnames(llvm_libs
         ExecutionEngine
         MCJIT
         native
-#        ScalarOpts
-#        TransformUtils
-#        Analysis
-#        InstCombine
-#        TransformUtils
-#        IPO
 )
 
 # Specify the source files for the backend library

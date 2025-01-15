@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.10)
-
 # Путь до ANTLR4 runtime
 set(ANTLR_RUNTIME_DIR ${CMAKE_SOURCE_DIR}/third_party/antlr4/runtime/Cpp)
 set(ANTLR4_INCLUDE_DIRS ${ANTLR_RUNTIME_DIR})
