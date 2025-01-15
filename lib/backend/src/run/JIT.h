@@ -10,6 +10,7 @@
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Scalar/GVN.h>
 #include <llvm/Transforms/Utils.h>
+#include <llvm/ExecutionEngine/Interpreter.h>
 
 class LLVMJIT {
 public:
@@ -39,9 +40,10 @@ public:
             }
         }
 
+//        LLVMLinkInInterpreter();
         llvm::ExecutionEngine* engine = llvm::EngineBuilder(std::move(module))
                                             .setErrorStr(&error)
-                                            .setEngineKind(llvm::EngineKind::JIT)
+                                            .setEngineKind(llvm::EngineKind::JIT) // todo интерпретатор надо прикрутить
                                             .setMCJITMemoryManager(std::make_unique<llvm::SectionMemoryManager>())
                                             .create();
 

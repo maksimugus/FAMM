@@ -302,18 +302,13 @@ llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCa
 }
 
 llvm::Value* LLVMIRGenerator::visitArrayAccessExpression(FAMMParser::ArrayAccessExpressionContext* arrayAccessCtx) {
-    auto res = execute(arrayAccessCtx->expression(0));
-    llvm::Type* pointedType;
-    bool isAlloca = llvm::isa<llvm::AllocaInst>(res);
+    auto identCtx = dynamic_cast<FAMMParser::IdentifierExpressionContext*>(arrayAccessCtx->expression(0));
+    if (!identCtx)
+        throw std::runtime_error("No access to array expression");
 
-    // Определяем базовый тип массива
-    if (isAlloca) {
-        // Если res это результат alloca, берем тип, на который он указывает
-        pointedType = res->getType()->getContainedType(0);
-    } else {
-        // Для значения массива берем его тип напрямую
-        pointedType = res->getType();
-    }
+    const std::string varName = identCtx->IDENTIFIER()->getText();
+    llvm::AllocaInst* alloca = findVariable(varName);
+    llvm::Type* elementType = alloca->getAllocatedType()->getContainedType(0);
 
     // Получаем индекс
     llvm::Value* index = execute(arrayAccessCtx->expression(1));
@@ -321,22 +316,10 @@ llvm::Value* LLVMIRGenerator::visitArrayAccessExpression(FAMMParser::ArrayAccess
         throw std::runtime_error("Array index must be an integer.");
     }
 
+    auto* arrayType = alloca->getAllocatedType();
     // Проверяем, что это действительно массив
-    if (!pointedType->isArrayTy()) {
+    if (!arrayType->isArrayTy()) {
         throw std::runtime_error("Left expression must be an array type.");
-    }
-
-    auto* arrayType = llvm::cast<llvm::ArrayType>(pointedType);
-    llvm::Type* elementType = arrayType->getElementType();
-
-    // Если res не является результатом alloca, нам нужно создать временное хранилище
-    llvm::Value* arrayPtr;
-    if (!isAlloca) {
-        // Создаем временное хранилище для массива
-        arrayPtr = builder.CreateAlloca(pointedType, nullptr, "arrayTemp");
-        builder.CreateStore(res, arrayPtr);
-    } else {
-        arrayPtr = res;
     }
 
     // Создаем указатель на элемент массива
@@ -346,8 +329,8 @@ llvm::Value* LLVMIRGenerator::visitArrayAccessExpression(FAMMParser::ArrayAccess
     };
 
     llvm::Value* elementPtr = builder.CreateInBoundsGEP(
-        pointedType,
-        arrayPtr,
+        arrayType,
+        alloca,
         indices,
         "arrayElementPtr"
     );

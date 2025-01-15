@@ -167,8 +167,10 @@ llvm::Value* LLVMIRGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContex
     // посетим скоп функции
     execute(node->scope());
 
-    // Проверим полученную функцию
-    llvm::verifyFunction(*function, &llvm::errs());
+    // Добавляем return void для void-функций, если его нет
+    if (returnType->isVoidTy() && !builder.GetInsertBlock()->getTerminator()) {
+        builder.CreateRetVoid();
+    }
 
     builder.SetInsertPoint(prevBlock);
     exitScope();
