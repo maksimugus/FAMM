@@ -41,7 +41,7 @@ sudo mv /usr/include/llvm-c-18/llvm/ /usr/include/
 chmod +x run_tests.sh
 ./run_tests.sh
 ```
-
+---
 
 ## Specification
 
@@ -134,3 +134,144 @@ var floatValue: float = to_float(boolValue); # 1.
 var boolValue: bool = false;
 var floatValue: float = to_float(boolValue); # 0.
 ```
+
+
+### Arithmetic
+FAMM поддерживает арифметические операции
+
+| Название операции  | Семантика в коде | Поддерживаемые типы       |
+| :----------------: | :--------------: | ------------------------- |
+|      сложение      |      +, +=       | int, float, string        |
+|     умножение      |     \*, \*=      | int, float, string(\*int) |
+|      разность      |      -, -=       | int, float, string        |
+|      деление       |      /, /=       | int, float                |
+| целочисл. деление  |     //, //=      | int, float                |
+| остаток от деления |      %, %=       | int, float                |
+
+#### сложение
+```famm
+var a: int = 10;
+var b: int = 20;
+var c: int = a + b; # 30
+
+a += 30; # 40, эквивалентно a = a + 30
+a += 30.7; # exception :(
+
+var a: float = 10.1;
+a += 30.; # 40.1
+
+var str1: string = "мяу";
+var str2: string = "скибиди";
+var str3: string = str1 + str2; # "мяу скибиди" 
+str3 += "привет"; # "мяу скибиди привет"
+```
+
+#### разность
+```
+var a: float = 1.2;
+var b: float = 3.6;
+var c: float = b - a; # 2.4
+
+var d: int = 10 - 3; # 7
+
+var str2: string = "скибиди";
+str2 -= "телаут"; # "скибиди туалет", эквивалентно str2 = str2 + (-1) * "телаут"
+```
+
+#### умножение
+```
+var a: float = 1.2;
+var b: float = 3.6;
+var c: float = b * a; # 4.32
+
+b = b * 10 # exception :(
+
+var d: int = 10;
+d *= 10; # 100
+
+var str: string = "мяу ";
+str *= 10; # "мяу мяу мяу мяу мяу мяу мяу мяу мяу мяу "
+str *= (-3) # " уям уям уям"
+```
+
+#### деление
+```
+var a: float = 1.2;
+var b: float = 3.9;
+var c: float = b / a; # 3.25
+
+b = b / 10 # exception :(
+
+var d: int = 10;
+d /= 4; # exception
+var e: float = d / 4; # 2.5
+```
+
+#### целочисленное деление
+```
+var a: float = 1.2;
+var b: float = 3.9;
+var c: float = b // a; # 3
+
+b = b / 10 # exception :(
+
+var d: int = 10;
+d //= 4; # 2
+var e: float = d // 4; # exception
+```
+
+### Functions
+
+```famm
+func abas (a: int, b: int): int = {
+	var c: int = 1 + a;
+	return c + b; 
+};
+
+# общий шаблон:
+# func <name> ( <params> ): <return_type> = { <body> }
+```
+
+Если функция ничего не возвращает, `<return_type>` указывается специальное ключевое слово `nih`. Внимание! `nih` не является типом, его нельзя привести к другому типу, также нельзя результат выполнения функции c типом `nih`  присвоить какому-то `var`'у.
+
+Т.е. 
+```
+func boom(): nih = { 
+	print("boom"); 
+};
+
+var something = boom(); # ~~ EXCEPTION ~~
+```
+
+# Conditional operators
+
+в if можно передавать только переменные типа bool:
+
+```famm
+if((2 > 3) or bool(-1000)) {
+    print("da");
+} else {
+	# some code
+}
+```
+
+операции возвращающие bool:
+
+| Название операции | Семантика в коде |
+| :---------------: | :--------------: |
+|      рав-во       |        ==        |
+|     нерав-во      |        !=        |
+|      больше       |        >         |
+|      меньше       |        <         |
+| меньше или равно  |        <=        |
+| больше или равно  |        >=        |
+
+булевы операции:
+
+| Название операции | Семантика в коде |
+| :---------------: | :--------------: |
+|         и         |       and        |
+|        или        |        or        |
+|        не         |        !         |
+
+
