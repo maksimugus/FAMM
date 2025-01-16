@@ -2,6 +2,9 @@
 
 Source code of the beautiful programming language FAMM.
 
+![image](https://github.com/user-attachments/assets/23bd8fce-2b34-4eeb-84c2-64bae44e614f)
+
+
 ## Run
 
 To install dependencies (and generate lexer, ...)
