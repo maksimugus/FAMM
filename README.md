@@ -45,10 +45,11 @@ chmod +x run_tests.sh
 
 ## Specification
 
-# Types
+### Types
 
 FAMM поддерживает несколько типов: int, bool, float, string, (array)
-# Variables
+
+### Variables
 
 ```famm
 # var <var_name>: <type> = ...;
@@ -60,7 +61,7 @@ var float_var: float = 1.;
 var arr: [int, 3] = [1, 2, 3];
 ```
 
-# Casts
+### Casts
 Примеры кастов:
 
 **to int:**
