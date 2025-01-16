@@ -1,5 +1,6 @@
 #include "Visitor.h"
 
+#include <ranges>
 #include <stdexcept>
 
 
@@ -13,12 +14,19 @@ void LLVMIRGenerator::printIR() const {
 }
 
 void LLVMIRGenerator::enterScope() {
-    scopeStack.push_back(Scope());
+    scopeStack.emplace_back();
 }
 
 void LLVMIRGenerator::exitScope() {
     if (!scopeStack.empty()) {
+        auto [variables] = scopeStack.back();
         scopeStack.pop_back();
+        llvm::Function* collectFunc = module->getFunction("gc_collect");
+        for (const auto& var : variables) {
+            if (var.second->getType()->isPointerTy()) {
+                builder.CreateCall(collectFunc, {var.second}, "collectedMem");
+            }
+        }
     } else {
         throw std::runtime_error("Attempted to exit a scope when none exists.");
     }
@@ -51,8 +59,8 @@ llvm::Value* LLVMIRGenerator::execute(tree::ParseTree* node) {
 }
 
 llvm::AllocaInst* LLVMIRGenerator::findVariable(const std::string& name) {
-    for (auto it = scopeStack.rbegin(); it != scopeStack.rend(); ++it) {
-        if (auto& variables = it->variables; variables.contains(name)) {
+    for (auto & [variables] : std::ranges::reverse_view(scopeStack)) {
+        if (variables.contains(name)) {
             return variables[name];
         }
     }

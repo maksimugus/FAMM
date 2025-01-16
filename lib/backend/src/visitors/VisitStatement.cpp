@@ -63,7 +63,7 @@ llvm::Value* LLVMIRGenerator::visitDeclarationWithDefinition(FAMMParser::Declara
 
     if (!scopeStack.empty()) {
         if (!scopeStack.back().variables.contains(variableName)) {
-            scopeStack.back().variables[variableName] = alloca;
+            scopeStack.back().variables[variableName] = llvm::dyn_cast<llvm::AllocaInst>(initialValue);
         } else {
             throw std::runtime_error("Variable: \'" + variableName + "\' is already exists in scope");
         }

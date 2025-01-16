@@ -1,9 +1,10 @@
 #pragma once
+#include "llvm//IR//GCStrategy.h"
 #include <cstdlib>
 #include <iostream>
 #include <unordered_set>
 
-class CustomGC {
+class LLVM_LIBRARY_VISIBILITY CustomGC : public llvm::GCStrategy {
     std::unordered_set<void*> allocations;
 
 public:
@@ -25,14 +26,13 @@ public:
         }
     }
 
-    ~CustomGC() {
+    ~CustomGC() override {
         for (void* ptr : allocations) {
             std::free(ptr);
         }
         allocations.clear();
     }
 };
-
 
 inline CustomGC gc;
 
@@ -45,3 +45,5 @@ inline void gc_collect(void* ptr) {
     gc.collect(ptr);
 }
 }
+
+inline llvm::GCRegistry::Add<CustomGC> X("custom-gc", "My bespoke garbage collector.");

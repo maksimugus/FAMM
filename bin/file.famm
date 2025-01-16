@@ -1,4 +1,2 @@
-var i: int = 1;
-
-func f(n:int): nih {display(n); return;
-};
+var i: string = "string";
+display(i);

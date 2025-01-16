@@ -2,8 +2,6 @@
 #include "FAMMParser.h"
 #include "lib/backend/src/Visitors/Visitor.h"
 #include "lib/utils/CLIManager.h"
-#include "llvm/ExecutionEngine/ExecutionEngine.h"
-#include "llvm/ExecutionEngine/SectionMemoryManager.h"
 #include "llvm/Support/raw_ostream.h"
 #include "run/JIT.h"
 #include "run/ObjectEmitter.h"

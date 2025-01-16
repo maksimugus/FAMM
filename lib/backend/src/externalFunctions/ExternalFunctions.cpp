@@ -63,35 +63,24 @@ llvm::Value* display(const std::unique_ptr<llvm::Module>& llvm_module, llvm::IRB
 const char* bool_to_string(const bool value) {
     const char* boolStr = value ? "true" : "false";
     size_t len          = std::strlen(boolStr) + 1;
-    char* result        = static_cast<char*>(CustomGC::allocateMemory(len));
+    char* result        = static_cast<char*>(gc_alloc(len));
     std::memcpy(result, boolStr, len);
-
-    // Optionally, add result to roots
-    // CustomGC::addRoot(result);
-
     return result;
 }
 
 const char* int_to_string(const long long value) {
     const std::string str = std::to_string(value);
     const size_t len      = str.size() + 1;
-    const auto result     = static_cast<char*>(CustomGC::allocateMemory(len));
+    const auto result     = static_cast<char*>(gc_alloc(len));
     std::memcpy(result, str.c_str(), len);
-
-    // CustomGC::addRoot(result);
-
     return result;
 }
 
 const char* float_to_string(const double value) {
     const std::string str = std::to_string(value);
     const size_t len      = str.size() + 1;
-    const auto result     = static_cast<char*>(CustomGC::allocateMemory(len));
+    const auto result     = static_cast<char*>(gc_alloc(len));
     std::memcpy(result, str.c_str(), len);
-
-    // Optionally, add result to roots
-    // CustomGC::addRoot(result);
-
     return result;
 }
 
@@ -149,11 +138,13 @@ bool string_to_bool(const char* str) {
 
     if (lowerStr == "true" || lowerStr == "1") {
         return true;
-    } else if (lowerStr == "false" || lowerStr == "0") {
-        return false;
-    } else {
-        throw std::invalid_argument("Invalid input: String cannot be converted to a boolean.");
     }
+
+    if (lowerStr == "false" || lowerStr == "0") {
+        return false;
+    }
+
+    throw std::invalid_argument("Invalid input: String cannot be converted to a boolean.");
 }
 
 llvm::Value* intCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Module& module) {
@@ -257,6 +248,7 @@ llvm::Value* stringCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Mo
         const llvm::FunctionCallee boolToStringFunc = module.getOrInsertFunction("bool_to_string", boolToStringType);
         return builder.CreateCall(boolToStringFunc, {value});
     }
+
     // Преобразование int -> string
     if (value->getType()->isIntegerTy(64)) {
         llvm::FunctionType* intToStringType =
@@ -264,6 +256,7 @@ llvm::Value* stringCast(llvm::Value* value, llvm::IRBuilder<>& builder, llvm::Mo
         const llvm::FunctionCallee intToStringFunc = module.getOrInsertFunction("int_to_string", intToStringType);
         return builder.CreateCall(intToStringFunc, {value});
     }
+
     // Преобразование float -> string
     if (value->getType()->isFloatingPointTy()) {
         llvm::FunctionType* floatToStringType =
@@ -286,7 +279,7 @@ char* my_stradd(char* left, char* right) {
     }
 
     const size_t totalLen = lenLeft + lenRight + 1;
-    const auto result     = static_cast<char*>(CustomGC::allocateMemory(totalLen));
+    const auto result     = static_cast<char*>(gc_alloc(totalLen));
 
     for (size_t i = 0; i < lenLeft; ++i) {
         result[i] = left[i];
@@ -295,8 +288,6 @@ char* my_stradd(char* left, char* right) {
         result[lenLeft + j] = right[j];
     }
     result[lenLeft + lenRight] = '\0';
-
-    // CustomGC::addRoot(result);
 
     return result;
 }
@@ -313,6 +304,7 @@ llvm::Value* stringAdd(
 
     return builder.CreateCall(concatFunc, {left, right}, "straddtmp");
 }
+
 llvm::Value* stringCompare(
     const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* left, llvm::Value* right) {
     llvm::Function* strcmpFunc = module->getFunction("strcmp");
@@ -328,20 +320,19 @@ llvm::Value* stringCompare(
     return builder.CreateCall(strcmpFunc, {left, right});
 }
 
-
 llvm::Value* allocateMemory(
     const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* size) {
     llvm::LLVMContext& context = module->getContext();
 
-    // Получаем или объявляем функцию CustomGC::allocateMemory
-    llvm::Function* allocateFunc = module->getFunction("gc_allocate_memory");
+    // Получаем или объявляем функцию gc_alloc
+    llvm::Function* allocateFunc = module->getFunction("gc_alloc");
     if (!allocateFunc) {
         llvm::FunctionType* allocateType = llvm::FunctionType::get(
             llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0), // Возвращает указатель на память (void*)
             {llvm::Type::getInt64Ty(context)}, // Принимает размер (int64_t)
             false // Не является vararg
         );
-        allocateFunc = llvm::Function::Create(allocateType, llvm::Function::ExternalLinkage, "gc_allocate_memory", *module);
+        allocateFunc = llvm::Function::Create(allocateType, llvm::Function::ExternalLinkage, "gc_alloc", *module);
     }
 
     // Преобразуем размер в 64-битное целое число, если требуется
@@ -350,30 +341,5 @@ llvm::Value* allocateMemory(
                             : builder.CreateIntCast(size, llvm::Type::getInt64Ty(context), false, "sizeCast");
 
     // Вызываем функцию allocateMemory
-    return builder.CreateCall(allocateFunc, {size64}, "allocatedMem");
+        return builder.CreateCall(allocateFunc, {size64}, "allocatedMem");
 }
-
-
-llvm::Value* addRoot(
-    const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* value) {
-    llvm::LLVMContext& context = module->getContext();
-
-    llvm::Function* addRootFunc = module->getFunction("gc_add_root");
-    if (!addRootFunc) {
-        llvm::FunctionType* addRootType = llvm::FunctionType::get(
-            llvm::Type::getVoidTy(context),
-            {llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0)},
-            false
-        );
-        addRootFunc = llvm::Function::Create(
-            addRootType,
-            llvm::Function::ExternalLinkage,
-            "gc_add_root",
-            *module
-        );
-    }
-    return builder.CreateCall(addRootFunc, { value });
-}
-//
-// llvm::Value* removeRoot( //todo
-//     const std::unique_ptr<llvm::Module>& module, llvm::IRBuilder<>& builder, llvm::Value* value)

@@ -188,7 +188,6 @@ llvm::Value* LLVMIRGenerator::visitConstantExpression(FAMMParser::ConstantContex
         llvm::Value* sizeValue = llvm::ConstantInt::get(llvm::Type::getInt64Ty(*context), strSize);
 
         llvm::Value* allocatedMem = allocateMemory(module, builder, sizeValue); // ссылка на отслеживаемую память
-        addRoot(module, builder, allocatedMem);
 
         llvm::Constant* strConstant = llvm::ConstantDataArray::getString(*context, strValue, true);
 
@@ -213,8 +212,6 @@ llvm::Value* LLVMIRGenerator::visitConstantExpression(FAMMParser::ConstantContex
             llvm::MaybeAlign(),
             sizeValue
         );
-
-
 
         return allocatedMem;
     }
