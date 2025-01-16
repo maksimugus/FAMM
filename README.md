@@ -243,7 +243,7 @@ func boom(): nih = {
 var something = boom(); # ~~ EXCEPTION ~~
 ```
 
-# Conditional operators
+### Conditional operators
 
 в if можно передавать только переменные типа bool:
 
@@ -275,3 +275,67 @@ if((2 > 3) or bool(-1000)) {
 |        не         |        !         |
 
 
+### Loops
+#### for
+Конец исключается!
+
+```famm
+for (var i: float = 100. -> 1. by -.001) = {
+	# цикл от 100 до 1 не включительно с шагом -0.001
+};
+
+for (var i: int = 1 -> 100 by 1) = {
+	# цикл от 1 до 100 не включительно с шагом 1
+};
+```
+
+#### while
+
+```famm
+while (<condition>) = {
+	<body>
+};
+```
+
+### Recursion
+
+```famm
+func factorial (n: int): int = {
+    if (n < 2) {
+       return 1;
+    }
+	return n * factorial(n - 1);
+};
+```
+
+### Arrays
+
+- Массив имеет фиксированный размер
+- Можно обращаться по индексу. Индекс должен лежать в от 0 до n-1 включительно.
+- При обращении к элементу за рамками индексации возникает ошибка.
+
+```famm
+var arr: [[int], 4] = [[1], [2], [3], [52]];
+var array: [int, 100];
+
+for (var k: int = 0 -> 100 by 1) {
+    array[k] = k;
+};
+
+# массив чисел от 1 до 100
+```
+
+### Output
+#### display: 
+- перегружен для каждого типа
+- можно передавать множество переменных различных типов через запятую (они будут выводиться через пробел)
+
+```famm
+var a: int = 10;
+var b: bool = true;
+var c: float = 10.5;
+var d: string = "meow";
+var arr: [int, 3] = [1, 2, 3];
+
+display(a, b, to_string(b), c, d, arr[1], "скибиди");  # вывод: 10 1 true 10.5 meow 2 скибиди
+```
