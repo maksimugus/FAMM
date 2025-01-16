@@ -1,5 +1,6 @@
-#include "llvm/IR/Value.h"
+#pragma once
 #include "llvm/IR/Type.h"
+#include "llvm/IR/Value.h"
 
 bool IsDouble(llvm::Value* value);
 

@@ -28,7 +28,7 @@ void CLIManager::parseArgs(const int argc, const char* argv[]) {
         } else if (arg == "--help") {
             printHelp();
         } else {
-            std::cerr << "Unknown argument: " << arg << std::endl;
+            throw std::invalid_argument("Unknown option: " + std::string(argv[i]));
         }
     }
 }

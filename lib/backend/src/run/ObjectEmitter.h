@@ -24,6 +24,7 @@ public:
         const auto features = "";
 
         const llvm::TargetOptions opt;
+
         constexpr auto RM        = std::optional<llvm::Reloc::Model>();
         const auto targetMachine = target->createTargetMachine(targetTriple, cpu, features, opt, RM);
 

@@ -98,7 +98,6 @@ private:
         passManager.add(llvm::createGVNPass()); // Eliminate redundant loads/stores
         passManager.add(llvm::createCFGSimplificationPass()); // Simplify the control flow graph
         passManager.add(llvm::createDeadCodeEliminationPass()); // Remove dead code
-        // passManager.add(llvm::createFunctionInliningPass());        // Inline small functions
 
         passManager.run(module);
     }

@@ -1,10 +1,10 @@
 #include "ExternalFunctions.h"
 
+#include <iostream>
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Value.h>
-#include <iostream>
 #include <sstream>
 #include <string>
 
@@ -62,36 +62,71 @@ llvm::Value* display(const std::unique_ptr<llvm::Module>& llvm_module, llvm::IRB
 }
 
 
-llvm::Value* sdisplay(const std::unique_ptr<llvm::Module>& llvm_module, llvm::IRBuilder<>& builder, llvm::Value* arg) {
+llvm::Value* sdisplay(const std::unique_ptr<llvm::Module>& llvm_module, llvm::IRBuilder<>& builder,
+    const std::string& format, llvm::Value* arg) {
     llvm::LLVMContext& context = llvm_module->getContext();
 
+    // Define the function type for the display function.
     llvm::FunctionType* displayTy = llvm::FunctionType::get(
-        llvm::IntegerType::getInt32Ty(context), llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(context)), false);
+        llvm::IntegerType::getInt32Ty(context),
+        { llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(context)) }, // Pointer to the format string.
+        false
+    );
+
+    // Get or insert the 'display' function into the module.
     const llvm::FunctionCallee displayFunc = llvm_module->getOrInsertFunction("sdisplay", displayTy);
 
-    llvm::Value* castedArg = nullptr;
-
-    if (const llvm::Type* argTy = arg->getType(); argTy->isPointerTy()) {
-        castedArg = arg;
-    } else {
-        llvm::Value* strValue = nullptr;
-        if (argTy->isIntegerTy() || argTy->isFloatingPointTy()) {
-            const std::string str = std::to_string(llvm::cast<llvm::ConstantInt>(arg)->getValue().getSExtValue());
-
-            llvm::Constant* strConst = llvm::ConstantDataArray::getString(context, str, true);
-            auto* strVar = new llvm::GlobalVariable(
-                *llvm_module, strConst->getType(), true, llvm::GlobalValue::PrivateLinkage, strConst, ".strtmp");
-            llvm::Constant* zero = llvm::ConstantInt::get(context, llvm::APInt(32, 0));
-            llvm::Constant* indices[] = {zero, zero};
-            strValue = llvm::ConstantExpr::getGetElementPtr(strConst->getType(), strVar, indices);
+    // If no format is provided, determine it based on the type of 'arg'.
+    std::string formatStr = format;
+    if (formatStr.empty()) {
+        const llvm::Type* ty = arg->getType();
+        if (ty->isIntegerTy(1)) {
+            formatStr = "%d\n";
+        } else if (ty->isIntegerTy(64)) {
+            formatStr = "%lld\n"; // Use %lld for 64-bit integers.
+        } else if (ty->isIntegerTy()) {
+            formatStr = "%d\n";
+        } else if (ty->isDoubleTy()) {
+            formatStr = "%f\n";
+        } else if (ty->isPointerTy()) {
+            formatStr = "%s\n";
+        } else {
+            formatStr = "%p\n";
         }
-
-        castedArg = strValue;
     }
 
-    return builder.CreateCall(displayFunc, {castedArg}, "sdisplayCall");
-}
+    // Create a global constant for the format string.
+    llvm::Constant* formatConst = llvm::ConstantDataArray::getString(context, formatStr);
+    llvm::GlobalVariable* formatStrVar = new llvm::GlobalVariable(
+        *llvm_module, formatConst->getType(), true, llvm::GlobalValue::PrivateLinkage, formatConst, ".str");
 
+    // Get a pointer to the first character of the format string.
+    llvm::Constant* zero = llvm::ConstantInt::get(context, llvm::APInt(32, 0));
+    llvm::Constant* indices[] = { zero, zero };
+    llvm::Constant* formatStrPtr = llvm::ConstantExpr::getGetElementPtr(formatConst->getType(), formatStrVar, indices);
+
+    // Prepare the argument, casting if necessary.
+    llvm::Value* val = arg;
+    const llvm::Type* valTy = val->getType();
+    if (valTy->isIntegerTy(1)) {
+        // Cast boolean to int32.
+        val = builder.CreateIntCast(val, llvm::Type::getInt32Ty(context), false);
+    } else if (valTy->isIntegerTy() && valTy->getIntegerBitWidth() < 64) {
+        // Cast integers smaller than 64 bits to int64.
+        val = builder.CreateIntCast(val, llvm::Type::getInt64Ty(context), false);
+    } else if (valTy->isFloatingPointTy() && valTy->getPrimitiveSizeInBits() < 64) {
+        // Extend floating-point types smaller than double to double.
+        val = builder.CreateFPExt(val, llvm::Type::getDoubleTy(context));
+    }
+
+    // Create the argument list for the display function.
+    std::vector<llvm::Value*> displayArgs;
+    displayArgs.push_back(formatStrPtr); // The format string.
+    displayArgs.push_back(val);          // The value to display.
+
+    // Create the call instruction.
+    return builder.CreateCall(displayFunc, displayArgs, "sdisplayCall");
+}
 
 const char* bool_to_string(bool value) {
     return value ? "true" : "false";
@@ -421,4 +456,3 @@ llvm::Value* stringCompare(
 
     return builder.CreateCall(strcmpFunc, {left, right});
 }
-
