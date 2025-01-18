@@ -14,6 +14,10 @@ class LLVMIRGenerator final : public tree::AbstractParseTreeVisitor {
 public:
     LLVMIRGenerator();
 
+    void setInterpreter() {
+        ir_code = false;
+    }
+
     void printIR() const;
     std::unique_ptr<llvm::Module> getModule() {
         return std::move(module);
@@ -74,6 +78,9 @@ public:
 
 
 private:
+    bool ir_code                          = true;
+    std::optional<std::vector<FammIR>> interpreterContext = std::nullopt;
+
     std::unique_ptr<llvm::LLVMContext> context;
     llvm::IRBuilder<> builder;
     std::unique_ptr<llvm::Module> module;

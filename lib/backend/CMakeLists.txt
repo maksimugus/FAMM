@@ -40,6 +40,7 @@ set(SOURCE_FILES
         src/helpers/helpers.h
         src/run/Interpreter.h
         src/builders/FammBuilder.h
+        src/FammIR/FammIR.h
 )
 
 # Create the static backend library

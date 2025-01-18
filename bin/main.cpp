@@ -70,6 +70,7 @@ int main(int argc, const char* argv[]) {
         std::cout << tree->toStringTree(&parser) << "\n\n";
     }
 
+
     if (cli.jit() or cli.compile()) {
         auto visitor = LLVMIRGenerator();
         if (bool success = generateLLVMIR(visitor, tree); !success) {
