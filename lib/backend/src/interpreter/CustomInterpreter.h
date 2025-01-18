@@ -3,98 +3,46 @@
 #include <cstdint>
 #include <iostream>
 #include <stack>
+#include <variant>
 #include <vector>
 
-enum Instruction { PUSH_INT, ADD, SUB, MUL, DIV, PRINT, HALT };
+using Value = std::variant<int64_t, bool, float, std::vector<int64_t>, void*>;
 
-class CustomInterpreter {
-    struct Value {
-        enum TYPE { INT64, ARRAY, PTR } type;
-        union {
-            int64_t intValue;
-            std::vector<int64_t>* arrayValue;
-            void* ptrValue;
-        };
-        Value() : type(INT64), intValue(0) {}
-        explicit Value(const int64_t v) : type(INT64), intValue(v) {}
-        explicit Value(std::vector<int64_t>* v) : type(ARRAY), arrayValue(v) {}
-        explicit Value(void* p) : type(PTR), ptrValue(p) {}
-    };
-
-    std::stack<Value> stack;
-
-    std::vector<Instruction> program;
-    size_t pc; // Program counter
-
-public:
-    explicit CustomInterpreter(const std::vector<Instruction>& prog) : program(prog), pc(0) {}
-
-    void run() {
-        while (pc < program.size()) {
-            switch (program[pc]) {
-            case PUSH_INT:
-                {
-                    auto value = static_cast<int64_t>(program[++pc]);
-                    stack.emplace(value);
-                    break;
-                }
-            case ADD:
-                {
-                    auto b = stack.top();
-                    stack.pop();
-                    auto a = stack.top();
-                    stack.pop();
-                    stack.emplace(a.intValue + b.intValue);
-                    break;
-                }
-            case SUB:
-                {
-                    auto b = stack.top();
-                    stack.pop();
-                    auto a = stack.top();
-                    stack.pop();
-                    stack.emplace(a.intValue - b.intValue);
-                    break;
-                }
-            case MUL:
-                {
-                    auto b = stack.top();
-                    stack.pop();
-                    auto a = stack.top();
-                    stack.pop();
-                    stack.emplace(a.intValue * b.intValue);
-                    break;
-                }
-            case DIV:
-                {
-                    auto b = stack.top();
-                    stack.pop();
-                    auto a = stack.top();
-                    stack.pop();
-                    stack.emplace(a.intValue / b.intValue);
-                    break;
-                }
-            case PRINT:
-                {
-                    auto a = stack.top();
-                    stack.pop();
-                    std::cout << a.intValue << std::endl;
-                    break;
-                }
-            case HALT:
-                return;
-            }
-            ++pc;
-        }
-    }
+enum Instr {
+    NOP, // do nothing
+    ADD, // pop a, pop b, push a + b
+    SUB, // pop a, pop b, push a - b
+    AND, // pop a, pop b, push a & b
+    OR, // pop a, pop b, push a | b
+    NOT, // pop a, push !a
+    OUT, // pop one byte and write to stream
+    LOAD, // pop a, push byte read from address a
+    STOR, // pop a, pop b, write b to address a
+    GOTO, // pop a, goto a
+    PUSH, // push next word
+    POP, // remove top of stack
 };
 
-// int main() {
-//     const std::vector program = {
-//         PUSH_INT, static_cast<Instruction>(10), PUSH_INT, static_cast<Instruction>(20), ADD, PRINT, HALT};
-//
-//     CustomInterpreter interpreter(program);
-//     interpreter.run();
-//
-//     return 0;
-// }
+class CustomInterpreter {
+
+    std::stack<Value> stack;
+    std::vector<Instr> program;
+    size_t pc;
+
+public:
+    explicit CustomInterpreter(const std::vector<Instr>& prog) : program(prog), pc(0) {}
+    void run();
+
+private:
+    void instr_add();
+    void instr_sub();
+    void instr_and();
+    void instr_or();
+    void instr_not();
+    void instr_out();
+    void instr_load();
+    void instr_stor();
+    void instr_goto();
+    void instr_push();
+    void instr_pop();
+};

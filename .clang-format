@@ -10,6 +10,7 @@ AlignOperands: AlignAfterOperator
 AlignTrailingComments:
   Kind: Never
 AllowShortFunctionsOnASingleLine: Empty
+AllowShortEnumsOnASingleLine: false
 AlwaysBreakTemplateDeclarations: Yes
 BreakBeforeBinaryOperators: NonAssignment
 ColumnLimit: 120
