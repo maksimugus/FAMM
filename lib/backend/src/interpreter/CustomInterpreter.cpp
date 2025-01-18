@@ -6,72 +6,72 @@ void CustomInterpreter::run() {
 
         if (auto instr_or_value = program[pc]; std::holds_alternative<Instr>(instr_or_value)) {
             switch (std::get<Instr>(instr_or_value)) {
-                case NOP:
-                    ++pc;
-                    break;
-                case ADD:
-                    instr_add();
-                    break;
-                case SUB:
-                    instr_sub();
-                    break;
-                case AND:
-                    instr_and();
-                    break;
-                case OR:
-                    instr_or();
-                    break;
-                case NOT:
-                    instr_not();
-                    break;
-                case PRINT:
-                    instr_print();
-                    break;
-                case LOAD:
-                    instr_load();
-                    break;
-                case STORE:
-                    instr_store();
-                    break;
-                case GOTO:
-                    instr_goto();
-                    break;
-                case PUSH:
-                    instr_push();
-                    break;
-                case FRAME_APPEND:
-                    instr_frame_append();
-                    break;
-                case FRAME_POP:
-                    instr_frame_pop();
-                    break;
-                case CALL:
-                    instr_call();
-                    break;
-                case RET:
-                    instr_ret();
-                    break;
-                case IF_EQ:
-                    instr_if_eq();
-                    break;
-                case IF_NE:
-                    instr_if_ne();
-                    break;
-                case IF_LT:
-                    instr_if_lt();
-                    break;
-                case IF_GT:
-                    instr_if_gt();
-                    break;
-                case IF_LE:
-                    instr_if_le();
-                    break;
-                case IF_GE:
-                    instr_if_ge();
-                    break;
-                default:
-                    std::cerr << "Unknown instruction at pc " << pc << std::endl;
-                    return;
+            case NOP:
+                ++pc;
+                break;
+            case ADD:
+                instr_add();
+                break;
+            case SUB:
+                instr_sub();
+                break;
+            case AND:
+                instr_and();
+                break;
+            case OR:
+                instr_or();
+                break;
+            case NOT:
+                instr_not();
+                break;
+            case PRINT:
+                instr_print();
+                break;
+            case LOAD:
+                instr_load();
+                break;
+            case STORE:
+                instr_store();
+                break;
+            case GOTO:
+                instr_goto();
+                break;
+            case PUSH:
+                instr_push();
+                break;
+            case FRAME_APPEND:
+                instr_frame_append();
+                break;
+            case FRAME_POP:
+                instr_frame_pop();
+                break;
+            case CALL:
+                instr_call();
+                break;
+            case RET:
+                instr_ret();
+                break;
+            case IF_EQ:
+                instr_if_eq();
+                break;
+            case IF_NE:
+                instr_if_ne();
+                break;
+            case IF_LT:
+                instr_if_lt();
+                break;
+            case IF_GT:
+                instr_if_gt();
+                break;
+            case IF_LE:
+                instr_if_le();
+                break;
+            case IF_GE:
+                instr_if_ge();
+                break;
+            default:
+                std::cerr << "Unknown instruction at pc " << pc << std::endl;
+                return;
             }
         } else {
             std::cerr << "Error: unexpected value in program at pc " << pc << std::endl;
@@ -88,9 +88,8 @@ Frame* CustomInterpreter::current_frame() {
 }
 
 void CustomInterpreter::frame_push() {
-    Frame* parent        = current_frame();
-    const auto new_frame = new Frame{{}, {}, parent};
-    frameStack.push(new_frame);
+    Frame* parent = current_frame();
+    frameStack.push(new Frame{{}, {}, parent});
 }
 
 void CustomInterpreter::frame_pop() {
@@ -123,9 +122,6 @@ void CustomInterpreter::instr_add() {
     if (std::holds_alternative<int64_t>(a) && std::holds_alternative<int64_t>(b)) {
         int64_t result = std::get<int64_t>(a) + std::get<int64_t>(b);
         frame->operandStack.push(result);
-    } else if (std::holds_alternative<float>(a) && std::holds_alternative<float>(b)) {
-        float result = std::get<float>(a) + std::get<float>(b);
-        frame->operandStack.push(result);
     } else {
         std::cerr << "Error: type mismatch in instr_add" << std::endl;
     }
@@ -157,13 +153,10 @@ void CustomInterpreter::instr_not() {
         return;
     }
 
-    Value a = frame->operandStack.top();
+    const Value a = frame->operandStack.top();
     frame->operandStack.pop();
 
-    if (std::holds_alternative<int64_t>(a)) {
-        int64_t result = ~std::get<int64_t>(a);
-        frame->operandStack.push(result);
-    } else if (std::holds_alternative<bool>(a)) {
+    if (std::holds_alternative<bool>(a)) {
         bool result = !std::get<bool>(a);
         frame->operandStack.push(result);
     } else {
@@ -185,15 +178,13 @@ void CustomInterpreter::instr_print() {
         return;
     }
 
-    Value val = frame->operandStack.top();
+    const Value val = frame->operandStack.top();
     frame->operandStack.pop();
 
     if (std::holds_alternative<int64_t>(val)) {
         std::cout << std::get<int64_t>(val);
     } else if (std::holds_alternative<bool>(val)) {
         std::cout << (std::get<bool>(val) ? "true" : "false");
-    } else if (std::holds_alternative<float>(val)) {
-        std::cout << std::get<float>(val);
     } else {
         std::cerr << "Error: unsupported type in instr_print" << std::endl;
     }
@@ -202,16 +193,67 @@ void CustomInterpreter::instr_print() {
 }
 
 void CustomInterpreter::instr_load() {
-    // Implementation similar to the provided in the solution
+    const Value address_value = current_frame()->operandStack.top();
+    current_frame()->operandStack.pop();
+
+    if (std::holds_alternative<std::string>(address_value)) {
+        const auto address = std::get<std::string>(address_value);
+
+        Frame* frame = current_frame();
+        while (frame != nullptr) {
+            if (auto it = frame->localVariables.find(address); it != frame->localVariables.end()) {
+                current_frame()->operandStack.push(it->second);
+                return;
+            }
+            frame = frame->parentFrame; // Move to the parent frame if not found
+        }
+
+        std::cerr << "Error: Address '" << address << "' not found in any frame!" << std::endl;
+        return;
+    }
+
+    std::cerr << "Error: Expected string address in instr_load!" << std::endl;
 }
 
 void CustomInterpreter::instr_store() {
-    // Implementation similar to the provided in the solution
+    const Value value_to_store = current_frame()->operandStack.top();
+    current_frame()->operandStack.pop();
+
+    const Value address_value = current_frame()->operandStack.top();
+    current_frame()->operandStack.pop();
+
+    if (std::holds_alternative<std::string>(address_value)) {
+        const auto address = std::get<std::string>(address_value);
+
+        Frame* frame = current_frame();
+        while (frame != nullptr) {
+            if (auto it = frame->localVariables.find(address); it != frame->localVariables.end()) {
+                it->second = value_to_store;
+                return;
+            }
+            frame = frame->parentFrame;
+        }
+
+        std::cerr << "Error: Address '" << address << "' not found in any frame!" << std::endl;
+        return;
+    }
+
+    std::cerr << "Error: Expected string address in instr_store!" << std::endl;
 }
 
 void CustomInterpreter::instr_goto() {
-    // Implementation similar to the provided in the solution
+    const Value address_value = current_frame()->operandStack.top();
+    current_frame()->operandStack.pop();
+
+    if (std::holds_alternative<int64_t>(address_value)) {
+        pc = std::get<int64_t>(address_value);
+    } else {
+        std::cerr << "Error: Expected an integer address in instr_goto!" << std::endl;
+    }
 }
+
+
+
 
 void CustomInterpreter::instr_push() {
     ++pc;
@@ -220,11 +262,9 @@ void CustomInterpreter::instr_push() {
         return;
     }
 
-    auto instr_or_value = program[pc];
-
-    if (std::holds_alternative<Value>(instr_or_value)) {
-        Value val = std::get<Value>(instr_or_value);
-        Frame* frame = current_frame();
+    if (const auto instr_or_value = program[pc]; std::holds_alternative<Value>(instr_or_value)) {
+        const auto val = std::get<Value>(instr_or_value);
+        Frame* frame   = current_frame();
         if (frame == nullptr) {
             std::cerr << "Error: no current frame in instr_push" << std::endl;
             return;
@@ -259,9 +299,9 @@ void CustomInterpreter::instr_if_eq() {
         return;
     }
 
-    Value b = frame->operandStack.top();
+    const Value b = frame->operandStack.top();
     frame->operandStack.pop();
-    Value a = frame->operandStack.top();
+    const Value a = frame->operandStack.top();
     frame->operandStack.pop();
 
     frame_push(); // create frame
@@ -289,7 +329,6 @@ void CustomInterpreter::instr_if_eq() {
     }
 }
 
-// Implement other conditional instructions similarly...
 
 void CustomInterpreter::instr_call() {
     Frame* frame = current_frame();
@@ -303,7 +342,7 @@ void CustomInterpreter::instr_call() {
         return;
     }
 
-    Value addrVal = frame->operandStack.top();
+    const Value addrVal = frame->operandStack.top();
     frame->operandStack.pop();
 
     if (!std::holds_alternative<int64_t>(addrVal)) {
@@ -311,7 +350,7 @@ void CustomInterpreter::instr_call() {
         return;
     }
 
-    int64_t addr = std::get<int64_t>(addrVal);
+    const int64_t addr = std::get<int64_t>(addrVal);
 
     if (addr < 0 || addr >= static_cast<int64_t>(program.size())) {
         std::cerr << "Error: invalid program address in instr_call" << std::endl;
@@ -340,4 +379,155 @@ void CustomInterpreter::instr_ret() {
 
     pc = returnAddressStack.top();
     returnAddressStack.pop();
+}
+void CustomInterpreter::instr_if_ne() {
+    Frame* frame = current_frame();
+    if (frame == nullptr) {
+        std::cerr << "Error: no current frame in instr_if_ne" << std::endl;
+        return;
+    }
+
+    Value a, b;
+    if (!fetch_operands(frame, a, b)) {
+        return;
+    }
+
+    bool result;
+    if (!compare_values(a, b, result, "ne")) {
+        return;
+    }
+
+    handle_conditional_jump(result, pc + 1, pc + 2);
+}
+
+void CustomInterpreter::instr_if_lt() {
+    Frame* frame = current_frame();
+    if (frame == nullptr) {
+        std::cerr << "Error: no current frame in instr_if_lt" << std::endl;
+        return;
+    }
+
+    Value a, b;
+    if (!fetch_operands(frame, a, b)) {
+        return;
+    }
+
+    bool result;
+    if (!compare_values(a, b, result, "lt")) {
+        return;
+    }
+
+    handle_conditional_jump(result, pc + 1, pc + 2);
+}
+
+void CustomInterpreter::instr_if_gt() {
+    Frame* frame = current_frame();
+    if (frame == nullptr) {
+        std::cerr << "Error: no current frame in instr_if_gt" << std::endl;
+        return;
+    }
+
+    Value a, b;
+    if (!fetch_operands(frame, a, b)) {
+        return;
+    }
+
+    bool result;
+    if (!compare_values(a, b, result, "gt")) {
+        return;
+    }
+
+    handle_conditional_jump(result, pc + 1, pc + 2);
+}
+
+void CustomInterpreter::instr_if_le() {
+    Frame* frame = current_frame();
+    if (frame == nullptr) {
+        std::cerr << "Error: no current frame in instr_if_le" << std::endl;
+        return;
+    }
+
+    Value a, b;
+    if (!fetch_operands(frame, a, b)) {
+        return;
+    }
+
+    bool result;
+    if (!compare_values(a, b, result, "le")) {
+        return;
+    }
+
+    handle_conditional_jump(result, pc + 1, pc + 2);
+}
+
+void CustomInterpreter::instr_if_ge() {
+    Frame* frame = current_frame();
+    if (frame == nullptr) {
+        std::cerr << "Error: no current frame in instr_if_ge" << std::endl;
+        return;
+    }
+
+    Value a, b;
+    if (!fetch_operands(frame, a, b)) {
+        return;
+    }
+
+    bool result;
+    if (!compare_values(a, b, result, "ge")) {
+        return;
+    }
+
+    handle_conditional_jump(result, pc + 1, pc + 2);
+}
+
+
+bool CustomInterpreter::fetch_operands(Frame* frame, Value& a, Value& b) {
+    if (frame->operandStack.size() < 2) {
+        std::cerr << "Error: operand stack underflow" << std::endl;
+        return false;
+    }
+    b = frame->operandStack.top();
+    frame->operandStack.pop();
+    a = frame->operandStack.top();
+    frame->operandStack.pop();
+    return true;
+}
+
+bool CustomInterpreter::compare_values(const Value& a, const Value& b, bool& result, const std::string& op) {
+    if (a.index() != b.index()) {
+        std::cerr << "Error: type mismatch in " << op << std::endl;
+        return false;
+    }
+
+    if (std::holds_alternative<int64_t>(a)) {
+        const int64_t val_a = std::get<int64_t>(a);
+        const int64_t val_b = std::get<int64_t>(b);
+
+        if (op == "eq") {
+            result = val_a == val_b;
+        } else if (op == "ne") {
+            result = val_a != val_b;
+        } else if (op == "lt") {
+            result = val_a < val_b;
+        } else if (op == "gt") {
+            result = val_a > val_b;
+        } else if (op == "le") {
+            result = val_a <= val_b;
+        } else if (op == "ge") {
+            result = val_a >= val_b;
+        }
+    } else {
+        std::cerr << "Error: unsupported type in " << op << std::endl;
+        return false;
+    }
+    return true;
+}
+
+void CustomInterpreter::handle_conditional_jump(
+    const bool condition, const size_t true_offset, const size_t false_offset) {
+    if (condition) {
+        pc = true_offset;
+    } else {
+        pc = false_offset;
+    }
 }

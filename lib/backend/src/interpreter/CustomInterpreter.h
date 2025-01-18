@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CustomInterpreter.h"
 #include <cstdint>
 #include <iostream>
 #include <map>
@@ -15,8 +16,8 @@ enum Instr {
     OR, // pop a, pop b, push a | b
     NOT, // pop a, push !a
     PRINT, // pop one byte and write to stream
-    LOAD, // pop a, push byte read from address a
-    STORE, // pop a, pop b, write b to address a
+    LOAD, // pop a, push byte read from address a (string)
+    STORE, // pop a, pop b, write b to address a (string)
     GOTO, // pop a, goto a
     PUSH, // push next word
 
@@ -34,7 +35,7 @@ enum Instr {
     IF_GE, // pop a, pop b, create frame, if (a >= b) goto next
 };
 
-using Value = std::variant<int64_t, bool, float, std::vector<int64_t>, void*>;
+using Value = std::variant<std::string, int64_t, bool, std::vector<int64_t>>;
 
 using ValueOrInstr = std::variant<Instr, Value>;
 
@@ -91,4 +92,7 @@ private:
     void instr_if_gt();
     void instr_if_le();
     void instr_if_ge();
+    static bool fetch_operands(Frame* frame, Value& a, Value& b);
+    static bool compare_values(const Value& a, const Value& b, bool& result, const std::string& op);
+    void handle_conditional_jump(bool condition, size_t true_offset, size_t false_offset);
 };
