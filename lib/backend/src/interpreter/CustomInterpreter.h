@@ -19,17 +19,20 @@ enum Instr {
     STORE, // pop a, pop b, write b to address a
     GOTO, // pop a, goto a
     PUSH, // push next word,
-    FRAME_APPEND
+    FRAME_APPEND,
+    FRAME_EXIT
 };
 
 using Value = std::variant<int64_t, bool, float, std::vector<int64_t>, void*>;
 
 struct Frame {
     std::map<std::string, Value> localVariables;
+    std::stack<Value> operandStack;
+
 };
 
 class CustomInterpreter {
-    std::stack<Frame> stack;
+    std::stack<Frame> frameStack;
     std::vector<Instr> program;
     size_t pc;
 
@@ -48,4 +51,5 @@ private:
     void instr_store();
     void instr_goto();
     void instr_push();
+    void frame_append();
 };
