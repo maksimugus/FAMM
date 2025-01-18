@@ -21,7 +21,7 @@ enum Instr {
     GOTO, // pop a, goto a
     PUSH, // push next word
 
-    FRAME_APPEND, // write new frame
+    FRAME_PUSH, // write new frame
     FRAME_POP, // pop frame
 
     CALL, // push address, push arguments, create frame, goto address
@@ -40,9 +40,10 @@ using Value = std::variant<std::string, int64_t, bool, std::vector<int64_t>>;
 using ValueOrInstr = std::variant<Instr, Value>;
 
 struct Frame {
-    std::map<std::string, Value> localVariables; // Локальные переменные
-    std::stack<Value> operandStack; // Стек операндов
-    Frame* parentFrame; // Указатель на родительский фрейм
+    std::map<std::string, Value> localVariables = {}; // Локальные переменные
+    std::stack<Value> operandStack              = {}; // Стек операндов
+    Frame* parentFrame                          = nullptr; // Указатель на родительский фрейм
+    explicit Frame(Frame* parent) : parentFrame(parent) {}
 };
 
 class CustomInterpreter {
@@ -54,7 +55,7 @@ class CustomInterpreter {
 public:
     explicit CustomInterpreter(const std::vector<ValueOrInstr>& prog) : program(prog), pc(0) {
         // Создаем начальный фрейм
-        frameStack.push(new Frame{{}, {}, nullptr});
+        frameStack.emplace();
     }
     ~CustomInterpreter() {
         while (!frameStack.empty()) {
@@ -66,7 +67,8 @@ public:
     void run();
 
 private:
-    void frame_push();
+    void push_sibling_frame(); // recurrent functions
+    void push_child_frame(); // while, for, if
     void frame_pop();
     Frame* current_frame();
 
@@ -80,13 +82,13 @@ private:
     void instr_store();
     void instr_goto();
     void instr_push();
-    void instr_frame_append();
+    void instr_frame_push();
     void instr_frame_pop();
 
     // Условные переходы
-    void instr_if_eq();
     void instr_call();
     void instr_ret();
+    void instr_if_eq();
     void instr_if_ne();
     void instr_if_lt();
     void instr_if_gt();
@@ -94,5 +96,5 @@ private:
     void instr_if_ge();
     static bool fetch_operands(Frame* frame, Value& a, Value& b);
     static bool compare_values(const Value& a, const Value& b, bool& result, const std::string& op);
-    void handle_conditional_jump(bool condition, size_t true_offset, size_t false_offset);
+    void handle_conditional_jump(bool condition);
 };

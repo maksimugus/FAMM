@@ -39,8 +39,8 @@ void CustomInterpreter::run() {
             case PUSH:
                 instr_push();
                 break;
-            case FRAME_APPEND:
-                instr_frame_append();
+            case FRAME_PUSH:
+                instr_frame_push();
                 break;
             case FRAME_POP:
                 instr_frame_pop();
@@ -87,9 +87,13 @@ Frame* CustomInterpreter::current_frame() {
     return frameStack.top();
 }
 
-void CustomInterpreter::frame_push() {
+void CustomInterpreter::push_sibling_frame() {
+    frameStack.emplace();
+}
+
+void CustomInterpreter::push_child_frame() {
     Frame* parent = current_frame();
-    frameStack.push(new Frame{{}, {}, parent});
+    frameStack.emplace(parent);
 }
 
 void CustomInterpreter::frame_pop() {
@@ -121,7 +125,7 @@ void CustomInterpreter::instr_add() {
 
     if (std::holds_alternative<int64_t>(a) && std::holds_alternative<int64_t>(b)) {
         int64_t result = std::get<int64_t>(a) + std::get<int64_t>(b);
-        frame->operandStack.push(result);
+        frame->operandStack.emplace(result);
     } else {
         std::cerr << "Error: type mismatch in instr_add" << std::endl;
     }
@@ -130,15 +134,84 @@ void CustomInterpreter::instr_add() {
 }
 
 void CustomInterpreter::instr_sub() {
-    // Similar to instr_add, implementation omitted for brevity
+    Frame* frame = current_frame();
+    if (frame == nullptr) {
+        std::cerr << "Error: no current frame in instr_sub" << std::endl;
+        return;
+    }
+
+    if (frame->operandStack.size() < 2) {
+        std::cerr << "Error: operand stack underflow in instr_add" << std::endl;
+        return;
+    }
+
+    const Value b = frame->operandStack.top();
+    frame->operandStack.pop();
+    const Value a = frame->operandStack.top();
+    frame->operandStack.pop();
+
+    if (std::holds_alternative<int64_t>(a) && std::holds_alternative<int64_t>(b)) {
+        int64_t result = std::get<int64_t>(a) - std::get<int64_t>(b);
+        frame->operandStack.emplace(result);
+    } else {
+        std::cerr << "Error: type mismatch in instr_sub" << std::endl;
+    }
+
+    ++pc;
 }
 
 void CustomInterpreter::instr_and() {
-    // Similar to instr_add, implementation omitted for brevity
+    Frame* frame = current_frame();
+    if (frame == nullptr) {
+        std::cerr << "Error: no current frame in instr_and" << std::endl;
+        return;
+    }
+
+    if (frame->operandStack.size() < 2) {
+        std::cerr << "Error: operand stack underflow in instr_and" << std::endl;
+        return;
+    }
+
+    const Value b = frame->operandStack.top();
+    frame->operandStack.pop();
+    const Value a = frame->operandStack.top();
+    frame->operandStack.pop();
+
+    if (std::holds_alternative<bool>(a) && std::holds_alternative<bool>(b)) {
+        int64_t result = std::get<bool>(a) && std::get<bool>(b);
+        frame->operandStack.emplace(result);
+    } else {
+        std::cerr << "Error: type mismatch in instr_and" << std::endl;
+    }
+
+    ++pc;
 }
 
 void CustomInterpreter::instr_or() {
-    // Similar to instr_add, implementation omitted for brevity
+    Frame* frame = current_frame();
+    if (frame == nullptr) {
+        std::cerr << "Error: no current frame in instr_or" << std::endl;
+        return;
+    }
+
+    if (frame->operandStack.size() < 2) {
+        std::cerr << "Error: operand stack underflow in instr_or" << std::endl;
+        return;
+    }
+
+    const Value b = frame->operandStack.top();
+    frame->operandStack.pop();
+    const Value a = frame->operandStack.top();
+    frame->operandStack.pop();
+
+    if (std::holds_alternative<bool>(a) && std::holds_alternative<bool>(b)) {
+        int64_t result = std::get<bool>(a) || std::get<bool>(b);
+        frame->operandStack.emplace(result);
+    } else {
+        std::cerr << "Error: type mismatch in instr_or" << std::endl;
+    }
+
+    ++pc;
 }
 
 void CustomInterpreter::instr_not() {
@@ -158,7 +231,7 @@ void CustomInterpreter::instr_not() {
 
     if (std::holds_alternative<bool>(a)) {
         bool result = !std::get<bool>(a);
-        frame->operandStack.push(result);
+        frame->operandStack.emplace(result);
     } else {
         std::cerr << "Error: type mismatch in instr_not" << std::endl;
     }
@@ -234,7 +307,7 @@ void CustomInterpreter::instr_store() {
             frame = frame->parentFrame;
         }
 
-        std::cerr << "Error: Address '" << address << "' not found in any frame!" << std::endl;
+        current_frame()->localVariables.emplace(address, value_to_store);
         return;
     }
 
@@ -245,15 +318,13 @@ void CustomInterpreter::instr_goto() {
     const Value address_value = current_frame()->operandStack.top();
     current_frame()->operandStack.pop();
 
+    // TODO check
     if (std::holds_alternative<int64_t>(address_value)) {
         pc = std::get<int64_t>(address_value);
     } else {
         std::cerr << "Error: Expected an integer address in instr_goto!" << std::endl;
     }
 }
-
-
-
 
 void CustomInterpreter::instr_push() {
     ++pc;
@@ -270,15 +341,14 @@ void CustomInterpreter::instr_push() {
             return;
         }
         frame->operandStack.push(val);
-        ++pc;
     } else {
         std::cerr << "Error: expected value after PUSH at pc " << pc << std::endl;
-        ++pc;
     }
+    ++pc;
 }
 
-void CustomInterpreter::instr_frame_append() {
-    frame_push();
+void CustomInterpreter::instr_frame_push() {
+    push_child_frame();
     ++pc;
 }
 
@@ -286,49 +356,6 @@ void CustomInterpreter::instr_frame_pop() {
     frame_pop();
     ++pc;
 }
-
-void CustomInterpreter::instr_if_eq() {
-    Frame* frame = current_frame();
-    if (frame == nullptr) {
-        std::cerr << "Error: no current frame in instr_if_eq" << std::endl;
-        return;
-    }
-
-    if (frame->operandStack.size() < 2) {
-        std::cerr << "Error: operand stack underflow in instr_if_eq" << std::endl;
-        return;
-    }
-
-    const Value b = frame->operandStack.top();
-    frame->operandStack.pop();
-    const Value a = frame->operandStack.top();
-    frame->operandStack.pop();
-
-    frame_push(); // create frame
-
-    bool condition = false;
-
-    if (a.index() == b.index()) {
-        if (std::holds_alternative<int64_t>(a)) {
-            condition = std::get<int64_t>(a) == std::get<int64_t>(b);
-        } else if (std::holds_alternative<float>(a)) {
-            condition = std::get<float>(a) == std::get<float>(b);
-        } else if (std::holds_alternative<bool>(a)) {
-            condition = std::get<bool>(a) == std::get<bool>(b);
-        } else {
-            std::cerr << "Error: unsupported types in instr_if_eq" << std::endl;
-        }
-    } else {
-        condition = false;
-    }
-
-    if (condition) {
-        ++pc;
-    } else {
-        pc += 2;
-    }
-}
-
 
 void CustomInterpreter::instr_call() {
     Frame* frame = current_frame();
@@ -359,7 +386,7 @@ void CustomInterpreter::instr_call() {
 
     returnAddressStack.push(pc + 1);
 
-    frame_push(); // create new frame
+    push_sibling_frame(); // create new frame
 
     pc = addr;
 }
@@ -380,6 +407,27 @@ void CustomInterpreter::instr_ret() {
     pc = returnAddressStack.top();
     returnAddressStack.pop();
 }
+
+void CustomInterpreter::instr_if_eq() {
+    Frame* frame = current_frame();
+    if (frame == nullptr) {
+        std::cerr << "Error: no current frame in instr_if_eq" << std::endl;
+        return;
+    }
+
+    Value a, b;
+    if (!fetch_operands(frame, a, b)) {
+        return;
+    }
+
+    bool result;
+    if (!compare_values(a, b, result, "eq")) {
+        return;
+    }
+
+    handle_conditional_jump(result);
+}
+
 void CustomInterpreter::instr_if_ne() {
     Frame* frame = current_frame();
     if (frame == nullptr) {
@@ -397,7 +445,7 @@ void CustomInterpreter::instr_if_ne() {
         return;
     }
 
-    handle_conditional_jump(result, pc + 1, pc + 2);
+    handle_conditional_jump(result);
 }
 
 void CustomInterpreter::instr_if_lt() {
@@ -417,7 +465,7 @@ void CustomInterpreter::instr_if_lt() {
         return;
     }
 
-    handle_conditional_jump(result, pc + 1, pc + 2);
+    handle_conditional_jump(result);
 }
 
 void CustomInterpreter::instr_if_gt() {
@@ -437,7 +485,7 @@ void CustomInterpreter::instr_if_gt() {
         return;
     }
 
-    handle_conditional_jump(result, pc + 1, pc + 2);
+    handle_conditional_jump(result);
 }
 
 void CustomInterpreter::instr_if_le() {
@@ -457,7 +505,7 @@ void CustomInterpreter::instr_if_le() {
         return;
     }
 
-    handle_conditional_jump(result, pc + 1, pc + 2);
+    handle_conditional_jump(result);
 }
 
 void CustomInterpreter::instr_if_ge() {
@@ -477,9 +525,8 @@ void CustomInterpreter::instr_if_ge() {
         return;
     }
 
-    handle_conditional_jump(result, pc + 1, pc + 2);
+    handle_conditional_jump(result);
 }
-
 
 bool CustomInterpreter::fetch_operands(Frame* frame, Value& a, Value& b) {
     if (frame->operandStack.size() < 2) {
@@ -523,11 +570,23 @@ bool CustomInterpreter::compare_values(const Value& a, const Value& b, bool& res
     return true;
 }
 
-void CustomInterpreter::handle_conditional_jump(
-    const bool condition, const size_t true_offset, const size_t false_offset) {
-    if (condition) {
-        pc = true_offset;
-    } else {
-        pc = false_offset;
+void CustomInterpreter::handle_conditional_jump(const bool condition) {
+    const auto arg = program[++pc];
+    if (!std::holds_alternative<Value>(arg)) {
+        std::cerr << "Error: expected Value in line " + pc << std::endl;
+        return;
     }
+
+    const auto value = std::get<Value>(arg);
+    if (!std::holds_alternative<int64_t>(value)) {
+        std::cerr << "Error: expected Value in line " + pc << std::endl;
+        return;
+    }
+
+    const auto line_number = std::get<int64_t>(value);
+    if (line_number <= pc) {
+        std::cerr << "Error: can't go back after if" << std::endl;
+    }
+
+    pc = condition ? pc + 1 : line_number;
 }
