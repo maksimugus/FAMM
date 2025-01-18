@@ -70,23 +70,28 @@ int main(int argc, const char* argv[]) {
         std::cout << tree->toStringTree(&parser) << "\n\n";
     }
 
-    auto visitor = LLVMIRGenerator();
-    if (bool success = generateLLVMIR(visitor, tree); !success) {
-        return 1;
+    if (cli.jit() or cli.compile()) {
+        auto visitor = LLVMIRGenerator();
+        if (bool success = generateLLVMIR(visitor, tree); !success) {
+            return 1;
+        }
+
+        if (cli.printUnoptimized()) {
+            visitor.printIR();
+        }
+
+        llvm::InitializeNativeTarget();
+        llvm::InitializeNativeTargetAsmPrinter();
+        llvm::InitializeNativeTargetAsmParser();
+
+        if (cli.compile()) {
+            compile(visitor, cli);
+        } else {
+            run(visitor, cli);
+        }
+        return 0;
     }
 
-    if (cli.printUnoptimized()) {
-        visitor.printIR();
-    }
+    // auto visitor = LLVMIRGenerator();
 
-    llvm::InitializeNativeTarget();
-    llvm::InitializeNativeTargetAsmPrinter();
-    llvm::InitializeNativeTargetAsmParser();
-
-    if (cli.compile()) {
-        compile(visitor, cli);
-    } else {
-        run(visitor, cli);
-    }
-    return 0;
 }

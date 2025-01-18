@@ -1,5 +1,6 @@
 #include "Visitor.h"
 
+#include <ranges>
 #include <stdexcept>
 
 
@@ -51,8 +52,8 @@ llvm::Value* LLVMIRGenerator::execute(tree::ParseTree* node) {
 }
 
 llvm::AllocaInst* LLVMIRGenerator::findVariable(const std::string& name) {
-    for (auto it = scopeStack.rbegin(); it != scopeStack.rend(); ++it) {
-        if (auto& variables = it->variables; variables.contains(name)) {
+    for (auto & [variables] : std::ranges::reverse_view(scopeStack)) {
+        if (variables.contains(name)) {
             return variables[name];
         }
     }

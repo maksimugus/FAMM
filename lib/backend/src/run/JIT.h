@@ -40,21 +40,11 @@ public:
             }
         }
 
-        llvm::ExecutionEngine* engine;
-        if (cli.jit()) {
-            engine = llvm::EngineBuilder(std::move(module))
+        llvm::ExecutionEngine* engine = llvm::EngineBuilder(std::move(module))
                          .setErrorStr(&error)
                          .setEngineKind(llvm::EngineKind::JIT)
                          .setMCJITMemoryManager(std::make_unique<llvm::SectionMemoryManager>())
                          .create();
-
-        } else {
-            LLVMLinkInInterpreter();
-            engine = llvm::EngineBuilder(std::move(module))
-                         .setErrorStr(&error)
-                         .setEngineKind(llvm::EngineKind::Interpreter)
-                         .create();
-        }
 
 
 
@@ -89,8 +79,6 @@ private:
 
     static void optimizeModule(llvm::Module& module) {
         llvm::legacy::PassManager passManager;
-
-        // todo выбрать нужные нам оптимизации, посмотреть какие ещё есть
 
         passManager.add(llvm::createPromoteMemoryToRegisterPass()); // SSA form
         passManager.add(llvm::createInstructionCombiningPass()); // Combine instructions
