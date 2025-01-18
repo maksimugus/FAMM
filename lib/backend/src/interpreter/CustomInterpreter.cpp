@@ -3,74 +3,36 @@ void CustomInterpreter::run() {
     while (pc < program.size()) {
         switch (program[pc]) {
         case NOP:
-            // Do nothing
             break;
         case ADD:
-            {
-                auto b = stack.top().get<int>();
-                stack.pop();
-                int a = stack.top();
-                stack.pop();
-                stack.push(a + b);
-                break;
-            }
+            instr_add();
+            break;
         case SUB:
-            {
-                int b = stack.top();
-                stack.pop();
-                int a = stack.top();
-                stack.pop();
-                stack.push(a - b);
-                break;
-            }
+            instr_sub();
+            break;
         case AND:
-            {
-                int b = stack.top();
-                stack.pop();
-                int a = stack.top();
-                stack.pop();
-                stack.push(a & b);
-                break;
-            }
+            instr_and();
+            break;
         case OR:
-            {
-                int b = stack.top();
-                stack.pop();
-                int a = stack.top();
-                stack.pop();
-                stack.push(a | b);
-                break;
-            }
+            instr_or();
+            break;
         case NOT:
-            {
-                int a = stack.top();
-                stack.pop();
-                stack.push(~a);
-                break;
-            }
-        case OUT:
-            {
-                int a = stack.top();
-                stack.pop();
-                std::cout << static_cast<char>(a);
-                break;
-            }
+            instr_not();
+            break;
+        case PRINT:
+            instr_print();
+            break;
         case LOAD:
-            {
-                int a = stack.top();
+                auto a = stack.top();
                 stack.pop();
                 stack.push(memory[a]);
-                break;
-            }
-        case STOR:
-            {
-                int b = stack.top();
+        case STORE:
+                std::string b = stack.top();
                 stack.pop();
                 int a = stack.top();
                 stack.pop();
                 memory[a] = b;
                 break;
-            }
         case GOTO:
             {
                 int a = stack.top();
@@ -81,9 +43,6 @@ void CustomInterpreter::run() {
         case PUSH:
             // Implement push logic here
             break;
-        case POP:
-            stack.pop();
-            break;
         default:
             std::cerr << "Unknown instruction" << std::endl;
             break;
@@ -91,14 +50,61 @@ void CustomInterpreter::run() {
         ++pc;
     }
 }
-void CustomInterpreter::instr_add() {}
-void CustomInterpreter::instr_sub() {}
-void CustomInterpreter::instr_and() {}
-void CustomInterpreter::instr_or() {}
-void CustomInterpreter::instr_not() {}
-void CustomInterpreter::instr_out() {}
-void CustomInterpreter::instr_load() {}
-void CustomInterpreter::instr_stor() {}
-void CustomInterpreter::instr_goto() {}
-void CustomInterpreter::instr_push() {}
-void CustomInterpreter::instr_pop() {}
+
+void CustomInterpreter::instr_add() {
+    auto b = std::get<int64_t>(stack.top());
+    stack.pop();
+    auto a = std::get<int64_t>(stack.top());
+    stack.pop();
+    stack.emplace(a + b);
+}
+
+void CustomInterpreter::instr_sub() {
+    auto b = std::get<int64_t>(stack.top());
+    stack.pop();
+    auto a = std::get<int64_t>(stack.top());
+    stack.pop();
+    stack.emplace(a - b);
+}
+
+void CustomInterpreter::instr_and() {
+    auto b = std::get<bool>(stack.top());
+    stack.pop();
+    auto a = std::get<bool>(stack.top());
+    stack.pop();
+    stack.emplace(a && b);
+}
+
+void CustomInterpreter::instr_or() {
+    auto b = std::get<bool>(stack.top());
+    stack.pop();
+    auto a = std::get<bool>(stack.top());
+    stack.pop();
+    stack.emplace(a || b);
+}
+
+void CustomInterpreter::instr_not() {
+    auto a = std::get<bool>(stack.top());
+    stack.pop();
+    stack.emplace(~a);
+}
+
+void CustomInterpreter::instr_print() {
+
+}
+
+void CustomInterpreter::instr_load() {
+
+}
+
+void CustomInterpreter::instr_store() {
+
+}
+
+void CustomInterpreter::instr_goto() {
+
+}
+
+void CustomInterpreter::instr_push() {
+
+}

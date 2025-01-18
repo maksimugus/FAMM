@@ -2,11 +2,10 @@
 
 #include <cstdint>
 #include <iostream>
+#include <map>
 #include <stack>
 #include <variant>
 #include <vector>
-
-using Value = std::variant<int64_t, bool, float, std::vector<int64_t>, void*>;
 
 enum Instr {
     NOP, // do nothing
@@ -15,17 +14,22 @@ enum Instr {
     AND, // pop a, pop b, push a & b
     OR, // pop a, pop b, push a | b
     NOT, // pop a, push !a
-    OUT, // pop one byte and write to stream
+    PRINT, // pop one byte and write to stream
     LOAD, // pop a, push byte read from address a
-    STOR, // pop a, pop b, write b to address a
+    STORE, // pop a, pop b, write b to address a
     GOTO, // pop a, goto a
-    PUSH, // push next word
-    POP, // remove top of stack
+    PUSH, // push next word,
+    FRAME_APPEND
+};
+
+using Value = std::variant<int64_t, bool, float, std::vector<int64_t>, void*>;
+
+struct Frame {
+    std::map<std::string, Value> localVariables;
 };
 
 class CustomInterpreter {
-
-    std::stack<Value> stack;
+    std::stack<Frame> stack;
     std::vector<Instr> program;
     size_t pc;
 
@@ -39,10 +43,9 @@ private:
     void instr_and();
     void instr_or();
     void instr_not();
-    void instr_out();
+    void instr_print();
     void instr_load();
-    void instr_stor();
+    void instr_store();
     void instr_goto();
     void instr_push();
-    void instr_pop();
 };
