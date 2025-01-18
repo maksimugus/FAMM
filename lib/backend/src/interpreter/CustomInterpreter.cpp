@@ -105,6 +105,11 @@ void CustomInterpreter::frame_pop() {
         std::cerr << "Error: frame stack underflow on frame_pop" << std::endl;
     }
 }
+void CustomInterpreter::frame_pop_on_return() {
+
+    const auto frame = current_frame();
+    while
+}
 
 void CustomInterpreter::instr_add() {
     Frame* frame = current_frame();
@@ -265,6 +270,11 @@ void CustomInterpreter::instr_print() {
     ++pc;
 }
 
+// push "a"
+// load
+// push 1
+// add
+
 void CustomInterpreter::instr_load() {
     const Value address_value = current_frame()->operandStack.top();
     current_frame()->operandStack.pop();
@@ -325,7 +335,9 @@ void CustomInterpreter::instr_goto() {
         std::cerr << "Error: Expected an integer address in instr_goto!" << std::endl;
     }
 }
-
+// push vector(1,2,3)
+// push "a"
+// store
 void CustomInterpreter::instr_push() {
     ++pc;
     if (pc >= program.size()) {
@@ -357,8 +369,20 @@ void CustomInterpreter::instr_frame_pop() {
     ++pc;
 }
 
+
+// var b: int = a;
+// var b = abas(1,2,3+1)
+
+// push 1
+// push 2
+// push 1
+// push 3
+// add
+// push "abas"
+// call
+
 void CustomInterpreter::instr_call() {
-    Frame* frame = current_frame();
+    const Frame* frame = current_frame();
     if (frame == nullptr) {
         std::cerr << "Error: no current frame in instr_call" << std::endl;
         return;
@@ -369,27 +393,36 @@ void CustomInterpreter::instr_call() {
         return;
     }
 
-    const Value addrVal = frame->operandStack.top();
-    frame->operandStack.pop();
+    const Value funcNameValue = current_frame()->operandStack.top();
+    current_frame()->operandStack.pop();
 
-    if (!std::holds_alternative<int64_t>(addrVal)) {
-        std::cerr << "Error: invalid address type in instr_call" << std::endl;
-        return;
+    const std::string funcName = std::get<std::string>(funcNameValue);
+
+    if (const auto funcIter = globalFunctions.find(funcName); funcIter != globalFunctions.end()) {
+        const auto funcInfo = funcIter->second;
+
+        std::vector<Value> args;
+        for (size_t i = 0; i < funcInfo->parametersCount; ++i) {
+            if (!current_frame()->operandStack.empty()) {
+                args.push_back(current_frame()->operandStack.top());
+                current_frame()->operandStack.pop();
+            }
+        }
+
+        returnAddressStack.push(pc + 1);
+
+        push_sibling_frame();
+
+        for (size_t i = 0; i < funcInfo->parametersCount; ++i) {
+            current_frame()->localVariables["param_" + std::to_string(i)] = args[i];
+        }
+
+        pc = funcInfo->functionStart;
     }
-
-    const int64_t addr = std::get<int64_t>(addrVal);
-
-    if (addr < 0 || addr >= static_cast<int64_t>(program.size())) {
-        std::cerr << "Error: invalid program address in instr_call" << std::endl;
-        return;
-    }
-
-    returnAddressStack.push(pc + 1);
-
-    push_sibling_frame(); // create new frame
-
-    pc = addr;
 }
+
+// ret value -> return value
+
 
 void CustomInterpreter::instr_ret() {
     if (frameStack.empty()) {
@@ -397,7 +430,12 @@ void CustomInterpreter::instr_ret() {
         return;
     }
 
-    frame_pop();
+    const Value funcNameValue = current_frame()->operandStack.top();
+    current_frame()->operandStack.pop();
+
+    frame_pop(); // todo
+
+
 
     if (returnAddressStack.empty()) {
         std::cerr << "Error: return address stack underflow in instr_ret" << std::endl;

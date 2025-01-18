@@ -24,7 +24,8 @@ enum Instr {
     FRAME_PUSH, // write new frame
     FRAME_POP, // pop frame
 
-    CALL, // push address, push arguments, create frame, goto address
+    DECL_FUNC, // push name, push parametersCount,
+    CALL, // push address, push arguments, create frame, goto name
     RET, // pop frame, restore pc
 
     IF_EQ, // pop a, pop b, create frame, if (a == b) goto next
@@ -46,11 +47,20 @@ struct Frame {
     explicit Frame(Frame* parent) : parentFrame(parent) {}
 };
 
+struct FunctionInfo {
+    size_t functionStart;
+    size_t parametersCount;
+    Value returnValue;
+    FunctionInfo(const size_t functionStart, const size_t parametersCount)
+        : functionStart(functionStart), parametersCount(parametersCount) {}
+};
+
 class CustomInterpreter {
     std::stack<Frame*> frameStack; // Стек фреймов
     std::vector<ValueOrInstr> program; // Программа
     size_t pc; // Счетчик команд
     std::stack<size_t> returnAddressStack; // стек адресов возврата
+    std::map<std::string, FunctionInfo*> globalFunctions;
 
 public:
     explicit CustomInterpreter(const std::vector<ValueOrInstr>& prog) : program(prog), pc(0) {
@@ -70,6 +80,7 @@ private:
     void push_sibling_frame(); // recurrent functions
     void push_child_frame(); // while, for, if
     void frame_pop();
+    void frame_pop_on_return();
     Frame* current_frame();
 
     void instr_add();
