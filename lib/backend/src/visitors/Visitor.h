@@ -3,6 +3,7 @@
 #include "FAMMParser.h"
 #include "Scope.h"
 #include "antlr4-runtime.h"
+#include "interpreter/CustomInterpreter.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
@@ -17,6 +18,10 @@ public:
     void printIR() const;
     std::unique_ptr<llvm::Module> getModule() {
         return std::move(module);
+    }
+
+    void setFammIR() {
+        fammIR = true;
     }
 
     void enterScope();
@@ -74,6 +79,9 @@ public:
 
 
 private:
+    bool fammIR                       = false;
+    std::vector<ValueOrInstr> program = {};
+
     std::unique_ptr<llvm::LLVMContext> context;
     llvm::IRBuilder<> builder;
     std::unique_ptr<llvm::Module> module;
