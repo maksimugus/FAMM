@@ -12,7 +12,7 @@ enum Instr {
     ADD, // pop a, pop b, push a + b
     SUB, // pop a, pop b, push a - b
     AND, // pop a, pop b, push a & b
-    OR,  // pop a, pop b, push a | b
+    OR, // pop a, pop b, push a | b
     NOT, // pop a, push !a
     PRINT, // pop one byte and write to stream
     LOAD, // pop a, push byte read from address a
@@ -21,10 +21,10 @@ enum Instr {
     PUSH, // push next word
 
     FRAME_APPEND, // write new frame
-    FRAME_POP,    // pop frame
+    FRAME_POP, // pop frame
 
     CALL, // push address, push arguments, create frame, goto address
-    RET,  // pop frame, restore pc
+    RET, // pop frame, restore pc
 
     IF_EQ, // pop a, pop b, create frame, if (a == b) goto next
     IF_NE, // pop a, pop b, create frame, if (a != b) goto next
@@ -36,19 +36,22 @@ enum Instr {
 
 using Value = std::variant<int64_t, bool, float, std::vector<int64_t>, void*>;
 
+using ValueOrInstr = std::variant<Instr, Value>;
+
 struct Frame {
     std::map<std::string, Value> localVariables; // Локальные переменные
-    std::stack<Value> operandStack;             // Стек операндов
-    Frame* parentFrame;                         // Указатель на родительский фрейм
+    std::stack<Value> operandStack; // Стек операндов
+    Frame* parentFrame; // Указатель на родительский фрейм
 };
 
 class CustomInterpreter {
     std::stack<Frame*> frameStack; // Стек фреймов
-    std::vector<Instr> program;    // Программа
-    size_t pc;                     // Счетчик команд
+    std::vector<ValueOrInstr> program; // Программа
+    size_t pc; // Счетчик команд
+    std::stack<size_t> returnAddressStack; // стек адресов возврата
 
 public:
-    explicit CustomInterpreter(const std::vector<Instr>& prog) : program(prog), pc(0) {
+    explicit CustomInterpreter(const std::vector<ValueOrInstr>& prog) : program(prog), pc(0) {
         // Создаем начальный фрейм
         frameStack.push(new Frame{{}, {}, nullptr});
     }
@@ -81,6 +84,8 @@ private:
 
     // Условные переходы
     void instr_if_eq();
+    void instr_call();
+    void instr_ret();
     void instr_if_ne();
     void instr_if_lt();
     void instr_if_gt();
