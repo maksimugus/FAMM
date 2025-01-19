@@ -1,4 +1,4 @@
-func sieve(): nih = {
+func sieve(): int = {
     var is_prime: [bool, 100000];
     is_prime[1] = false;
 
@@ -21,6 +21,8 @@ func sieve(): nih = {
             display(j);
         };
     };
+
+    return 0;
 };
 
 sieve();

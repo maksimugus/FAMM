@@ -1,9 +1,9 @@
-func merge(arr: [int, 10000], left: int, mid: int, right: int): [int, 10000] = {
+func merge(arr: [int, 1000], left: int, mid: int, right: int): [int, 1000] = {
     var n1: int = mid - left + 1;
     var n2: int = right - mid;
 
-    var leftArray: [int, 10000];
-    var rightArray: [int, 10000];
+    var leftArray: [int, 1000];
+    var rightArray: [int, 1000];
 
     for (var i: int = 0 -> n1 by 1) {
         leftArray[i] = arr[left + i];
@@ -43,7 +43,7 @@ func merge(arr: [int, 10000], left: int, mid: int, right: int): [int, 10000] = {
     return arr;
 };
 
-func mergeSortHelper(arr: [int, 10000], left: int, right: int): [int, 10000] = {
+func mergeSortHelper(arr: [int, 1000], left: int, right: int): [int, 1000] = {
     if (left < right) {
         var mid: int = (left + right) // 2;
 
@@ -55,18 +55,18 @@ func mergeSortHelper(arr: [int, 10000], left: int, right: int): [int, 10000] = {
     return arr;
 };
 
-func mergeSort(arr: [int, 10000]): [int, 10000] = {
-    return mergeSortHelper(arr, 0, 9999);
+func mergeSort(arr: [int, 1000]): [int, 1000] = {
+    return mergeSortHelper(arr, 0, 1000 - 1);
 };
 
-var array: [int, 10000];
+var array: [int, 1000];
 
-for (var k: int = 0 -> 10000 by 1) {
+for (var k: int = 0 -> 1000 by 1) {
     array[k] = 1000 - k;
 };
 
 array = mergeSort(array);
 
-for (var i: int = 0 -> 10000 by 1) {
+for (var i: int = 0 -> 1000 by 1) {
     display(array[i]);
 };
