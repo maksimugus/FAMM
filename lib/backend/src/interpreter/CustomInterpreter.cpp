@@ -91,6 +91,10 @@ void CustomInterpreter::run() {
                 instr_arr_store_elem();
                 break;
 
+            case ARR_MAKE:
+                instr_arr_make();
+                break;
+
             default:
                 std::cerr << "Unknown instruction at pc " << pc << std::endl;
                 return;
@@ -848,5 +852,34 @@ void CustomInterpreter::instr_arr_store_elem() {
         const auto value_to_store = std::get<bool>(el3);
         auto array_bool           = std::get<std::vector<bool>>(array);
         array_bool[arr_ind]       = value_to_store;
+    }
+}
+void CustomInterpreter::instr_arr_make() {
+    const auto el1 = current_frame()->operandStack.top();
+    current_frame()->operandStack.pop();
+
+    const auto array_size = std::get<int64_t>(el1);
+
+    std::vector<Value> values(array_size);
+
+    for (int64_t i = 0; i < array_size; i++) {
+        values[i] = current_frame()->operandStack.top();
+        current_frame()->operandStack.pop();
+    }
+
+    if (std::holds_alternative<bool>(values[0])) {
+        std::vector<bool> values_bool;
+        values_bool.reserve(array_size);
+        for (const auto& val : values) {
+            values_bool.push_back(std::get<bool>(val));
+        }
+        current_frame()->operandStack.emplace(values_bool);
+    } else if (std::holds_alternative<int64_t>(values[0])) {
+        std::vector<int64_t> values_int;
+        values_int.reserve(array_size);
+        for (const auto& val : values) {
+            values_int.push_back(std::get<int64_t>(val));
+        }
+        current_frame()->operandStack.emplace(values_int);
     }
 }
