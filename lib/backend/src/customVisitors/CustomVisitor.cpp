@@ -515,6 +515,12 @@ void FammByteCodeGenerator::printFammIR() const {
             case Instr::ARR_LOAD_ELEM:
                 std::cout << "ARR_LOAD_ELEM";
                 break;
+            case Instr::ARR_STORE_ELEM:
+                std::cout << "ARR_STORE_ELEM";
+                break;
+            case Instr::ARR_MAKE:
+                std::cout << "ARR_MAKE";
+                break;
             default:
                 std::cout << "UNKNOWN";
                 break;
