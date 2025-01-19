@@ -11,15 +11,12 @@ enum Instr {
     NOP, // do nothing
     ADD, // pop a, pop b, push a + b
     SUB, // pop a, pop b, push a - b
-    MULT,
-    DIV,
-    FLOOR_DIV,
-    MOD,
     AND, // pop a, pop b, push a & b
     OR, // pop a, pop b, push a | b
     NOT, // pop a, push !a
     MUL, // pop a, pop b, push a * b
     DIV, // pop a, pop b, push a / b    // floor div
+    MOD, // pop a, pop b, push a % b
 
     PRINT, // pop a (any) and cout
 
@@ -87,6 +84,7 @@ public:
     }
 
 
+
     void run();
 
 private:
@@ -103,6 +101,7 @@ private:
     void instr_not();
     void instr_mul();
     void instr_div();
+    void instr_mod();
 
     void instr_print();
     void instr_load();

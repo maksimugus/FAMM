@@ -30,6 +30,9 @@ void CustomInterpreter::run() {
             case DIV:
                 instr_div();
                 break;
+            case MOD:
+                instr_mod();
+                break;
             case PRINT:
                 instr_print();
                 break;
@@ -290,12 +293,12 @@ void CustomInterpreter::instr_mul() {
 void CustomInterpreter::instr_div() {
     Frame* frame = current_frame();
     if (frame == nullptr) {
-        std::cerr << "Error: no current frame in instr_sub" << std::endl;
+        std::cerr << "Error: no current frame in instr_div" << std::endl;
         return;
     }
 
     if (frame->operandStack.size() < 2) {
-        std::cerr << "Error: operand stack underflow in instr_add" << std::endl;
+        std::cerr << "Error: operand stack underflow in instr_div" << std::endl;
         return;
     }
 
@@ -308,7 +311,33 @@ void CustomInterpreter::instr_div() {
         int64_t result = std::get<int64_t>(a) / std::get<int64_t>(b);
         frame->operandStack.emplace(result);
     } else {
-        std::cerr << "Error: type mismatch in instr_sub" << std::endl;
+        std::cerr << "Error: type mismatch in instr_div" << std::endl;
+    }
+
+    ++pc;
+}
+void CustomInterpreter::instr_mod() {
+    Frame* frame = current_frame();
+    if (frame == nullptr) {
+        std::cerr << "Error: no current frame in instr_mod" << std::endl;
+        return;
+    }
+
+    if (frame->operandStack.size() < 2) {
+        std::cerr << "Error: operand stack underflow in instr_mod" << std::endl;
+        return;
+    }
+
+    const Value b = frame->operandStack.top();
+    frame->operandStack.pop();
+    const Value a = frame->operandStack.top();
+    frame->operandStack.pop();
+
+    if (std::holds_alternative<int64_t>(a) && std::holds_alternative<int64_t>(b)) {
+        int64_t result = std::get<int64_t>(a) % std::get<int64_t>(b);
+        frame->operandStack.emplace(result);
+    } else {
+        std::cerr << "Error: type mismatch in instr_mod" << std::endl;
     }
 
     ++pc;
@@ -781,7 +810,9 @@ void CustomInterpreter::instr_arr_access() {
     const auto array = current_frame()->operandStack.top();
     current_frame()->operandStack.pop();
 
+    // if (std::holds_alternative<Value>(array)) {}
     auto array_vec = std::get<std::vector<int64_t>>(array);
+
 
     const auto index = current_frame()->operandStack.top();
     current_frame()->operandStack.pop();

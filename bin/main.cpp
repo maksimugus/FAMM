@@ -1,5 +1,6 @@
 #include "FAMMLexer.h"
 #include "FAMMParser.h"
+#include "customVisitors/CustomVisitor.h"
 #include "lib/backend/src/Visitors/Visitor.h"
 #include "lib/utils/CLIManager.h"
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
@@ -25,11 +26,11 @@ void run(LLVMIRGenerator& visitor, const CLIManager& climanager) {
     }
 }
 
-bool generateLLVMIR(LLVMIRGenerator& visitor, tree::ParseTree* tree) {
+bool generateIR(tree::AbstractParseTreeVisitor& visitor, tree::ParseTree* tree) {
     try {
         visitor.visit(tree);
     } catch (const std::exception& e) {
-        std::cerr << "An error occurred during generating LLVM IR code: \n" << e.what() << std::endl;
+        std::cerr << "An error occurred during generating IR code: \n" << e.what() << std::endl;
         return false;
     }
     return true;
@@ -45,19 +46,11 @@ void compile(LLVMIRGenerator& visitor, const CLIManager& climanager) {
     }
 }
 
+void interpret(const FammByteCodeGenerator& visitor, const CLIManager& climanager) {
+    CustomInterpreter(visitor.getFammIR()).run();
+}
+
 int main(int argc, const char* argv[]) {
-
-    std::vector<ValueOrInstr> instr = {DECL_FUNC, "fucktoreal", std::vector<std::string>({"n"}),
-        static_cast<int64_t>(27), // 26 + 1 конец декларации функции
-        LOAD, "n", PUSH, 0, EQ, IF,
-        static_cast<int64_t>(16), // 15 + 1 строчка после FRAME_POP
-        FRAME_PUSH, PUSH, static_cast<int64_t>(1), RET, FRAME_POP, LOAD, "n", LOAD, "n", PUSH, static_cast<int64_t>(1),
-        SUB, CALL, "fucktoreal", MUL, RET, PUSH, static_cast<int64_t>(20), STORE, "n", LOAD, "n", CALL, "fucktoreal",
-        PRINT};
-    auto inter                      = CustomInterpreter(instr);
-
-    inter.run();
-    return 0;
     CLIManager cli(argc, argv);
 
     const std::string& filename = cli.inputFile();
@@ -84,7 +77,7 @@ int main(int argc, const char* argv[]) {
 
     if (cli.compile() or cli.jit()) {
         auto visitor = LLVMIRGenerator();
-        if (bool success = generateLLVMIR(visitor, tree); !success) {
+        if (bool success = generateIR(visitor, tree); !success) {
             return 1;
         }
 
@@ -102,7 +95,16 @@ int main(int argc, const char* argv[]) {
             run(visitor, cli);
         }
     } else {
-        // тут вызов интерпретатора
+        auto visitor = FammByteCodeGenerator();
+        if (bool success = generateIR(visitor, tree); !success) {
+            return 1;
+        }
+
+        if (cli.printUnoptimized()) {
+            visitor.printFammIR();
+        }
+
+        interpret(visitor, cli);
     }
     return 0;
 }

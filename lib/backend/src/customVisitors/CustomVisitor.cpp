@@ -72,16 +72,16 @@ void FammByteCodeGenerator::visitExpression(FAMMParser::ExpressionContext* expre
     if (const auto negativeCtx = dynamic_cast<FAMMParser::NegativeExpressionContext*>(expressionContext)) {
         return visitNegativeExpression(negativeCtx);
     }
-//    if (const auto arrayAccessCtx = dynamic_cast<FAMMParser::ArrayAccessExpressionContext*>(expressionContext)) {
-//        return visitArrayAccessExpression(arrayAccessCtx);
-//    }
+    //    if (const auto arrayAccessCtx = dynamic_cast<FAMMParser::ArrayAccessExpressionContext*>(expressionContext)) {
+    //        return visitArrayAccessExpression(arrayAccessCtx);
+    //    }
 
     throw std::runtime_error("Unknown expression type");
 }
 
 void FammByteCodeGenerator::visitConstantExpression(FAMMParser::ConstantContext* ctx) {
     program.emplace_back(Instr::PUSH);
-    
+
     if (ctx->INTEGER_LIT()) {
         program.emplace_back(static_cast<int64_t>(std::stoll(ctx->INTEGER_LIT()->getText())));
     } else if (ctx->BOOL_LIT()) {
@@ -92,7 +92,7 @@ void FammByteCodeGenerator::visitConstantExpression(FAMMParser::ConstantContext*
 void FammByteCodeGenerator::visitAddSubExpression(FAMMParser::AddSubExpressionContext* ctx) {
     execute(ctx->expression(0));
     execute(ctx->expression(1));
-    
+
     if (ctx->addOp()->PLUS()) {
         program.emplace_back(Instr::ADD);
     } else {
@@ -101,16 +101,14 @@ void FammByteCodeGenerator::visitAddSubExpression(FAMMParser::AddSubExpressionCo
 }
 
 void FammByteCodeGenerator::visitMulDivExpression(FAMMParser::MulDivExpressionContext* ctx) {
-    execute(ctx->expression(0));  // Вычисляем левый операнд
-    execute(ctx->expression(1));  // Вычисляем правый операнд
+    execute(ctx->expression(0)); // Вычисляем левый операнд
+    execute(ctx->expression(1)); // Вычисляем правый операнд
 
     auto multOp = ctx->multOp();
     if (multOp->MULT()) {
-        program.emplace_back(Instr::MULT);
+        program.emplace_back(Instr::MUL);
     } else if (multOp->DIV()) {
         program.emplace_back(Instr::DIV);
-    } else if (multOp->FLOOR_DIV()) {
-        program.emplace_back(Instr::FLOOR_DIV);
     } else if (multOp->MOD()) {
         program.emplace_back(Instr::MOD);
     } else {
@@ -121,20 +119,27 @@ void FammByteCodeGenerator::visitMulDivExpression(FAMMParser::MulDivExpressionCo
 void FammByteCodeGenerator::visitCompareExpression(FAMMParser::CompareExpressionContext* ctx) {
     execute(ctx->expression(0));
     execute(ctx->expression(1));
-    
+
     auto op = ctx->compareOp();
-    if (op->EQ()) program.emplace_back(Instr::EQ);
-    else if (op->NEQ()) program.emplace_back(Instr::NE);
-    else if (op->LT()) program.emplace_back(Instr::LT);
-    else if (op->GT()) program.emplace_back(Instr::GT);
-    else if (op->LE()) program.emplace_back(Instr::LE);
-    else if (op->GE()) program.emplace_back(Instr::GE);
+    if (op->EQ()) {
+        program.emplace_back(Instr::EQ);
+    } else if (op->NEQ()) {
+        program.emplace_back(Instr::NE);
+    } else if (op->LT()) {
+        program.emplace_back(Instr::LT);
+    } else if (op->GT()) {
+        program.emplace_back(Instr::GT);
+    } else if (op->LE()) {
+        program.emplace_back(Instr::LE);
+    } else if (op->GE()) {
+        program.emplace_back(Instr::GE);
+    }
 }
 
 void FammByteCodeGenerator::visitBoolExpression(FAMMParser::BoolExpressionContext* ctx) {
     execute(ctx->expression(0));
     execute(ctx->expression(1));
-    
+
     if (ctx->boolOp()->AND()) {
         program.emplace_back(Instr::AND);
     } else {
@@ -148,11 +153,12 @@ void FammByteCodeGenerator::visitNegationExpression(FAMMParser::NegationExpressi
 }
 
 void FammByteCodeGenerator::visitFunctionCallExpression(FAMMParser::FunctionCallContext* ctx) {
-    for (auto & it : std::ranges::reverse_view(ctx->expression())) {
-        execute(it);
+    auto expression = ctx->expression();
+    for (auto it = expression.rbegin(); it != expression.rend(); ++it) {
+        execute(*it);
     }
     auto fname = ctx->IDENTIFIER()->getText();
-    if (fname == "display"){
+    if (fname == "display") {
         program.emplace_back(Instr::PRINT);
         return;
     }
@@ -182,9 +188,10 @@ void FammByteCodeGenerator::visitStatement(FAMMParser::StatementContext* node) {
     if (const auto blockStatement = dynamic_cast<FAMMParser::BlockStatementContext*>(node)) {
         return visitBlock(blockStatement->block());
     }
-//    if (const auto arrayElementStatement = dynamic_cast<FAMMParser::ArrayElementDefinitionStatementContext*>(node)) {
-//        return visitArrayElementDefinition(arrayElementStatement->arrayElementDefinition());
-//    }
+    //    if (const auto arrayElementStatement =
+    //    dynamic_cast<FAMMParser::ArrayElementDefinitionStatementContext*>(node)) {
+    //        return visitArrayElementDefinition(arrayElementStatement->arrayElementDefinition());
+    //    }
 
     throw std::runtime_error("Unknown statement context");
 }
@@ -245,8 +252,8 @@ void FammByteCodeGenerator::visitIfBlock(FAMMParser::IfBlockContext* ctx) {
 
     // 2. Добавляем инструкцию условного перехода и резервируем место для адреса
     size_t condJumpPos = program.size();
-    program.emplace_back(Instr::IF);  // Используем IF_EQ, так как условие уже на стеке
-    program.emplace_back(static_cast<int64_t>(0));  // Placeholder для адреса перехода
+    program.emplace_back(Instr::IF); // Используем IF_EQ, так как условие уже на стеке
+    program.emplace_back(static_cast<int64_t>(0)); // Placeholder для адреса перехода
 
     // 3. Генерируем код для then-блока
     execute(ctx->scope(0));
@@ -256,17 +263,17 @@ void FammByteCodeGenerator::visitIfBlock(FAMMParser::IfBlockContext* ctx) {
         // Добавляем GOTO для пропуска else-блока после выполнения then-блока
         size_t thenJumpPos = program.size();
         program.emplace_back(Instr::GOTO);
-        program.emplace_back(static_cast<int64_t>(0));  // Placeholder для адреса после else
+        program.emplace_back(static_cast<int64_t>(0)); // Placeholder для адреса после else
 
         // Записываем адрес начала else-блока в условный переход
-        size_t elseStart = program.size();
+        size_t elseStart         = program.size();
         program[condJumpPos + 1] = static_cast<int64_t>(elseStart);
 
         // Генерируем код для else-блока
         execute(ctx->scope(1));
 
         // Обновляем адрес перехода после else-блока
-        size_t afterElse = program.size();
+        size_t afterElse         = program.size();
         program[thenJumpPos + 1] = static_cast<int64_t>(afterElse);
     } else {
         // Если else-блока нет, просто записываем адрес следующей инструкции
@@ -276,18 +283,18 @@ void FammByteCodeGenerator::visitIfBlock(FAMMParser::IfBlockContext* ctx) {
 
 void FammByteCodeGenerator::visitWhileBlock(FAMMParser::WhileBlockContext* ctx) {
     size_t loopStart = program.size();
-    
+
     execute(ctx->expression());
-    
+
     size_t condJumpPos = program.size();
     program.emplace_back(Instr::IF);
     program.emplace_back(static_cast<int64_t>(0));
-    
+
     execute(ctx->scope());
-    
+
     program.emplace_back(Instr::GOTO);
     program.emplace_back(static_cast<int64_t>(loopStart));
-    
+
     program[condJumpPos + 1] = static_cast<int64_t>(program.size());
 }
 
@@ -304,7 +311,7 @@ void FammByteCodeGenerator::visitForBlock(FAMMParser::ForBlockContext* ctx) {
     // 4. Условный переход для выхода из цикла
     size_t condJumpPos = program.size();
     program.emplace_back(Instr::IF);
-    program.emplace_back(0);  // Placeholder для адреса выхода
+    program.emplace_back(0); // Placeholder для адреса выхода
 
     // 5. Тело цикла
     execute(ctx->scope());
@@ -355,22 +362,20 @@ void FammByteCodeGenerator::pushDefaultValue(FAMMParser::TypeContext* typeCtx) {
     if (auto* baseType = typeCtx->baseType()) {
         if (baseType->INT()) {
             program.emplace_back(0);
-        }
-        else if (baseType->BOOL()) {
+        } else if (baseType->BOOL()) {
             program.emplace_back(false);
         }
     }
 
     if (auto* arrayType = typeCtx->arrayType()) {
         auto elementType = arrayType->type();
-        auto sizeCtx = arrayType->size();
-        int64_t size = std::stoll(sizeCtx->INTEGER_LIT()->getText());
+        auto sizeCtx     = arrayType->size();
+        int64_t size     = std::stoll(sizeCtx->INTEGER_LIT()->getText());
 
         if (elementType->baseType()) {
             if (elementType->baseType()->INT()) {
                 program.emplace_back(std::vector<int64_t>(size, 0));
-            }
-            else if (elementType->baseType()->BOOL()) {
+            } else if (elementType->baseType()->BOOL()) {
                 program.emplace_back(std::vector<bool>(size, false));
             }
         }
@@ -392,9 +397,7 @@ void FammByteCodeGenerator::visitDeclarationWithoutDefinition(FAMMParser::Declar
     }
 }
 
-void FammByteCodeGenerator::visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx) {
-
-}
+void FammByteCodeGenerator::visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx) {}
 void FammByteCodeGenerator::printFammIR() const {
     std::cout << "=== FAMM Bytecode Instructions ===" << std::endl;
 
@@ -405,35 +408,90 @@ void FammByteCodeGenerator::printFammIR() const {
         if (std::holds_alternative<Instr>(instr)) {
             auto instruction = std::get<Instr>(instr);
             switch (instruction) {
-                case Instr::NOP:         std::cout << "NOP"; break;
-                case Instr::PUSH:        std::cout << "PUSH"; break;
-                case Instr::ADD:         std::cout << "ADD"; break;
-                case Instr::SUB:         std::cout << "SUB"; break;
-                case Instr::MULT:        std::cout << "MULT"; break;
-                case Instr::DIV:         std::cout << "DIV"; break;
-                case Instr::FLOOR_DIV:   std::cout << "FLOOR_DIV"; break;
-                case Instr::MOD:         std::cout << "MOD"; break;
-                case Instr::AND:         std::cout << "AND"; break;
-                case Instr::OR:          std::cout << "OR"; break;
-                case Instr::NOT:         std::cout << "NOT"; break;
-                case Instr::PRINT:       std::cout << "PRINT"; break;
-                case Instr::LOAD:        std::cout << "LOAD"; break;
-                case Instr::STORE:       std::cout << "STORE"; break;
-                case Instr::GOTO:        std::cout << "GOTO"; break;
-                case Instr::FRAME_PUSH:  std::cout << "FRAME_PUSH"; break;
-                case Instr::FRAME_POP:   std::cout << "FRAME_POP"; break;
-                case Instr::DECL_FUNC:   std::cout << "DECL_FUNC"; break;
-                case Instr::CALL:        std::cout << "CALL"; break;
-                case Instr::RET:         std::cout << "RET"; break;
-                case Instr::EQ:          std::cout << "EQ"; break;
-                case Instr::NE:          std::cout << "NE"; break;
-                case Instr::LT:          std::cout << "LT"; break;
-                case Instr::GT:          std::cout << "GT"; break;
-                case Instr::LE:          std::cout << "LE"; break;
-                case Instr::GE:          std::cout << "GE"; break;
-                case Instr::IF:          std::cout << "IF"; break;
-                case Instr::ARR_ACC:     std::cout << "ARR_ACC"; break;
-                default:                 std::cout << "UNKNOWN"; break;
+            case Instr::NOP:
+                std::cout << "NOP";
+                break;
+            case Instr::PUSH:
+                std::cout << "PUSH";
+                break;
+            case Instr::ADD:
+                std::cout << "ADD";
+                break;
+            case Instr::SUB:
+                std::cout << "SUB";
+                break;
+            case Instr::MUL:
+                std::cout << "MULT";
+                break;
+            case Instr::DIV:
+                std::cout << "DIV";
+                break;
+            case Instr::MOD:
+                std::cout << "MOD";
+                break;
+            case Instr::AND:
+                std::cout << "AND";
+                break;
+            case Instr::OR:
+                std::cout << "OR";
+                break;
+            case Instr::NOT:
+                std::cout << "NOT";
+                break;
+            case Instr::PRINT:
+                std::cout << "PRINT";
+                break;
+            case Instr::LOAD:
+                std::cout << "LOAD";
+                break;
+            case Instr::STORE:
+                std::cout << "STORE";
+                break;
+            case Instr::GOTO:
+                std::cout << "GOTO";
+                break;
+            case Instr::FRAME_PUSH:
+                std::cout << "FRAME_PUSH";
+                break;
+            case Instr::FRAME_POP:
+                std::cout << "FRAME_POP";
+                break;
+            case Instr::DECL_FUNC:
+                std::cout << "DECL_FUNC";
+                break;
+            case Instr::CALL:
+                std::cout << "CALL";
+                break;
+            case Instr::RET:
+                std::cout << "RET";
+                break;
+            case Instr::EQ:
+                std::cout << "EQ";
+                break;
+            case Instr::NE:
+                std::cout << "NE";
+                break;
+            case Instr::LT:
+                std::cout << "LT";
+                break;
+            case Instr::GT:
+                std::cout << "GT";
+                break;
+            case Instr::LE:
+                std::cout << "LE";
+                break;
+            case Instr::GE:
+                std::cout << "GE";
+                break;
+            case Instr::IF:
+                std::cout << "IF";
+                break;
+            case Instr::ARR_ACC:
+                std::cout << "ARR_ACC";
+                break;
+            default:
+                std::cout << "UNKNOWN";
+                break;
             }
         } else {
             const auto& value = std::get<Value>(instr);
@@ -447,7 +505,9 @@ void FammByteCodeGenerator::printFammIR() const {
                 const auto& params = std::get<std::vector<std::string>>(value);
                 std::cout << "[";
                 for (size_t j = 0; j < params.size(); ++j) {
-                    if (j > 0) std::cout << ", ";
+                    if (j > 0) {
+                        std::cout << ", ";
+                    }
                     std::cout << params[j];
                 }
                 std::cout << "]";
@@ -455,7 +515,9 @@ void FammByteCodeGenerator::printFammIR() const {
                 const auto& array = std::get<std::vector<int64_t>>(value);
                 std::cout << "[";
                 for (size_t j = 0; j < array.size(); ++j) {
-                    if (j > 0) std::cout << ", ";
+                    if (j > 0) {
+                        std::cout << ", ";
+                    }
                     std::cout << array[j];
                 }
                 std::cout << "]";
@@ -463,7 +525,9 @@ void FammByteCodeGenerator::printFammIR() const {
                 const auto& array = std::get<std::vector<bool>>(value);
                 std::cout << "[";
                 for (size_t j = 0; j < array.size(); ++j) {
-                    if (j > 0) std::cout << ", ";
+                    if (j > 0) {
+                        std::cout << ", ";
+                    }
                     std::cout << (array[j] ? "true" : "false");
                 }
                 std::cout << "]";

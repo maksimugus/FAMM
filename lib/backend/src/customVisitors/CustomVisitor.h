@@ -14,6 +14,10 @@ public:
 
     void printFammIR() const;
 
+    std::vector<ValueOrInstr> getFammIR() const {
+        return program;
+    }
+
     std::any visit(tree::ParseTree* node) override; // big if
     void execute(tree::ParseTree* node); // TODO rename ? run, exec, parse, visitALl
 
