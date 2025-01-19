@@ -360,9 +360,9 @@ void CustomInterpreter::instr_print() {
     frame->operandStack.pop();
 
     if (std::holds_alternative<int64_t>(val)) {
-        std::cout << std::get<int64_t>(val);
+        std::cout << std::get<int64_t>(val) << "\n";
     } else if (std::holds_alternative<bool>(val)) {
-        std::cout << (std::get<bool>(val) ? "true" : "false");
+        std::cout << (std::get<bool>(val) ? "true" : "false") << "\n";
     } else {
         std::cerr << "Error: unsupported type in instr_print" << std::endl;
     }
