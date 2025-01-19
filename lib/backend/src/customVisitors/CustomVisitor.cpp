@@ -1,5 +1,7 @@
 #include "CustomVisitor.h"
 
+#include <ranges>
+
 void FammByteCodeGenerator::enterScope() {
     scopeStack.emplace_back();
 }
@@ -101,12 +103,12 @@ void FammByteCodeGenerator::visitCompareExpression(FAMMParser::CompareExpression
     execute(ctx->expression(1));
     
     auto op = ctx->compareOp();
-    if (op->EQ()) program.emplace_back(Instr::IF_EQ);
-    else if (op->NEQ()) program.emplace_back(Instr::IF_NE);
-    else if (op->LT()) program.emplace_back(Instr::IF_LT);
-    else if (op->GT()) program.emplace_back(Instr::IF_GT);
-    else if (op->LE()) program.emplace_back(Instr::IF_LE);
-    else if (op->GE()) program.emplace_back(Instr::IF_GE);
+    if (op->EQ()) program.emplace_back(Instr::EQ);
+    else if (op->NEQ()) program.emplace_back(Instr::NE);
+    else if (op->LT()) program.emplace_back(Instr::LT);
+    else if (op->GT()) program.emplace_back(Instr::GT);
+    else if (op->LE()) program.emplace_back(Instr::LE);
+    else if (op->GE()) program.emplace_back(Instr::GE);
 }
 
 void FammByteCodeGenerator::visitBoolExpression(FAMMParser::BoolExpressionContext* ctx) {
@@ -126,14 +128,17 @@ void FammByteCodeGenerator::visitNegationExpression(FAMMParser::NegationExpressi
 }
 
 void FammByteCodeGenerator::visitFunctionCallExpression(FAMMParser::FunctionCallContext* ctx) {
-    // Push arguments in reverse order
-    for (auto it = ctx->expression().rbegin(); it != ctx->expression().rend(); ++it) {
-        execute(*it);
+    for (auto & it : std::ranges::reverse_view(ctx->expression())) {
+        execute(it);
+    }
+    auto fname = ctx->IDENTIFIER()->getText();
+    if (fname == "display"){
+        program.emplace_back(Instr::PRINT);
+        return;
     }
 
-    program.emplace_back(Instr::PUSH);
     program.emplace_back(Instr::CALL);
-    program.emplace_back(ctx->IDENTIFIER()->getText());
+    program.emplace_back(fname);
 }
 
 void FammByteCodeGenerator::visitIdentifierExpression(FAMMParser::IdentifierExpressionContext* ctx) {
@@ -142,13 +147,26 @@ void FammByteCodeGenerator::visitIdentifierExpression(FAMMParser::IdentifierExpr
 }
 
 void FammByteCodeGenerator::visitStatement(FAMMParser::StatementContext* node) {
-    if (auto* declDef = dynamic_cast<FAMMParser::DeclarationWithDefinitionContext*>(node)) {
-        visitDeclarationWithDefinition(declDef);
-    } else if (auto* returnStmt = dynamic_cast<FAMMParser::ReturnStatementContext*>(node)) {
-        visitReturnStatement(returnStmt);
-    } else if (auto* block = dynamic_cast<FAMMParser::BlockContext*>(node)) {
-        visitBlock(block);
+    if (const auto declWithDef = dynamic_cast<FAMMParser::DeclarationWithDefinitionStatementContext*>(node)) {
+        return visitDeclarationWithDefinition(declWithDef->declarationWithDefinition());
     }
+    if (const auto declWithoutDef = dynamic_cast<FAMMParser::DeclarationWithoutDefinitionStatementContext*>(node)) {
+        return visitDeclarationWithoutDefinition(declWithoutDef->declarationWithoutDefinition());
+    }
+    if (const auto definition = dynamic_cast<FAMMParser::DefinitionStatementContext*>(node)) {
+        return visitDefinition(definition->definition());
+    }
+    if (const auto returnStatement = dynamic_cast<FAMMParser::ReturnStatementContext*>(node)) {
+        return visitReturnStatement(returnStatement);
+    }
+    if (const auto blockStatement = dynamic_cast<FAMMParser::BlockStatementContext*>(node)) {
+        return visitBlock(blockStatement->block());
+    }
+    if (const auto arrayElementStatement = dynamic_cast<FAMMParser::ArrayElementDefinitionStatementContext*>(node)) {
+        return visitArrayElementDefinition(arrayElementStatement->arrayElementDefinition());
+    }
+
+    throw std::runtime_error("Unknown statement context");
 }
 
 void FammByteCodeGenerator::visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node) {
@@ -294,4 +312,61 @@ void FammByteCodeGenerator::visitScope(FAMMParser::ScopeContext* scope) {
 
     // Закрываем фрейм области видимости
     program.emplace_back(Instr::FRAME_POP);
+}
+
+void FammByteCodeGenerator::visitLine(FAMMParser::LineContext* node) {
+    if (const auto statement = dynamic_cast<FAMMParser::StatementLineContext*>(node)) {
+        return visitStatement(statement->statement());
+    }
+    if (const auto expression = dynamic_cast<FAMMParser::ExpressionLineContext*>(node)) {
+        return visitExpression(expression->expression());
+    }
+    throw std::runtime_error("Unknown line context");
+}
+
+void FammByteCodeGenerator::pushDefaultValue(FAMMParser::TypeContext* typeCtx) {
+    program.emplace_back(Instr::PUSH);
+    // Обработка базовых типов
+    if (auto* baseType = typeCtx->baseType()) {
+        if (baseType->INT()) {
+            program.emplace_back(0);
+        }
+        else if (baseType->BOOL()) {
+            program.emplace_back(false);
+        }
+    }
+
+    if (auto* arrayType = typeCtx->arrayType()) {
+        auto elementType = arrayType->type();
+        auto sizeCtx = arrayType->size();
+        int64_t size = std::stoll(sizeCtx->INTEGER_LIT()->getText());
+
+        if (elementType->baseType()) {
+            if (elementType->baseType()->INT()) {
+                program.emplace_back(std::vector<int64_t>(size, 0));
+            }
+            else if (elementType->baseType()->BOOL()) {
+                program.emplace_back(std::vector<bool>(size, false));
+            }
+        }
+    }
+
+    throw std::runtime_error("Unsupported type in type declaration");
+}
+
+void FammByteCodeGenerator::visitDeclarationWithoutDefinition(FAMMParser::DeclarationWithoutDefinitionContext* node) {
+
+    // Для каждого идентификатора в объявлении
+    for (auto* identifier : node->IDENTIFIER()) {
+        // Помещаем значение по умолчанию на стек
+        pushDefaultValue(node->type());
+
+        // Сохраняем значение в переменную
+        program.emplace_back(Instr::STORE);
+        program.emplace_back(identifier->getText());
+    }
+}
+
+void FammByteCodeGenerator::visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx) {
+
 }

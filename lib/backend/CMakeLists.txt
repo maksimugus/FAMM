@@ -40,6 +40,8 @@ set(SOURCE_FILES
         src/helpers/helpers.h
         src/interpreter/CustomInterpreter.h
         src/interpreter/CustomInterpreter.cpp
+        src/customVisitors/CustomVisitor.h
+        src/customVisitors/CustomVisitor.cpp
 )
 
 # Create the static backend library

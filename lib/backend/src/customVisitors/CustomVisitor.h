@@ -1,12 +1,10 @@
 #pragma once
 
 #include "FAMMParser.h"
+#include <vector>
 #include "Scope.h"
 #include "antlr4-runtime.h"
 #include "interpreter/CustomInterpreter.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
 
 
 using namespace antlr4;
@@ -47,8 +45,6 @@ public:
     void visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx);
     void visitArrayAccessExpression(FAMMParser::ArrayAccessExpressionContext* arrayAccessCtx);
 
-    llvm::Type* getLLVMType(FAMMParser::TypeContext* typeContext);
-
     void visitStatement(FAMMParser::StatementContext* node); // big if
 
     void visitDeclarationWithDefinition(FAMMParser::DeclarationWithDefinitionContext* node);
@@ -76,4 +72,5 @@ private:
     llvm::IRBuilder<> builder;
     std::unique_ptr<llvm::Module> module;
     std::vector<Scope> scopeStack;
+    void pushDefaultValue(FAMMParser::TypeContext* typeCtx);
 };
