@@ -308,8 +308,11 @@ void FammByteCodeGenerator::visitForBlock(FAMMParser::ForBlockContext* ctx) {
     size_t loopStart = program.size();
 
     // 3. Условие цикла (первое выражение после ARROW)
+    program.emplace_back(Instr::LOAD);
+    auto forLoopVarName = ctx->declarationWithDefinition()->IDENTIFIER()->getText();
+    program.emplace_back(forLoopVarName);
     execute(ctx->expression(0));
-
+    program.emplace_back(Instr::LT);
     // 4. Условный переход для выхода из цикла
     size_t condJumpPos = program.size();
     program.emplace_back(Instr::IF);
@@ -319,13 +322,12 @@ void FammByteCodeGenerator::visitForBlock(FAMMParser::ForBlockContext* ctx) {
     execute(ctx->scope());
 
     // 6. Инкремент (выражение после BY)
-    if (ctx->BY() && ctx->expression().size() > 1) {
-        execute(ctx->expression(1));
-    } else {
-        // Если BY не указан, добавляем инкремент на 1 по умолчанию
-        program.emplace_back(Instr::PUSH);
-        program.emplace_back(static_cast<int64_t>(1));
-    }
+    execute(ctx->expression(1));
+    program.emplace_back(Instr::LOAD);
+    program.emplace_back(forLoopVarName);
+    program.emplace_back(Instr::ADD);
+    program.emplace_back(Instr::STORE);
+    program.emplace_back(forLoopVarName);
 
     // 7. Возврат к началу цикла
     program.emplace_back(Instr::GOTO);
@@ -551,4 +553,39 @@ void FammByteCodeGenerator::printFammIR() const {
 
     std::cout << "=== End of Bytecode ===" << std::endl;
 }
-void FammByteCodeGenerator::visitDefinition(FAMMParser::DefinitionContext* node) {}
+
+void FammByteCodeGenerator::visitDefinition(FAMMParser::DefinitionContext* node) {
+    // 1. Вычисляем правую часть выражения и помещаем результат на стек
+    execute(node->expression());
+
+    // 2. Получаем оператор присваивания
+    auto varName= node->IDENTIFIER()->getText();
+    auto* assignOp = node->assignmentOp();
+    if (!assignOp->ASSIGNMENT()) {
+        // Составное присваивание (+=, -=, *=, /=)
+        // Сначала загружаем текущее значение переменной
+        program.emplace_back(Instr::LOAD);
+        program.emplace_back(varName);
+
+        // Выполняем соответствующую операцию
+        if (assignOp->PLUS_ASSIGNMENT()) {
+            program.emplace_back(Instr::ADD);
+        }
+        else if (assignOp->MINUS_ASSIGNMENT()) {
+            program.emplace_back(Instr::SUB);
+        }
+        else if (assignOp->MULT_ASSIGNMENT()) {
+            program.emplace_back(Instr::MUL);
+        }
+        else if (assignOp->DIV_ASSIGNMENT()) {
+            program.emplace_back(Instr::DIV);
+        }
+
+        // Сохраняем результат обратно в переменную
+        program.emplace_back(Instr::STORE);
+        program.emplace_back(varName);
+    }
+
+    program.emplace_back(Instr::STORE);
+    program.emplace_back(varName);
+}

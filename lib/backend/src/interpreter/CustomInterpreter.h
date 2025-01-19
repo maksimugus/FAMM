@@ -65,7 +65,7 @@ struct FunctionInfo {
 };
 
 class CustomInterpreter {
-    std::stack<Frame*> frameStack; // Стек фреймов
+    std::stack<Frame*> frameStack{}; // Стек фреймов
     std::vector<ValueOrInstr> program; // Программа
     size_t pc; // Счетчик команд
     std::stack<size_t> returnAddressStack; // стек адресов возврата
