@@ -617,6 +617,7 @@ void FammByteCodeGenerator::visitArrayAccessExpression(FAMMParser::ArrayAccessEx
 void FammByteCodeGenerator::visitArrayElementDefinition(FAMMParser::ArrayElementDefinitionContext* arrayElementCtx) {
     execute(arrayElementCtx->expression(2)); // expr to set in arr
     execute(arrayElementCtx->expression(1)); // idx
+    program.emplace_back(Instr::PUSH);
     auto identifierExpr = dynamic_cast<FAMMParser::IdentifierExpressionContext*>(arrayElementCtx->expression(0)); // identifier
 
     program.emplace_back(identifierExpr->IDENTIFIER()->getText());
