@@ -72,19 +72,30 @@ void FammByteCodeGenerator::visitExpression(FAMMParser::ExpressionContext* expre
     if (const auto negativeCtx = dynamic_cast<FAMMParser::NegativeExpressionContext*>(expressionContext)) {
         return visitNegativeExpression(negativeCtx);
     }
-    //    if (const auto arrayAccessCtx = dynamic_cast<FAMMParser::ArrayAccessExpressionContext*>(expressionContext)) {
-    //        return visitArrayAccessExpression(arrayAccessCtx);
-    //    }
+    if (const auto arrayAccessCtx = dynamic_cast<FAMMParser::ArrayAccessExpressionContext*>(expressionContext)) {
+        return visitArrayAccessExpression(arrayAccessCtx);
+    }
 
     throw std::runtime_error("Unknown expression type");
 }
 
 void FammByteCodeGenerator::visitConstantExpression(FAMMParser::ConstantContext* ctx) {
+    if (auto* arrayLiteral = ctx->arrayLiteral()) {
+        for (auto expr : arrayLiteral->expression()) {
+            execute(expr);
+        }
+
+        program.emplace_back(Instr::ARR_MAKE);
+        program.emplace_back(static_cast<int64_t>(arrayLiteral->expression().size()));
+        return;
+    }
+
     program.emplace_back(Instr::PUSH);
 
     if (ctx->INTEGER_LIT()) {
         program.emplace_back(static_cast<int64_t>(std::stoll(ctx->INTEGER_LIT()->getText())));
-    } else if (ctx->BOOL_LIT()) {
+    }
+    else if (ctx->BOOL_LIT()) {
         program.emplace_back(ctx->BOOL_LIT()->getText() == "true");
     }
 }
@@ -190,10 +201,10 @@ void FammByteCodeGenerator::visitStatement(FAMMParser::StatementContext* node) {
     if (const auto blockStatement = dynamic_cast<FAMMParser::BlockStatementContext*>(node)) {
         return visitBlock(blockStatement->block());
     }
-    //    if (const auto arrayElementStatement =
-    //    dynamic_cast<FAMMParser::ArrayElementDefinitionStatementContext*>(node)) {
-    //        return visitArrayElementDefinition(arrayElementStatement->arrayElementDefinition());
-    //    }
+    if (const auto arrayElementStatement =
+        dynamic_cast<FAMMParser::ArrayElementDefinitionStatementContext*>(node)) {
+        return visitArrayElementDefinition(arrayElementStatement->arrayElementDefinition());
+    }
 
     throw std::runtime_error("Unknown statement context");
 }
@@ -584,4 +595,23 @@ void FammByteCodeGenerator::visitDefinition(FAMMParser::DefinitionContext* node)
 
     program.emplace_back(Instr::STORE);
     program.emplace_back(varName);
+}
+
+void FammByteCodeGenerator::visitArrayAccessExpression(FAMMParser::ArrayAccessExpressionContext* arrayAccessCtx) {
+    // 1. Вычисляем выражение массива (первое выражение)
+    execute(arrayAccessCtx->expression(0));
+
+    // 2. Вычисляем индекс (второе выражение)
+    execute(arrayAccessCtx->expression(1));
+
+    // 3. Добавляем инструкцию доступа к элементу массива
+    program.emplace_back(Instr::ARR_LOAD_ELEM);
+}
+
+void FammByteCodeGenerator::visitArrayElementDefinition(FAMMParser::ArrayElementDefinitionContext* arrayElementCtx) {
+    execute(arrayElementCtx->expression(0)); // identifier
+    execute(arrayElementCtx->expression(1)); // idx
+    execute(arrayElementCtx->expression(2)); // expr to set in arr
+
+    program.emplace_back(Instr::ARR_STORE_ELEM);
 }
