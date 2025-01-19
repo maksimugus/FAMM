@@ -1,32 +1,34 @@
 #include "CustomVisitor.h"
 
+#include <iomanip>
 #include <ranges>
 
-void FammByteCodeGenerator::enterScope() {
-    scopeStack.emplace_back();
-}
-
-void FammByteCodeGenerator::exitScope() {
-    if (!scopeStack.empty()) {
-        scopeStack.pop_back();
-    }
-}
-
 std::any FammByteCodeGenerator::visit(tree::ParseTree* node) {
-    if (!fammIR) return node->accept(this);
-    
-    if (auto* prog = dynamic_cast<FAMMParser::ProgramContext*>(node)) {
-        visitProgram(prog);
-    } else if (auto* expr = dynamic_cast<FAMMParser::ExpressionContext*>(node)) {
-        visitExpression(expr);
-    } else if (auto* stmt = dynamic_cast<FAMMParser::StatementContext*>(node)) {
-        visitStatement(stmt);
-    } else if (auto* block = dynamic_cast<FAMMParser::BlockContext*>(node)) {
-        visitBlock(block);
-    } else if (const auto scope = dynamic_cast<FAMMParser::ScopeContext*>(node)) {
-        visitScope(scope);
+    if (const auto program = dynamic_cast<FAMMParser::ProgramContext*>(node)) {
+        visitProgram(program);
+        return nullptr;
     }
-    return {};
+    if (const auto line = dynamic_cast<FAMMParser::LineContext*>(node)) {
+        visitLine(line);
+        return nullptr;
+    }
+    if (const auto expr = dynamic_cast<FAMMParser::ExpressionContext*>(node)) {
+        visitExpression(expr);
+        return nullptr;
+    }
+    if (const auto stat = dynamic_cast<FAMMParser::StatementContext*>(node)) {
+        visitStatement(stat);
+        return nullptr;
+    }
+    if (const auto scope = dynamic_cast<FAMMParser::ScopeContext*>(node)) {
+        visitScope(scope);
+        return nullptr;
+    }
+    if (const auto declWithDef = dynamic_cast<FAMMParser::DeclarationWithDefinitionContext*>(node)) {
+        visitDeclarationWithDefinition(declWithDef);
+        return nullptr;
+    }
+    return nullptr;
 }
 
 void FammByteCodeGenerator::execute(tree::ParseTree* node) {
@@ -39,24 +41,42 @@ void FammByteCodeGenerator::visitProgram(FAMMParser::ProgramContext* node) {
     }
 }
 
-void FammByteCodeGenerator::visitExpression(FAMMParser::ExpressionContext* ctx) {
-    if (auto* constCtx = dynamic_cast<FAMMParser::ConstantContext*>(ctx)) {
-        visitConstantExpression(constCtx);
-    } else if (auto* addSubCtx = dynamic_cast<FAMMParser::AddSubExpressionContext*>(ctx)) {
-        visitAddSubExpression(addSubCtx);
-    } else if (auto* mulDivCtx = dynamic_cast<FAMMParser::MulDivExpressionContext*>(ctx)) {
-        visitMulDivExpression(mulDivCtx);
-    } else if (auto* compareCtx = dynamic_cast<FAMMParser::CompareExpressionContext*>(ctx)) {
-        visitCompareExpression(compareCtx);
-    } else if (auto* boolCtx = dynamic_cast<FAMMParser::BoolExpressionContext*>(ctx)) {
-        visitBoolExpression(boolCtx);
-    } else if (auto* negationCtx = dynamic_cast<FAMMParser::NegationExpressionContext*>(ctx)) {
-        visitNegationExpression(negationCtx);
-    } else if (auto* funcCallCtx = dynamic_cast<FAMMParser::FunctionCallContext*>(ctx)) {
-        visitFunctionCallExpression(funcCallCtx);
-    } else if (auto* identCtx = dynamic_cast<FAMMParser::IdentifierExpressionContext*>(ctx)) {
-        visitIdentifierExpression(identCtx);
+void FammByteCodeGenerator::visitExpression(FAMMParser::ExpressionContext* expressionContext) {
+    if (const auto addSubCtx = dynamic_cast<FAMMParser::AddSubExpressionContext*>(expressionContext)) {
+        return visitAddSubExpression(addSubCtx);
     }
+    if (const auto mulDivCtx = dynamic_cast<FAMMParser::MulDivExpressionContext*>(expressionContext)) {
+        return visitMulDivExpression(mulDivCtx);
+    }
+    if (const auto constCtx = dynamic_cast<FAMMParser::ConstantExpressionContext*>(expressionContext)) {
+        return visitConstantExpression(constCtx->constant());
+    }
+    if (const auto parenCtx = dynamic_cast<FAMMParser::ParenExpressionContext*>(expressionContext)) {
+        return visitExpression(parenCtx->expression());
+    }
+    if (const auto compareCtx = dynamic_cast<FAMMParser::CompareExpressionContext*>(expressionContext)) {
+        return visitCompareExpression(compareCtx);
+    }
+    if (const auto boolCtx = dynamic_cast<FAMMParser::BoolExpressionContext*>(expressionContext)) {
+        return visitBoolExpression(boolCtx);
+    }
+    if (const auto negationCtx = dynamic_cast<FAMMParser::NegationExpressionContext*>(expressionContext)) {
+        return visitNegationExpression(negationCtx);
+    }
+    if (const auto funcCallCtx = dynamic_cast<FAMMParser::FunctionCallExpressionContext*>(expressionContext)) {
+        return visitFunctionCallExpression(funcCallCtx->functionCall());
+    }
+    if (const auto identCtx = dynamic_cast<FAMMParser::IdentifierExpressionContext*>(expressionContext)) {
+        return visitIdentifierExpression(identCtx);
+    }
+    if (const auto negativeCtx = dynamic_cast<FAMMParser::NegativeExpressionContext*>(expressionContext)) {
+        return visitNegativeExpression(negativeCtx);
+    }
+//    if (const auto arrayAccessCtx = dynamic_cast<FAMMParser::ArrayAccessExpressionContext*>(expressionContext)) {
+//        return visitArrayAccessExpression(arrayAccessCtx);
+//    }
+
+    throw std::runtime_error("Unknown expression type");
 }
 
 void FammByteCodeGenerator::visitConstantExpression(FAMMParser::ConstantContext* ctx) {
@@ -162,9 +182,9 @@ void FammByteCodeGenerator::visitStatement(FAMMParser::StatementContext* node) {
     if (const auto blockStatement = dynamic_cast<FAMMParser::BlockStatementContext*>(node)) {
         return visitBlock(blockStatement->block());
     }
-    if (const auto arrayElementStatement = dynamic_cast<FAMMParser::ArrayElementDefinitionStatementContext*>(node)) {
-        return visitArrayElementDefinition(arrayElementStatement->arrayElementDefinition());
-    }
+//    if (const auto arrayElementStatement = dynamic_cast<FAMMParser::ArrayElementDefinitionStatementContext*>(node)) {
+//        return visitArrayElementDefinition(arrayElementStatement->arrayElementDefinition());
+//    }
 
     throw std::runtime_error("Unknown statement context");
 }
@@ -208,10 +228,15 @@ void FammByteCodeGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContext*
             paramNames.push_back(param->IDENTIFIER()->getText());
         }
     }
+
     program.emplace_back(paramNames);
+    auto endFuncDecl = program.size();
+    program.emplace_back(0); // резерв для
 
     // 4. Добавляем тело функции
     visitScope(node->scope());
+
+    program[endFuncDecl] = static_cast<int64_t>(program.size());
 }
 
 void FammByteCodeGenerator::visitIfBlock(FAMMParser::IfBlockContext* ctx) {
@@ -370,3 +395,83 @@ void FammByteCodeGenerator::visitDeclarationWithoutDefinition(FAMMParser::Declar
 void FammByteCodeGenerator::visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx) {
 
 }
+void FammByteCodeGenerator::printFammIR() const {
+    std::cout << "=== FAMM Bytecode Instructions ===" << std::endl;
+
+    for (size_t i = 0; i < program.size(); ++i) {
+        std::cout << std::setw(4) << i << ": ";
+
+        const auto& instr = program[i];
+        if (std::holds_alternative<Instr>(instr)) {
+            auto instruction = std::get<Instr>(instr);
+            switch (instruction) {
+                case Instr::NOP:         std::cout << "NOP"; break;
+                case Instr::PUSH:        std::cout << "PUSH"; break;
+                case Instr::ADD:         std::cout << "ADD"; break;
+                case Instr::SUB:         std::cout << "SUB"; break;
+                case Instr::MULT:        std::cout << "MULT"; break;
+                case Instr::DIV:         std::cout << "DIV"; break;
+                case Instr::FLOOR_DIV:   std::cout << "FLOOR_DIV"; break;
+                case Instr::MOD:         std::cout << "MOD"; break;
+                case Instr::AND:         std::cout << "AND"; break;
+                case Instr::OR:          std::cout << "OR"; break;
+                case Instr::NOT:         std::cout << "NOT"; break;
+                case Instr::PRINT:       std::cout << "PRINT"; break;
+                case Instr::LOAD:        std::cout << "LOAD"; break;
+                case Instr::STORE:       std::cout << "STORE"; break;
+                case Instr::GOTO:        std::cout << "GOTO"; break;
+                case Instr::FRAME_PUSH:  std::cout << "FRAME_PUSH"; break;
+                case Instr::FRAME_POP:   std::cout << "FRAME_POP"; break;
+                case Instr::DECL_FUNC:   std::cout << "DECL_FUNC"; break;
+                case Instr::CALL:        std::cout << "CALL"; break;
+                case Instr::RET:         std::cout << "RET"; break;
+                case Instr::EQ:          std::cout << "EQ"; break;
+                case Instr::NE:          std::cout << "NE"; break;
+                case Instr::LT:          std::cout << "LT"; break;
+                case Instr::GT:          std::cout << "GT"; break;
+                case Instr::LE:          std::cout << "LE"; break;
+                case Instr::GE:          std::cout << "GE"; break;
+                case Instr::IF:          std::cout << "IF"; break;
+                case Instr::ARR_ACC:     std::cout << "ARR_ACC"; break;
+                default:                 std::cout << "UNKNOWN"; break;
+            }
+        } else {
+            const auto& value = std::get<Value>(instr);
+            if (std::holds_alternative<int64_t>(value)) {
+                std::cout << std::get<int64_t>(value);
+            } else if (std::holds_alternative<bool>(value)) {
+                std::cout << (std::get<bool>(value) ? "true" : "false");
+            } else if (std::holds_alternative<std::string>(value)) {
+                std::cout << "\"" << std::get<std::string>(value) << "\"";
+            } else if (std::holds_alternative<std::vector<std::string>>(value)) {
+                const auto& params = std::get<std::vector<std::string>>(value);
+                std::cout << "[";
+                for (size_t j = 0; j < params.size(); ++j) {
+                    if (j > 0) std::cout << ", ";
+                    std::cout << params[j];
+                }
+                std::cout << "]";
+            } else if (std::holds_alternative<std::vector<int64_t>>(value)) {
+                const auto& array = std::get<std::vector<int64_t>>(value);
+                std::cout << "[";
+                for (size_t j = 0; j < array.size(); ++j) {
+                    if (j > 0) std::cout << ", ";
+                    std::cout << array[j];
+                }
+                std::cout << "]";
+            } else if (std::holds_alternative<std::vector<bool>>(value)) {
+                const auto& array = std::get<std::vector<bool>>(value);
+                std::cout << "[";
+                for (size_t j = 0; j < array.size(); ++j) {
+                    if (j > 0) std::cout << ", ";
+                    std::cout << (array[j] ? "true" : "false");
+                }
+                std::cout << "]";
+            }
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "=== End of Bytecode ===" << std::endl;
+}
+void FammByteCodeGenerator::visitDefinition(FAMMParser::DefinitionContext* node) {}

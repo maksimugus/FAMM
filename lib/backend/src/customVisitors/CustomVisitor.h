@@ -12,20 +12,7 @@ using namespace antlr4;
 class FammByteCodeGenerator final : public tree::AbstractParseTreeVisitor {
 public:
 
-    void printIR() const;
-    std::unique_ptr<llvm::Module> getModule() {
-        return std::move(module);
-    }
-
-    void setFammIR() {
-        fammIR = true;
-    }
-
-    void enterScope();
-    void exitScope();
-    llvm::AllocaInst* findVariable(const std::string& name);
-
-    void EnsureTypeEq(const llvm::Type* firstType, const llvm::Type* secondType);
+    void printFammIR() const;
 
     std::any visit(tree::ParseTree* node) override; // big if
     void execute(tree::ParseTree* node); // TODO rename ? run, exec, parse, visitALl
@@ -65,12 +52,6 @@ public:
 
 
 private:
-    bool fammIR                       = false;
     std::vector<ValueOrInstr> program = {};
-
-    std::unique_ptr<llvm::LLVMContext> context;
-    llvm::IRBuilder<> builder;
-    std::unique_ptr<llvm::Module> module;
-    std::vector<Scope> scopeStack;
     void pushDefaultValue(FAMMParser::TypeContext* typeCtx);
 };
