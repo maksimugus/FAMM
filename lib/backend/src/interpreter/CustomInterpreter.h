@@ -43,6 +43,8 @@ enum Instr {
 
     ARR_LOAD_ELEM, // pop arr, pop ind,  push element
     ARR_STORE_ELEM, // pop arr, pop ind, pop value, arr[i] = value
+
+    ARR_MAKE, // next word array_size, pop array_size elements, create vector
 };
 
 
@@ -129,4 +131,6 @@ private:
 
     void instr_arr_load_elem();
     void instr_arr_store_elem();
+
+    void instr_arr_make();
 };
