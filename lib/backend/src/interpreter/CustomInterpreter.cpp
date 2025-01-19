@@ -72,6 +72,9 @@ void CustomInterpreter::run() {
             case IF_GE:
                 instr_if_ge();
                 break;
+            case ARR_ACC:
+                instr_arr_access();
+                break;
             default:
                 std::cerr << "Unknown instruction at pc " << pc << std::endl;
                 return;
@@ -402,7 +405,7 @@ void CustomInterpreter::instr_decl_func() {
     }
 
     const auto el = program[pc];
-    auto name     = std::get<std::string>(el);
+    auto name     = std::get<std::string>(std::get<Value>(el));
     ++pc;
 
     if (pc >= program.size()) {
@@ -411,7 +414,7 @@ void CustomInterpreter::instr_decl_func() {
     }
 
     const auto el2        = program[pc];
-    const auto paramNames = std::get<std::vector<std::string>>(el2);
+    const auto paramNames = std::get<std::vector<std::string>>(std::get<Value>(el2));
     ++pc; // todo check +1 or +0
 
     globalFunctions.emplace(name, new FunctionInfo(pc, paramNames));
@@ -441,7 +444,7 @@ void CustomInterpreter::instr_call() {
         return;
     }
 
-    const ValueOrInstr token   = program[++pc];
+    const ValueOrInstr token = program[++pc];
     if (!std::holds_alternative<Value>(token)) {
         std::cerr << "Error: expected value after CALL at pc " << pc << std::endl;
         return;
@@ -687,4 +690,27 @@ void CustomInterpreter::handle_conditional_jump(const bool condition) {
     }
 
     pc = condition ? pc + 1 : line_number;
+}
+void CustomInterpreter::instr_arr_access() {
+
+    const ValueOrInstr token = program[++pc];
+    if (!std::holds_alternative<Value>(token)) {
+        std::cerr << "Error: Expected value after GOTO at pc " << pc << std::endl;
+        return;
+    }
+
+    const auto value = std::get<Value>(token);
+    if (!std::holds_alternative<int64_t>(value)) {
+        std::cerr << "Error: Expected an integer address in instr_goto!" << std::endl;
+        return;
+    }
+
+    const auto arr_ind = std::get<int64_t>(value);
+
+    const auto array = current_frame()->operandStack.top();
+    current_frame()->operandStack.pop();
+
+    auto array_vec = std::get<std::vector<int64_t>>(array);
+
+    current_frame()->operandStack.emplace(array_vec[arr_ind]);
 }

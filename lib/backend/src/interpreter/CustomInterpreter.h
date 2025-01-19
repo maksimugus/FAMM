@@ -37,6 +37,7 @@ enum Instr {
     IF_GE, // pop a, pop b, create frame, if (a >= b) goto next
 
     // todo array access // next word (не вычисляется)
+    ARR_ACC, // next word ind, pop arr, push element
 };
 
 using Value = std::variant<std::string, int64_t, bool, std::vector<int64_t>, std::vector<std::string>>;
@@ -76,6 +77,7 @@ public:
         }
     }
 
+
     void run();
 
 private:
@@ -111,4 +113,6 @@ private:
     static bool fetch_operands(Frame* frame, Value& a, Value& b);
     static bool compare_values(const Value& a, const Value& b, bool& result, const std::string& op);
     void handle_conditional_jump(bool condition);
+
+    void instr_arr_access();
 };
