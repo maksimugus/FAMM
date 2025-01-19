@@ -46,6 +46,12 @@ void compile(LLVMIRGenerator& visitor, const CLIManager& climanager) {
 }
 
 int main(int argc, const char* argv[]) {
+
+    std::vector<ValueOrInstr> instr = {PUSH, 1, PUSH, 2, ADD, PRINT};
+    auto inter                      = CustomInterpreter(instr);
+
+
+    return 0;
     CLIManager cli(argc, argv);
 
     const std::string& filename = cli.inputFile();
@@ -70,23 +76,27 @@ int main(int argc, const char* argv[]) {
         std::cout << tree->toStringTree(&parser) << "\n\n";
     }
 
-    auto visitor = LLVMIRGenerator();
-    if (bool success = generateLLVMIR(visitor, tree); !success) {
-        return 1;
-    }
+    if (cli.compile() or cli.jit()) {
+        auto visitor = LLVMIRGenerator();
+        if (bool success = generateLLVMIR(visitor, tree); !success) {
+            return 1;
+        }
 
-    if (cli.printUnoptimized()) {
-        visitor.printIR();
-    }
+        if (cli.printUnoptimized()) {
+            visitor.printIR();
+        }
 
-    llvm::InitializeNativeTarget();
-    llvm::InitializeNativeTargetAsmPrinter();
-    llvm::InitializeNativeTargetAsmParser();
+        llvm::InitializeNativeTarget();
+        llvm::InitializeNativeTargetAsmPrinter();
+        llvm::InitializeNativeTargetAsmParser();
 
-    if (cli.compile()) {
-        compile(visitor, cli);
+        if (cli.compile()) {
+            compile(visitor, cli);
+        } else if (cli.jit()) {
+            run(visitor, cli);
+        }
     } else {
-        run(visitor, cli);
+        // тут вызов интерпретатора
     }
     return 0;
 }

@@ -35,6 +35,7 @@ enum Instr {
     IF_GT, // pop a, pop b, create frame, if (a > b) goto next
     IF_LE, // pop a, pop b, create frame, if (a <= b) goto next
     IF_GE, // pop a, pop b, create frame, if (a >= b) goto next
+    IF, // pop a, create frame, if a == true goto next
 
     ARR_ACC, // pop arr, pop ind,  push element
 };
@@ -111,6 +112,7 @@ private:
     void instr_if_gt();
     void instr_if_le();
     void instr_if_ge();
+    void instr_if();
     static bool fetch_operands(Frame* frame, Value& a, Value& b);
     static bool compare_values(const Value& a, const Value& b, bool& result, const std::string& op);
     void handle_conditional_jump(bool condition);

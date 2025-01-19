@@ -72,6 +72,9 @@ void CustomInterpreter::run() {
             case IF_GE:
                 instr_if_ge();
                 break;
+            case IF:
+                instr_if();
+                break;
             case ARR_ACC:
                 instr_arr_access();
                 break;
@@ -625,6 +628,20 @@ void CustomInterpreter::instr_if_ge() {
     if (!compare_values(a, b, result, "ge")) {
         return;
     }
+
+    handle_conditional_jump(result);
+}
+void CustomInterpreter::instr_if() {
+    Frame* frame = current_frame();
+    if (frame == nullptr) {
+        std::cerr << "Error: no current frame in instr_if_ge" << std::endl;
+        return;
+    }
+
+    Value a = frame->operandStack.top();
+    frame->operandStack.pop();
+
+    const bool result = (std::get<bool>(a) == true);
 
     handle_conditional_jump(result);
 }
