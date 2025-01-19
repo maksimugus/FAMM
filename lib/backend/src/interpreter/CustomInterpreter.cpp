@@ -39,6 +39,9 @@ void CustomInterpreter::run() {
             case PUSH:
                 instr_push();
                 break;
+            case DECL_FUNC:
+                instr_decl_func();
+                break;
             case FRAME_PUSH:
                 instr_frame_push();
                 break;
@@ -106,9 +109,12 @@ void CustomInterpreter::frame_pop() {
     }
 }
 void CustomInterpreter::frame_pop_on_return() {
-
-    const auto frame = current_frame();
-    while
+    const Frame* frame = current_frame();
+    while (frame != nullptr) {
+        const Frame* parent = frame->parentFrame;
+        frame_pop(); // todo check ну ваще норм должно быть
+        frame = parent;
+    }
 }
 
 void CustomInterpreter::instr_add() {
@@ -286,15 +292,16 @@ void CustomInterpreter::instr_load() {
         while (frame != nullptr) {
             if (auto it = frame->localVariables.find(address); it != frame->localVariables.end()) {
                 current_frame()->operandStack.push(it->second);
+                ++pc;
                 return;
             }
             frame = frame->parentFrame; // Move to the parent frame if not found
         }
-
+        ++pc;
         std::cerr << "Error: Address '" << address << "' not found in any frame!" << std::endl;
         return;
     }
-
+    ++pc;
     std::cerr << "Error: Expected string address in instr_load!" << std::endl;
 }
 
@@ -318,9 +325,10 @@ void CustomInterpreter::instr_store() {
         }
 
         current_frame()->localVariables.emplace(address, value_to_store);
+        ++pc;
         return;
     }
-
+    ++pc;
     std::cerr << "Error: Expected string address in instr_store!" << std::endl;
 }
 
@@ -370,6 +378,31 @@ void CustomInterpreter::instr_frame_pop() {
 }
 
 
+void CustomInterpreter::instr_decl_func() {
+    ++pc;
+    if (pc >= program.size()) {
+        std::cerr << "Error: program ended unexpectedly after PUSH at pc " << pc << std::endl;
+        return;
+    }
+
+    const auto el = program[pc];
+    auto name     = std::get<std::string>(el);
+    ++pc;
+
+    if (pc >= program.size()) {
+        std::cerr << "Error: program ended unexpectedly after parameter names at pc " << pc << std::endl;
+        return;
+    }
+
+    const auto el2        = program[pc];
+    const auto paramNames = std::get<std::vector<std::string>>(el2);
+    ++pc; // todo check +1 or +0
+
+    globalFunctions.emplace(name, new FunctionInfo(pc, paramNames));
+    ++pc;
+}
+
+
 // var b: int = a;
 // var b = abas(1,2,3+1)
 
@@ -378,8 +411,7 @@ void CustomInterpreter::instr_frame_pop() {
 // push 1
 // push 3
 // add
-// push "abas"
-// call
+// call "abas"
 
 void CustomInterpreter::instr_call() {
     const Frame* frame = current_frame();
@@ -402,7 +434,7 @@ void CustomInterpreter::instr_call() {
         const auto funcInfo = funcIter->second;
 
         std::vector<Value> args;
-        for (size_t i = 0; i < funcInfo->parametersCount; ++i) {
+        for (size_t i = 0; i < funcInfo->paramNames.size(); ++i) {
             if (!current_frame()->operandStack.empty()) {
                 args.push_back(current_frame()->operandStack.top());
                 current_frame()->operandStack.pop();
@@ -413,15 +445,19 @@ void CustomInterpreter::instr_call() {
 
         push_sibling_frame();
 
-        for (size_t i = 0; i < funcInfo->parametersCount; ++i) {
-            current_frame()->localVariables["param_" + std::to_string(i)] = args[i];
+        for (size_t i = 0; i < funcInfo->paramNames.size(); ++i) {
+            const auto& name = funcInfo->paramNames[i];
+            if (i < args.size()) {
+                current_frame()->localVariables[name] = args[i];
+            }
         }
 
         pc = funcInfo->functionStart;
     }
 }
 
-// ret value -> return value
+// push 1
+// ret
 
 
 void CustomInterpreter::instr_ret() {
@@ -430,12 +466,12 @@ void CustomInterpreter::instr_ret() {
         return;
     }
 
-    const Value funcNameValue = current_frame()->operandStack.top();
+    const Value funcReturnValue = current_frame()->operandStack.top();
     current_frame()->operandStack.pop();
 
-    frame_pop(); // todo
+    frame_pop_on_return();
 
-
+    current_frame()->operandStack.emplace(funcReturnValue);
 
     if (returnAddressStack.empty()) {
         std::cerr << "Error: return address stack underflow in instr_ret" << std::endl;
