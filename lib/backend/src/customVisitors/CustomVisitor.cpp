@@ -21,6 +21,8 @@ std::any FammByteCodeGenerator::visit(tree::ParseTree* node) {
         visitStatement(stmt);
     } else if (auto* block = dynamic_cast<FAMMParser::BlockContext*>(node)) {
         visitBlock(block);
+    } else if (const auto scope = dynamic_cast<FAMMParser::ScopeContext*>(node)) {
+        visitScope(scope);
     }
     return {};
 }
@@ -159,7 +161,7 @@ void FammByteCodeGenerator::visitReturnStatement(FAMMParser::ReturnStatementCont
     if (ctx->expression()) {
         execute(ctx->expression());
     }
-    program.push_back(Instr::RET);
+    program.emplace_back(Instr::RET);
 }
 
 void FammByteCodeGenerator::visitBlock(FAMMParser::BlockContext* block) {
@@ -175,73 +177,121 @@ void FammByteCodeGenerator::visitBlock(FAMMParser::BlockContext* block) {
 }
 
 void FammByteCodeGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContext* node) {
-    program.push_back(Instr::FRAME_APPEND);
-    
-    for (auto* statement : node->statement()) {
-        execute(statement);
+    // 1. Добавляем инструкцию объявления функции
+    program.emplace_back(Instr::DECL_FUNC);
+
+    // 2. Добавляем имя функции
+    program.emplace_back(node->IDENTIFIER()->getText());
+
+    // 3. Собираем и добавляем список параметров
+    std::vector<std::string> paramNames;
+    if (auto* paramList = node->parameterList()) {
+        for (auto* param : paramList->parameter()) {
+            paramNames.push_back(param->IDENTIFIER()->getText());
+        }
     }
-    
-    program.push_back(Instr::FRAME_POP);
+    program.emplace_back(paramNames);
+
+    // 4. Добавляем тело функции
+    visitScope(node->scope());
 }
 
 void FammByteCodeGenerator::visitIfBlock(FAMMParser::IfBlockContext* ctx) {
-    execute(ctx->condition);
-    
-    size_t jumpPos = program.size();
-    program.push_back(Instr::IF_EQ);
-    program.push_back(static_cast<int64_t>(0)); // Placeholder for jump address
-    
-    execute(ctx->thenBlock);
-    
-    if (ctx->elseBlock) {
-        size_t elseJumpPos = program.size();
-        program.push_back(Instr::GOTO);
-        program.push_back(static_cast<int64_t>(0)); // Placeholder
-        
+    // 1. Вычисляем условие
+    execute(ctx->expression());
+
+    // 2. Добавляем инструкцию условного перехода и резервируем место для адреса
+    size_t condJumpPos = program.size();
+    program.emplace_back(Instr::IF);  // Используем IF_EQ, так как условие уже на стеке
+    program.emplace_back(static_cast<int64_t>(0));  // Placeholder для адреса перехода
+
+    // 3. Генерируем код для then-блока
+    execute(ctx->scope(0));
+
+    // 4. Если есть else-блок
+    if (ctx->ELSE() && ctx->scope().size() > 1) {
+        // Добавляем GOTO для пропуска else-блока после выполнения then-блока
+        size_t thenJumpPos = program.size();
+        program.emplace_back(Instr::GOTO);
+        program.emplace_back(static_cast<int64_t>(0));  // Placeholder для адреса после else
+
+        // Записываем адрес начала else-блока в условный переход
         size_t elseStart = program.size();
-        program[jumpPos + 1] = static_cast<int64_t>(elseStart);
-        
-        execute(ctx->elseBlock);
-        
+        program[condJumpPos + 1] = static_cast<int64_t>(elseStart);
+
+        // Генерируем код для else-блока
+        execute(ctx->scope(1));
+
+        // Обновляем адрес перехода после else-блока
         size_t afterElse = program.size();
-        program[elseJumpPos + 1] = static_cast<int64_t>(afterElse);
+        program[thenJumpPos + 1] = static_cast<int64_t>(afterElse);
     } else {
-        program[jumpPos + 1] = static_cast<int64_t>(program.size());
+        // Если else-блока нет, просто записываем адрес следующей инструкции
+        program[condJumpPos + 1] = static_cast<int64_t>(program.size());
     }
 }
 
 void FammByteCodeGenerator::visitWhileBlock(FAMMParser::WhileBlockContext* ctx) {
     size_t loopStart = program.size();
     
-    execute(ctx->condition);
+    execute(ctx->expression());
     
     size_t condJumpPos = program.size();
-    program.push_back(Instr::IF_EQ);
-    program.push_back(static_cast<int64_t>(0));
+    program.emplace_back(Instr::IF);
+    program.emplace_back(static_cast<int64_t>(0));
     
-    execute(ctx->block);
+    execute(ctx->scope());
     
-    program.push_back(Instr::GOTO);
-    program.push_back(static_cast<int64_t>(loopStart));
+    program.emplace_back(Instr::GOTO);
+    program.emplace_back(static_cast<int64_t>(loopStart));
     
     program[condJumpPos + 1] = static_cast<int64_t>(program.size());
 }
 
 void FammByteCodeGenerator::visitForBlock(FAMMParser::ForBlockContext* ctx) {
-    execute(ctx->init);
-    
+    // 1. Инициализация переменной цикла
+    execute(ctx->declarationWithDefinition());
+
+    // 2. Начало цикла
     size_t loopStart = program.size();
-    execute(ctx->condition);
-    
+
+    // 3. Условие цикла (первое выражение после ARROW)
+    execute(ctx->expression(0));
+
+    // 4. Условный переход для выхода из цикла
     size_t condJumpPos = program.size();
-    program.push_back(Instr::IF_EQ);
-    program.push_back(static_cast<int64_t>(0));
-    
-    execute(ctx->block);
-    execute(ctx->increment);
-    
-    program.push_back(Instr::GOTO);
-    program.push_back(static_cast<int64_t>(loopStart));
-    
+    program.emplace_back(Instr::IF);
+    program.emplace_back(0);  // Placeholder для адреса выхода
+
+    // 5. Тело цикла
+    execute(ctx->scope());
+
+    // 6. Инкремент (выражение после BY)
+    if (ctx->BY() && ctx->expression().size() > 1) {
+        execute(ctx->expression(1));
+    } else {
+        // Если BY не указан, добавляем инкремент на 1 по умолчанию
+        program.emplace_back(Instr::PUSH);
+        program.emplace_back(static_cast<int64_t>(1));
+    }
+
+    // 7. Возврат к началу цикла
+    program.emplace_back(Instr::GOTO);
+    program.emplace_back(static_cast<int64_t>(loopStart));
+
+    // 8. Обновляем адрес выхода из цикла
     program[condJumpPos + 1] = static_cast<int64_t>(program.size());
+}
+
+void FammByteCodeGenerator::visitScope(FAMMParser::ScopeContext* scope) {
+    // Создаем новый фрейм для области видимости
+    program.emplace_back(Instr::FRAME_PUSH);
+
+    // Обрабатываем каждую строку кода внутри scope
+    for (auto* line : scope->line()) {
+        execute(line);
+    }
+
+    // Закрываем фрейм области видимости
+    program.emplace_back(Instr::FRAME_POP);
 }
