@@ -84,7 +84,6 @@ private:
         engine->addGlobalMapping("string_to_float", reinterpret_cast<uint64_t>(&string_to_float));
         engine->addGlobalMapping("string_to_bool", reinterpret_cast<uint64_t>(&string_to_bool));
         engine->addGlobalMapping("display", reinterpret_cast<uint64_t>(&printf));
-        engine->addGlobalMapping("sdisplay", reinterpret_cast<uint64_t>(&printf));
     }
 
     static void optimizeModule(llvm::Module& module) {

@@ -262,10 +262,7 @@ llvm::Value* LLVMIRGenerator::visitFunctionCallExpression(FAMMParser::FunctionCa
     }
 
     if (funcName == "display") {
-        if (args.size() > 1) {
-            return display(module, builder, "", args);
-        }
-        return sdisplay(module, builder, args[0]);
+        return display(module, builder, "", args);
     }
 
     if (funcName == "to_int") {

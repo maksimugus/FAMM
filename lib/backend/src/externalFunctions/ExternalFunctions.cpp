@@ -62,37 +62,6 @@ llvm::Value* display(const std::unique_ptr<llvm::Module>& llvm_module, llvm::IRB
 }
 
 
-llvm::Value* sdisplay(const std::unique_ptr<llvm::Module>& llvm_module, llvm::IRBuilder<>& builder, llvm::Value* arg) {
-    llvm::LLVMContext& context = llvm_module->getContext();
-
-    llvm::FunctionType* displayTy = llvm::FunctionType::get(
-        llvm::IntegerType::getInt32Ty(context), llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(context)), false);
-    const llvm::FunctionCallee displayFunc = llvm_module->getOrInsertFunction("sdisplay", displayTy);
-
-    llvm::Value* castedArg = nullptr;
-
-    if (const llvm::Type* argTy = arg->getType(); argTy->isPointerTy()) {
-        castedArg = arg;
-    } else {
-        llvm::Value* strValue = nullptr;
-        if (argTy->isIntegerTy() || argTy->isFloatingPointTy()) {
-            const std::string str = std::to_string(llvm::cast<llvm::ConstantInt>(arg)->getValue().getSExtValue());
-
-            llvm::Constant* strConst = llvm::ConstantDataArray::getString(context, str, true);
-            auto* strVar = new llvm::GlobalVariable(
-                *llvm_module, strConst->getType(), true, llvm::GlobalValue::PrivateLinkage, strConst, ".strtmp");
-            llvm::Constant* zero = llvm::ConstantInt::get(context, llvm::APInt(32, 0));
-            llvm::Constant* indices[] = {zero, zero};
-            strValue = llvm::ConstantExpr::getGetElementPtr(strConst->getType(), strVar, indices);
-        }
-
-        castedArg = strValue;
-    }
-
-    return builder.CreateCall(displayFunc, {castedArg}, "sdisplayCall");
-}
-
-
 const char* bool_to_string(bool value) {
     return value ? "true" : "false";
 }
