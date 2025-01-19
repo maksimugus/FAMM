@@ -604,20 +604,20 @@ void FammByteCodeGenerator::visitDefinition(FAMMParser::DefinitionContext* node)
 }
 
 void FammByteCodeGenerator::visitArrayAccessExpression(FAMMParser::ArrayAccessExpressionContext* arrayAccessCtx) {
-    // 1. Вычисляем выражение массива (первое выражение)
-    execute(arrayAccessCtx->expression(0));
-
-    // 2. Вычисляем индекс (второе выражение)
+    // 1. Вычисляем индекс (второе выражение)
     execute(arrayAccessCtx->expression(1));
+
+    // 2. Вычисляем выражение массива (первое выражение)
+    execute(arrayAccessCtx->expression(0));
 
     // 3. Добавляем инструкцию доступа к элементу массива
     program.emplace_back(Instr::ARR_LOAD_ELEM);
 }
 
 void FammByteCodeGenerator::visitArrayElementDefinition(FAMMParser::ArrayElementDefinitionContext* arrayElementCtx) {
-    execute(arrayElementCtx->expression(0)); // identifier
-    execute(arrayElementCtx->expression(1)); // idx
     execute(arrayElementCtx->expression(2)); // expr to set in arr
+    execute(arrayElementCtx->expression(1)); // idx
+    execute(arrayElementCtx->expression(0)); // identifier
 
     program.emplace_back(Instr::ARR_STORE_ELEM);
 }
