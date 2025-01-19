@@ -380,6 +380,7 @@ void FammByteCodeGenerator::pushDefaultValue(FAMMParser::TypeContext* typeCtx) {
         } else if (baseType->BOOL()) {
             program.emplace_back(false);
         }
+        return;
     }
 
     if (auto* arrayType = typeCtx->arrayType()) {
@@ -394,6 +395,7 @@ void FammByteCodeGenerator::pushDefaultValue(FAMMParser::TypeContext* typeCtx) {
                 program.emplace_back(std::vector<bool>(size, false));
             }
         }
+        return;
     }
 
     throw std::runtime_error("Unsupported type in type declaration");

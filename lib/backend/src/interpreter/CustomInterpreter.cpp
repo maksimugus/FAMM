@@ -834,7 +834,7 @@ void CustomInterpreter::instr_arr_load_elem() {
     ++pc;
 }
 void CustomInterpreter::instr_arr_store_elem() {
-    const auto array = current_frame()->operandStack.top();
+    const auto array_name = current_frame()->operandStack.top();
     current_frame()->operandStack.pop();
 
     const auto index = current_frame()->operandStack.top();
@@ -845,14 +845,24 @@ void CustomInterpreter::instr_arr_store_elem() {
     const auto el3 = current_frame()->operandStack.top();
     current_frame()->operandStack.pop();
 
-    if (std::holds_alternative<std::vector<int64_t>>(array)) {
-        const auto value_to_store = std::get<int64_t>(el3);
-        auto array_int            = std::get<std::vector<int64_t>>(array);
-        array_int[arr_ind]        = value_to_store;
-    } else if (std::holds_alternative<std::vector<bool>>(array)) {
-        const auto value_to_store = std::get<bool>(el3);
-        auto array_bool           = std::get<std::vector<bool>>(array);
-        array_bool[arr_ind]       = value_to_store;
+    const auto address = std::get<std::string>(array_name);
+
+    Frame* frame = current_frame();
+    while (frame != nullptr) {
+        if (auto it = frame->localVariables.find(address); it != frame->localVariables.end()) {
+            if (std::holds_alternative<std::vector<int64_t>>(it->second)) {
+                auto& vec    = std::get<std::vector<int64_t>>(it->second);
+                vec[arr_ind] = std::get<int64_t>(el3); // Use std::get to extract element
+            } else if (std::holds_alternative<std::vector<bool>>(it->second)) {
+                auto& vec    = std::get<std::vector<bool>>(it->second);
+                vec[arr_ind] = std::get<bool>(el3); // Use std::get to extract element
+            } else if (std::holds_alternative<std::vector<std::string>>(it->second)) {
+                auto& vec    = std::get<std::vector<std::string>>(it->second);
+                vec[arr_ind] = std::get<std::string>(el3); // Optional: if strings are involved
+            }
+            break;
+        }
+        frame = frame->parentFrame;
     }
     ++pc;
 }

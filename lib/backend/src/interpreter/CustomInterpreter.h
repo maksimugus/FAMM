@@ -42,7 +42,7 @@ enum Instr {
     IF, // pop a, create frame, if a == true goto next
 
     ARR_LOAD_ELEM, // pop arr, pop ind,  push element
-    ARR_STORE_ELEM, // pop arr, pop ind, pop value, arr[i] = value
+    ARR_STORE_ELEM, // pop arr_name, pop ind, pop value, arr[i] = value
 
     ARR_MAKE, // next word array_size, pop array_size elements, create vector
 };
@@ -58,6 +58,9 @@ struct Frame {
     std::stack<Value> operandStack              = {}; // Стек операндов
     Frame* parentFrame                          = nullptr; // Указатель на родительский фрейм
     explicit Frame(Frame* parent = nullptr) : parentFrame(parent) {}
+    ~Frame() {
+        int a;
+    }
 };
 
 struct FunctionInfo {
