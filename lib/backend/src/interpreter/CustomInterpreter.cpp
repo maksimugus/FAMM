@@ -810,14 +810,16 @@ void CustomInterpreter::instr_arr_access() {
     const auto array = current_frame()->operandStack.top();
     current_frame()->operandStack.pop();
 
-    // if (std::holds_alternative<Value>(array)) {}
-    auto array_vec = std::get<std::vector<int64_t>>(array);
-
-
     const auto index = current_frame()->operandStack.top();
     current_frame()->operandStack.pop();
 
     const auto arr_ind = std::get<int64_t>(index);
 
-    current_frame()->operandStack.emplace(array_vec[arr_ind]);
+    if (std::holds_alternative<std::vector<int64_t>>(array)) {
+        auto array_int = std::get<std::vector<int64_t>>(array);
+        current_frame()->operandStack.emplace(array_int[arr_ind]);
+    } else if (std::holds_alternative<std::vector<bool>>(array)) {
+        auto array_bool = std::get<std::vector<bool>>(array);
+        current_frame()->operandStack.emplace(array_bool[arr_ind]);
+    }
 }
