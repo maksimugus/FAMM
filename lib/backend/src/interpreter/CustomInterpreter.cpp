@@ -419,6 +419,7 @@ void CustomInterpreter::instr_store() {
         while (frame != nullptr) {
             if (auto it = frame->localVariables.find(address); it != frame->localVariables.end()) {
                 it->second = value_to_store;
+                ++pc;
                 return;
             }
             frame = frame->parentFrame;
