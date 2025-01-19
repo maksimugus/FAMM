@@ -11,6 +11,10 @@ enum Instr {
     NOP, // do nothing
     ADD, // pop a, pop b, push a + b
     SUB, // pop a, pop b, push a - b
+    MULT,
+    DIV,
+    FLOOR_DIV,
+    MOD,
     AND, // pop a, pop b, push a & b
     OR, // pop a, pop b, push a | b
     NOT, // pop a, push !a
