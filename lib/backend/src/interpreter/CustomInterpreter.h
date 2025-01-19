@@ -1,6 +1,5 @@
 #pragma once
 
-#include "CustomInterpreter.h"
 #include <cstdint>
 #include <iostream>
 #include <map>
@@ -15,18 +14,20 @@ enum Instr {
     AND, // pop a, pop b, push a & b
     OR, // pop a, pop b, push a | b
     NOT, // pop a, push !a
-    PRINT, // pop one byte and write to stream
-    LOAD, // pop a, push byte read from address a (string)
-    STORE, // pop a, pop b, write b to address a (string)
-    GOTO, // pop a, goto a
-    PUSH, // push next word
+
+    PRINT, // pop a (any) and cout
+
+    LOAD, // next word a (string), push from a
+    STORE, // next word a (string), pop b, write b to a
+    GOTO, // next word a (int), goto a
+    PUSH, // push next word (any)
 
     FRAME_PUSH, // write new frame
     FRAME_POP, // pop frame
 
-    DECL_FUNC, // push name, push parametersCount,
-    CALL, // push address, push arguments, create frame, goto name
-    RET, // pop frame, restore pc
+    DECL_FUNC, // next word name (string), next word parametersCount (int),
+    CALL, // next word name (string), pop arguments, create frame, goto name
+    RET, // pop returnValue, pop frame, restore pc
 
     IF_EQ, // pop a, pop b, create frame, if (a == b) goto next
     IF_NE, // pop a, pop b, create frame, if (a != b) goto next

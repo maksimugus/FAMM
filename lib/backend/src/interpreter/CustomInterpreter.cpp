@@ -276,10 +276,13 @@ void CustomInterpreter::instr_print() {
 // add
 
 void CustomInterpreter::instr_load() {
-    const Value address_value = current_frame()->operandStack.top();
-    current_frame()->operandStack.pop();
+    const ValueOrInstr token = program[++pc];
+    if (!std::holds_alternative<Value>(token)) {
+        std::cerr << "Error: Expected value after LOAD at pc " << pc << std::endl;
+        return;
+    }
 
-    if (std::holds_alternative<std::string>(address_value)) {
+    if (const auto address_value = std::get<Value>(token); std::holds_alternative<std::string>(address_value)) {
         const auto address = std::get<std::string>(address_value);
 
         Frame* frame = current_frame();
@@ -302,10 +305,13 @@ void CustomInterpreter::instr_store() {
     const Value value_to_store = current_frame()->operandStack.top();
     current_frame()->operandStack.pop();
 
-    const Value address_value = current_frame()->operandStack.top();
-    current_frame()->operandStack.pop();
+    const ValueOrInstr token = program[++pc];
+    if (!std::holds_alternative<Value>(token)) {
+        std::cerr << "Error: Expected value after STORE at pc " << pc << std::endl;
+        return;
+    }
 
-    if (std::holds_alternative<std::string>(address_value)) {
+    if (const auto address_value = std::get<Value>(token); std::holds_alternative<std::string>(address_value)) {
         const auto address = std::get<std::string>(address_value);
 
         Frame* frame = current_frame();
@@ -325,19 +331,27 @@ void CustomInterpreter::instr_store() {
 }
 
 void CustomInterpreter::instr_goto() {
-    const Value address_value = current_frame()->operandStack.top();
-    current_frame()->operandStack.pop();
-
-    // TODO check
-    if (std::holds_alternative<int64_t>(address_value)) {
-        pc = std::get<int64_t>(address_value);
-    } else {
-        std::cerr << "Error: Expected an integer address in instr_goto!" << std::endl;
+    const ValueOrInstr token = program[++pc];
+    if (!std::holds_alternative<Value>(token)) {
+        std::cerr << "Error: Expected value after GOTO at pc " << pc << std::endl;
+        return;
     }
+
+    const auto value = std::get<Value>(token);
+    if (!std::holds_alternative<int64_t>(value)) {
+        std::cerr << "Error: Expected an integer address in instr_goto!" << std::endl;
+        return;
+    }
+
+    const auto line_number = std::get<int64_t>(value);
+    if (line_number < 0 && line_number >= program.size()) {
+        std::cerr << "Error: Invalid argument for goto at pc " << pc << std::endl;
+        return;
+    }
+
+    pc = line_number;
 }
-// push vector(1,2,3)
-// push "a"
-// store
+
 void CustomInterpreter::instr_push() {
     ++pc;
     if (pc >= program.size()) {
@@ -393,11 +407,19 @@ void CustomInterpreter::instr_call() {
         return;
     }
 
-    const Value funcNameValue = current_frame()->operandStack.top();
-    current_frame()->operandStack.pop();
+    const ValueOrInstr token   = program[++pc];
+    if (!std::holds_alternative<Value>(token)) {
+        std::cerr << "Error: expected value after CALL at pc " << pc << std::endl;
+        return;
+    }
 
-    const std::string funcName = std::get<std::string>(funcNameValue);
+    const auto value = std::get<Value>(token);
+    if (!std::holds_alternative<std::string>(value)) {
+        std::cerr << "Error: expected value after CALL at pc " << pc << std::endl;
+        return;
+    }
 
+    const auto funcName = std::get<std::string>(value);
     if (const auto funcIter = globalFunctions.find(funcName); funcIter != globalFunctions.end()) {
         const auto funcInfo = funcIter->second;
 
@@ -434,7 +456,6 @@ void CustomInterpreter::instr_ret() {
     current_frame()->operandStack.pop();
 
     frame_pop(); // todo
-
 
 
     if (returnAddressStack.empty()) {
@@ -611,19 +632,19 @@ bool CustomInterpreter::compare_values(const Value& a, const Value& b, bool& res
 void CustomInterpreter::handle_conditional_jump(const bool condition) {
     const auto arg = program[++pc];
     if (!std::holds_alternative<Value>(arg)) {
-        std::cerr << "Error: expected Value in line " + pc << std::endl;
+        std::cerr << "Error: Expected value at pc " << pc << std::endl;
         return;
     }
 
     const auto value = std::get<Value>(arg);
     if (!std::holds_alternative<int64_t>(value)) {
-        std::cerr << "Error: expected Value in line " + pc << std::endl;
+        std::cerr << "Error: Expected value at pc " << pc << std::endl;
         return;
     }
 
     const auto line_number = std::get<int64_t>(value);
     if (line_number <= pc) {
-        std::cerr << "Error: can't go back after if" << std::endl;
+        std::cerr << "Error: Can't go back after if" << std::endl;
     }
 
     pc = condition ? pc + 1 : line_number;
