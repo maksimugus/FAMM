@@ -212,7 +212,7 @@ void CustomInterpreter::instr_and() {
     frame->operandStack.pop();
 
     if (std::holds_alternative<bool>(a) && std::holds_alternative<bool>(b)) {
-        int64_t result = std::get<bool>(a) && std::get<bool>(b);
+        bool result = std::get<bool>(a) && std::get<bool>(b);
         frame->operandStack.emplace(result);
     } else {
         std::cerr << "Error: type mismatch in instr_and" << std::endl;
@@ -239,7 +239,7 @@ void CustomInterpreter::instr_or() {
     frame->operandStack.pop();
 
     if (std::holds_alternative<bool>(a) && std::holds_alternative<bool>(b)) {
-        int64_t result = std::get<bool>(a) || std::get<bool>(b);
+        bool result = std::get<bool>(a) || std::get<bool>(b);
         frame->operandStack.emplace(result);
     } else {
         std::cerr << "Error: type mismatch in instr_or" << std::endl;

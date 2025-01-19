@@ -58,9 +58,6 @@ struct Frame {
     std::stack<Value> operandStack              = {}; // Стек операндов
     Frame* parentFrame                          = nullptr; // Указатель на родительский фрейм
     explicit Frame(Frame* parent = nullptr) : parentFrame(parent) {}
-    ~Frame() {
-        int a;
-    }
 };
 
 struct FunctionInfo {
