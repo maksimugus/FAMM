@@ -25,7 +25,7 @@ enum Instr {
     FRAME_PUSH, // write new frame
     FRAME_POP, // pop frame
 
-    DECL_FUNC, // next word name (string), next word parametersCount (int),
+    DECL_FUNC, // next word name (string), next word paramNames (vector<string>)
     CALL, // next word name (string), pop arguments, create frame, goto name
     RET, // pop returnValue, pop frame, restore pc
 
@@ -35,9 +35,11 @@ enum Instr {
     IF_GT, // pop a, pop b, create frame, if (a > b) goto next
     IF_LE, // pop a, pop b, create frame, if (a <= b) goto next
     IF_GE, // pop a, pop b, create frame, if (a >= b) goto next
+
+    // todo array access // next word (не вычисляется)
 };
 
-using Value = std::variant<std::string, int64_t, bool, std::vector<int64_t>>;
+using Value = std::variant<std::string, int64_t, bool, std::vector<int64_t>, std::vector<std::string>>;
 
 using ValueOrInstr = std::variant<Instr, Value>;
 
@@ -50,10 +52,9 @@ struct Frame {
 
 struct FunctionInfo {
     size_t functionStart;
-    size_t parametersCount;
-    Value returnValue;
-    FunctionInfo(const size_t functionStart, const size_t parametersCount)
-        : functionStart(functionStart), parametersCount(parametersCount) {}
+    std::vector<std::string> paramNames;
+    FunctionInfo(const size_t functionStart, const std::vector<std::string>& paramNames)
+        : functionStart(functionStart), paramNames(paramNames) {}
 };
 
 class CustomInterpreter {
@@ -96,6 +97,7 @@ private:
     void instr_push();
     void instr_frame_push();
     void instr_frame_pop();
+    void instr_decl_func();
 
     // Условные переходы
     void instr_call();
