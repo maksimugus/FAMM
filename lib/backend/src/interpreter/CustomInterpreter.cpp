@@ -543,11 +543,6 @@ void CustomInterpreter::instr_call() {
         return;
     }
 
-    if (frame->operandStack.empty()) {
-        std::cerr << "Error: operand stack underflow in instr_call" << std::endl;
-        return;
-    }
-
     const ValueOrInstr token = program[++pc];
     if (!std::holds_alternative<Value>(token)) {
         std::cerr << "Error: expected value after CALL at pc " << pc << std::endl;

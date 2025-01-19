@@ -122,6 +122,8 @@ void FammByteCodeGenerator::visitMulDivExpression(FAMMParser::MulDivExpressionCo
         program.emplace_back(Instr::DIV);
     } else if (multOp->MOD()) {
         program.emplace_back(Instr::MOD);
+    } else if (multOp->FLOOR_DIV()) {
+        program.emplace_back(DIV);
     } else {
         throw std::runtime_error("Unknown multiplication/division operator");
     }
