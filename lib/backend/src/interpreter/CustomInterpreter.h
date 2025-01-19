@@ -36,9 +36,10 @@ enum Instr {
     IF_LE, // pop a, pop b, create frame, if (a <= b) goto next
     IF_GE, // pop a, pop b, create frame, if (a >= b) goto next
 
-    // todo array access // next word (не вычисляется)
-    ARR_ACC, // next word ind, pop arr, push element
+    ARR_ACC, // pop arr, pop ind,  push element
 };
+
+
 
 using Value = std::variant<std::string, int64_t, bool, std::vector<int64_t>, std::vector<std::string>>;
 
