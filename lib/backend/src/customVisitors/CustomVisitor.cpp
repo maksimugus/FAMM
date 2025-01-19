@@ -94,8 +94,7 @@ void FammByteCodeGenerator::visitConstantExpression(FAMMParser::ConstantContext*
 
     if (ctx->INTEGER_LIT()) {
         program.emplace_back(static_cast<int64_t>(std::stoll(ctx->INTEGER_LIT()->getText())));
-    }
-    else if (ctx->BOOL_LIT()) {
+    } else if (ctx->BOOL_LIT()) {
         program.emplace_back(ctx->BOOL_LIT()->getText() == "true");
     }
 }
@@ -172,8 +171,9 @@ void FammByteCodeGenerator::visitFunctionCallExpression(FAMMParser::FunctionCall
     }
     auto fname = ctx->IDENTIFIER()->getText();
     if (fname == "display") {
-        if (expression.size() > 1)
+        if (expression.size() > 1) {
             throw "Number of display args must be 1";
+        }
         program.emplace_back(Instr::PRINT);
         return;
     }
@@ -203,8 +203,7 @@ void FammByteCodeGenerator::visitStatement(FAMMParser::StatementContext* node) {
     if (const auto blockStatement = dynamic_cast<FAMMParser::BlockStatementContext*>(node)) {
         return visitBlock(blockStatement->block());
     }
-    if (const auto arrayElementStatement =
-        dynamic_cast<FAMMParser::ArrayElementDefinitionStatementContext*>(node)) {
+    if (const auto arrayElementStatement = dynamic_cast<FAMMParser::ArrayElementDefinitionStatementContext*>(node)) {
         return visitArrayElementDefinition(arrayElementStatement->arrayElementDefinition());
     }
 
@@ -540,31 +539,49 @@ void FammByteCodeGenerator::printFammIR() const {
             } else if (std::holds_alternative<std::vector<std::string>>(value)) {
                 const auto& params = std::get<std::vector<std::string>>(value);
                 std::cout << "[";
-                for (size_t j = 0; j < params.size(); ++j) {
+                const size_t display_limit    = 10;
+                const size_t elements_to_show = std::min(params.size(), display_limit);
+
+                for (size_t j = 0; j < elements_to_show; ++j) {
                     if (j > 0) {
                         std::cout << ", ";
                     }
                     std::cout << params[j];
                 }
+                if (params.size() > display_limit) {
+                    std::cout << ", ...";
+                }
                 std::cout << "]";
             } else if (std::holds_alternative<std::vector<int64_t>>(value)) {
                 const auto& array = std::get<std::vector<int64_t>>(value);
                 std::cout << "[";
-                for (size_t j = 0; j < array.size(); ++j) {
+                const size_t display_limit    = 10;
+                const size_t elements_to_show = std::min(array.size(), display_limit);
+
+                for (size_t j = 0; j < elements_to_show; ++j) {
                     if (j > 0) {
                         std::cout << ", ";
                     }
                     std::cout << array[j];
                 }
+                if (array.size() > display_limit) {
+                    std::cout << ", ...";
+                }
                 std::cout << "]";
             } else if (std::holds_alternative<std::vector<bool>>(value)) {
                 const auto& array = std::get<std::vector<bool>>(value);
                 std::cout << "[";
-                for (size_t j = 0; j < array.size(); ++j) {
+                const size_t display_limit    = 10;
+                const size_t elements_to_show = std::min(array.size(), display_limit);
+
+                for (size_t j = 0; j < elements_to_show; ++j) {
                     if (j > 0) {
                         std::cout << ", ";
                     }
                     std::cout << (array[j] ? "true" : "false");
+                }
+                if (array.size() > display_limit) {
+                    std::cout << ", ...";
                 }
                 std::cout << "]";
             }
@@ -580,7 +597,7 @@ void FammByteCodeGenerator::visitDefinition(FAMMParser::DefinitionContext* node)
     execute(node->expression());
 
     // 2. Получаем оператор присваивания
-    auto varName= node->IDENTIFIER()->getText();
+    auto varName   = node->IDENTIFIER()->getText();
     auto* assignOp = node->assignmentOp();
     if (!assignOp->ASSIGNMENT()) {
         // Составное присваивание (+=, -=, *=, /=)
@@ -591,14 +608,11 @@ void FammByteCodeGenerator::visitDefinition(FAMMParser::DefinitionContext* node)
         // Выполняем соответствующую операцию
         if (assignOp->PLUS_ASSIGNMENT()) {
             program.emplace_back(Instr::ADD);
-        }
-        else if (assignOp->MINUS_ASSIGNMENT()) {
+        } else if (assignOp->MINUS_ASSIGNMENT()) {
             program.emplace_back(Instr::SUB);
-        }
-        else if (assignOp->MULT_ASSIGNMENT()) {
+        } else if (assignOp->MULT_ASSIGNMENT()) {
             program.emplace_back(Instr::MUL);
-        }
-        else if (assignOp->DIV_ASSIGNMENT()) {
+        } else if (assignOp->DIV_ASSIGNMENT()) {
             program.emplace_back(Instr::DIV);
         }
     }
@@ -622,7 +636,8 @@ void FammByteCodeGenerator::visitArrayElementDefinition(FAMMParser::ArrayElement
     execute(arrayElementCtx->expression(2)); // expr to set in arr
     execute(arrayElementCtx->expression(1)); // idx
     program.emplace_back(Instr::PUSH);
-    auto identifierExpr = dynamic_cast<FAMMParser::IdentifierExpressionContext*>(arrayElementCtx->expression(0)); // identifier
+    auto identifierExpr =
+        dynamic_cast<FAMMParser::IdentifierExpressionContext*>(arrayElementCtx->expression(0)); // identifier
 
     program.emplace_back(identifierExpr->IDENTIFIER()->getText());
 
