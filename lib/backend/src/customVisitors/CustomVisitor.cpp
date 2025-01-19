@@ -580,10 +580,6 @@ void FammByteCodeGenerator::visitDefinition(FAMMParser::DefinitionContext* node)
         else if (assignOp->DIV_ASSIGNMENT()) {
             program.emplace_back(Instr::DIV);
         }
-
-        // Сохраняем результат обратно в переменную
-        program.emplace_back(Instr::STORE);
-        program.emplace_back(varName);
     }
 
     program.emplace_back(Instr::STORE);
