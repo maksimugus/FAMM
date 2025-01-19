@@ -831,6 +831,7 @@ void CustomInterpreter::instr_arr_load_elem() {
         auto array_bool = std::get<std::vector<bool>>(array);
         current_frame()->operandStack.emplace(array_bool[arr_ind]);
     }
+    ++pc;
 }
 void CustomInterpreter::instr_arr_store_elem() {
     const auto array = current_frame()->operandStack.top();
@@ -853,12 +854,10 @@ void CustomInterpreter::instr_arr_store_elem() {
         auto array_bool           = std::get<std::vector<bool>>(array);
         array_bool[arr_ind]       = value_to_store;
     }
+    ++pc;
 }
 void CustomInterpreter::instr_arr_make() {
-    const auto el1 = current_frame()->operandStack.top();
-    current_frame()->operandStack.pop();
-
-    const auto array_size = std::get<int64_t>(el1);
+    const auto array_size = std::get<int64_t>(std::get<Value>(program[++pc]));
 
     std::vector<Value> values(array_size);
 
@@ -882,4 +881,5 @@ void CustomInterpreter::instr_arr_make() {
         }
         current_frame()->operandStack.emplace(values_int);
     }
+    ++pc;
 }
