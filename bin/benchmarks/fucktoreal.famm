@@ -1,4 +1,4 @@
-func fucktoreal(var n: int): int = {
+func fucktoreal(n: int): int = {
     if (n == 0) {
         return 1;
     };
