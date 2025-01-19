@@ -159,6 +159,8 @@ void FammByteCodeGenerator::visitFunctionCallExpression(FAMMParser::FunctionCall
     }
     auto fname = ctx->IDENTIFIER()->getText();
     if (fname == "display") {
+        if (expression.size() > 1)
+            throw "Number of display args must be 1";
         program.emplace_back(Instr::PRINT);
         return;
     }
@@ -238,7 +240,7 @@ void FammByteCodeGenerator::visitFunctionBlock(FAMMParser::FunctionBlockContext*
 
     program.emplace_back(paramNames);
     auto endFuncDecl = program.size();
-    program.emplace_back(0); // резерв для
+    program.emplace_back(static_cast<int64_t>(0)); // резерв для
 
     // 4. Добавляем тело функции
     visitScope(node->scope());
@@ -311,7 +313,7 @@ void FammByteCodeGenerator::visitForBlock(FAMMParser::ForBlockContext* ctx) {
     // 4. Условный переход для выхода из цикла
     size_t condJumpPos = program.size();
     program.emplace_back(Instr::IF);
-    program.emplace_back(0); // Placeholder для адреса выхода
+    program.emplace_back(static_cast<int64_t>(0)); // Placeholder для адреса выхода
 
     // 5. Тело цикла
     execute(ctx->scope());
@@ -361,7 +363,7 @@ void FammByteCodeGenerator::pushDefaultValue(FAMMParser::TypeContext* typeCtx) {
     // Обработка базовых типов
     if (auto* baseType = typeCtx->baseType()) {
         if (baseType->INT()) {
-            program.emplace_back(0);
+            program.emplace_back(static_cast<int64_t>(0));
         } else if (baseType->BOOL()) {
             program.emplace_back(false);
         }
@@ -397,7 +399,18 @@ void FammByteCodeGenerator::visitDeclarationWithoutDefinition(FAMMParser::Declar
     }
 }
 
-void FammByteCodeGenerator::visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx) {}
+void FammByteCodeGenerator::visitNegativeExpression(FAMMParser::NegativeExpressionContext* negativeCtx) {
+    // Сначала вычисляем выражение внутри
+    execute(negativeCtx->expression());
+
+    // Затем помещаем -1 на стек
+    program.emplace_back(Instr::PUSH);
+    program.emplace_back(static_cast<int64_t>(-1));
+
+    // Умножаем значение на -1
+    program.emplace_back(Instr::MUL);
+}
+
 void FammByteCodeGenerator::printFammIR() const {
     std::cout << "=== FAMM Bytecode Instructions ===" << std::endl;
 
