@@ -24,6 +24,12 @@ void CustomInterpreter::run() {
             case NOT:
                 instr_not();
                 break;
+            case MUL:
+                instr_mul();
+                break;
+            case DIV:
+                instr_div();
+                break;
             case PRINT:
                 instr_print();
                 break;
@@ -97,12 +103,12 @@ Frame* CustomInterpreter::current_frame() {
 }
 
 void CustomInterpreter::push_sibling_frame() {
-    frameStack.emplace();
+    frameStack.push(new Frame());
 }
 
 void CustomInterpreter::push_child_frame() {
     Frame* parent = current_frame();
-    frameStack.emplace(parent);
+    frameStack.push(new Frame(parent));
 }
 
 void CustomInterpreter::frame_pop() {
@@ -255,6 +261,59 @@ void CustomInterpreter::instr_not() {
 
     ++pc;
 }
+void CustomInterpreter::instr_mul() {
+    Frame* frame = current_frame();
+    if (frame == nullptr) {
+        std::cerr << "Error: no current frame in instr_sub" << std::endl;
+        return;
+    }
+
+    if (frame->operandStack.size() < 2) {
+        std::cerr << "Error: operand stack underflow in instr_add" << std::endl;
+        return;
+    }
+
+    const Value b = frame->operandStack.top();
+    frame->operandStack.pop();
+    const Value a = frame->operandStack.top();
+    frame->operandStack.pop();
+
+    if (std::holds_alternative<int64_t>(a) && std::holds_alternative<int64_t>(b)) {
+        int64_t result = std::get<int64_t>(a) * std::get<int64_t>(b);
+        frame->operandStack.emplace(result);
+    } else {
+        std::cerr << "Error: type mismatch in instr_sub" << std::endl;
+    }
+
+    ++pc;
+}
+void CustomInterpreter::instr_div() {
+    Frame* frame = current_frame();
+    if (frame == nullptr) {
+        std::cerr << "Error: no current frame in instr_sub" << std::endl;
+        return;
+    }
+
+    if (frame->operandStack.size() < 2) {
+        std::cerr << "Error: operand stack underflow in instr_add" << std::endl;
+        return;
+    }
+
+    const Value b = frame->operandStack.top();
+    frame->operandStack.pop();
+    const Value a = frame->operandStack.top();
+    frame->operandStack.pop();
+
+    if (std::holds_alternative<int64_t>(a) && std::holds_alternative<int64_t>(b)) {
+        int64_t result = std::get<int64_t>(a) / std::get<int64_t>(b);
+        frame->operandStack.emplace(result);
+    } else {
+        std::cerr << "Error: type mismatch in instr_sub" << std::endl;
+    }
+
+    ++pc;
+}
+
 
 void CustomInterpreter::instr_print() {
     Frame* frame = current_frame();
@@ -418,10 +477,14 @@ void CustomInterpreter::instr_decl_func() {
 
     const auto el2        = program[pc];
     const auto paramNames = std::get<std::vector<std::string>>(std::get<Value>(el2));
-    ++pc; // todo check +1 or +0
+    ++pc;
+
+    const auto el3         = program[pc];
+    const auto functionEnd = std::get<int64_t>(std::get<Value>(el3));
+    ++pc;
 
     globalFunctions.emplace(name, new FunctionInfo(pc, paramNames));
-    ++pc;
+    pc = functionEnd;
 }
 
 
@@ -529,6 +592,7 @@ void CustomInterpreter::instr_eq() {
         return;
     }
 
+    ++pc;
     current_frame()->operandStack.push(result);
 }
 
@@ -549,6 +613,7 @@ void CustomInterpreter::instr_ne() {
         return;
     }
 
+    ++pc;
     current_frame()->operandStack.push(result);
 }
 
@@ -569,6 +634,7 @@ void CustomInterpreter::instr_lt() {
         return;
     }
 
+    ++pc;
     current_frame()->operandStack.push(result);
 }
 
@@ -589,6 +655,7 @@ void CustomInterpreter::instr_gt() {
         return;
     }
 
+    ++pc;
     current_frame()->operandStack.push(result);
 }
 
@@ -609,6 +676,7 @@ void CustomInterpreter::instr_le() {
         return;
     }
 
+    ++pc;
     current_frame()->operandStack.push(result);
 }
 
@@ -629,6 +697,7 @@ void CustomInterpreter::instr_ge() {
         return;
     }
 
+    ++pc;
     current_frame()->operandStack.push(result);
 }
 void CustomInterpreter::instr_if() {

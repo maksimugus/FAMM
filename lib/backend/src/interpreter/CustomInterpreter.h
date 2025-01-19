@@ -14,6 +14,8 @@ enum Instr {
     AND, // pop a, pop b, push a & b
     OR, // pop a, pop b, push a | b
     NOT, // pop a, push !a
+    MUL, // pop a, pop b, push a * b
+    DIV, // pop a, pop b, push a / b    // floor div
 
     PRINT, // pop a (any) and cout
 
@@ -25,7 +27,7 @@ enum Instr {
     FRAME_PUSH, // write new frame
     FRAME_POP, // pop frame
 
-    DECL_FUNC, // next word name (string), next word paramNames (vector<string>)
+    DECL_FUNC, // next word name (string), next word paramNames (vector<string>), next word funcEnd
     CALL, // next word name (string), pop arguments, create frame, goto name
     RET, // pop returnValue, pop frame, restore pc
 
@@ -42,7 +44,8 @@ enum Instr {
 };
 
 
-using Value = std::variant<std::string, int64_t, bool, std::vector<int64_t>, std::vector<std::string>>;
+using Value =
+    std::variant<std::string, int64_t, bool, std::vector<int64_t>, std::vector<std::string>, std::vector<bool>>; // todo add vector bool
 
 using ValueOrInstr = std::variant<Instr, Value>;
 
@@ -94,6 +97,9 @@ private:
     void instr_and();
     void instr_or();
     void instr_not();
+    void instr_mul();
+    void instr_div();
+
     void instr_print();
     void instr_load();
     void instr_store();

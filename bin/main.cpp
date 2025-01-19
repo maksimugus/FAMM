@@ -47,10 +47,16 @@ void compile(LLVMIRGenerator& visitor, const CLIManager& climanager) {
 
 int main(int argc, const char* argv[]) {
 
-    std::vector<ValueOrInstr> instr = {PUSH, 1, PUSH, 2, ADD, PRINT};
+    std::vector<ValueOrInstr> instr = {DECL_FUNC, "fucktoreal", std::vector<std::string>({"n"}),
+        static_cast<int64_t>(27), // 26 + 1 конец декларации функции
+        LOAD, "n", PUSH, 0, EQ, IF,
+        static_cast<int64_t>(16), // 15 + 1 строчка после FRAME_POP
+        FRAME_PUSH, PUSH, static_cast<int64_t>(1), RET, FRAME_POP, LOAD, "n", LOAD, "n", PUSH, static_cast<int64_t>(1),
+        SUB, CALL, "fucktoreal", MUL, RET, PUSH, static_cast<int64_t>(20), STORE, "n", LOAD, "n", CALL, "fucktoreal",
+        PRINT};
     auto inter                      = CustomInterpreter(instr);
 
-
+    inter.run();
     return 0;
     CLIManager cli(argc, argv);
 
