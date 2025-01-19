@@ -41,7 +41,8 @@ enum Instr {
 
     IF, // pop a, create frame, if a == true goto next
 
-    ARR_ACC, // pop arr, pop ind,  push element
+    ARR_LOAD_ELEM, // pop arr, pop ind,  push element
+    ARR_STORE_ELEM, // pop arr, pop ind, pop value, arr[i] = value
 };
 
 
@@ -126,5 +127,6 @@ private:
     static bool compare_values(const Value& a, const Value& b, bool& result, const std::string& op);
     void handle_conditional_jump(bool condition);
 
-    void instr_arr_access();
+    void instr_arr_load_elem();
+    void instr_arr_store_elem();
 };

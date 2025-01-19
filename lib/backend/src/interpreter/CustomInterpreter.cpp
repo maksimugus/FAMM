@@ -84,9 +84,13 @@ void CustomInterpreter::run() {
             case IF:
                 instr_if();
                 break;
-            case ARR_ACC:
-                instr_arr_access();
+            case ARR_LOAD_ELEM:
+                instr_arr_load_elem();
                 break;
+            case ARR_STORE_ELEM:
+                instr_arr_store_elem();
+                break;
+
             default:
                 std::cerr << "Unknown instruction at pc " << pc << std::endl;
                 return;
@@ -807,7 +811,7 @@ void CustomInterpreter::handle_conditional_jump(const bool condition) {
 
     pc = condition ? pc + 1 : line_number;
 }
-void CustomInterpreter::instr_arr_access() {
+void CustomInterpreter::instr_arr_load_elem() {
     const auto array = current_frame()->operandStack.top();
     current_frame()->operandStack.pop();
 
@@ -822,5 +826,27 @@ void CustomInterpreter::instr_arr_access() {
     } else if (std::holds_alternative<std::vector<bool>>(array)) {
         auto array_bool = std::get<std::vector<bool>>(array);
         current_frame()->operandStack.emplace(array_bool[arr_ind]);
+    }
+}
+void CustomInterpreter::instr_arr_store_elem() {
+    const auto array = current_frame()->operandStack.top();
+    current_frame()->operandStack.pop();
+
+    const auto index = current_frame()->operandStack.top();
+    current_frame()->operandStack.pop();
+
+    const auto arr_ind = std::get<int64_t>(index);
+
+    const auto el3 = current_frame()->operandStack.top();
+    current_frame()->operandStack.pop();
+
+    if (std::holds_alternative<std::vector<int64_t>>(array)) {
+        const auto value_to_store = std::get<int64_t>(el3);
+        auto array_int            = std::get<std::vector<int64_t>>(array);
+        array_int[arr_ind]        = value_to_store;
+    } else if (std::holds_alternative<std::vector<bool>>(array)) {
+        const auto value_to_store = std::get<bool>(el3);
+        auto array_bool           = std::get<std::vector<bool>>(array);
+        array_bool[arr_ind]       = value_to_store;
     }
 }

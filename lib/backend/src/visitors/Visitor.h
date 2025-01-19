@@ -20,10 +20,6 @@ public:
         return std::move(module);
     }
 
-    void setFammIR() {
-        fammIR = true;
-    }
-
     void enterScope();
     void exitScope();
     llvm::AllocaInst* findVariable(const std::string& name);
@@ -79,9 +75,6 @@ public:
 
 
 private:
-    bool fammIR                       = false;
-    std::vector<ValueOrInstr> program = {};
-
     std::unique_ptr<llvm::LLVMContext> context;
     llvm::IRBuilder<> builder;
     std::unique_ptr<llvm::Module> module;

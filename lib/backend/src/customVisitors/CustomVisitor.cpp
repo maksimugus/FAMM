@@ -501,8 +501,8 @@ void FammByteCodeGenerator::printFammIR() const {
             case Instr::IF:
                 std::cout << "IF";
                 break;
-            case Instr::ARR_ACC:
-                std::cout << "ARR_ACC";
+            case Instr::ARR_LOAD_ELEM:
+                std::cout << "ARR_LOAD_ELEM";
                 break;
             default:
                 std::cout << "UNKNOWN";
