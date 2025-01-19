@@ -29,17 +29,17 @@ enum Instr {
     CALL, // next word name (string), pop arguments, create frame, goto name
     RET, // pop returnValue, pop frame, restore pc
 
-    IF_EQ, // pop a, pop b, create frame, if (a == b) goto next
-    IF_NE, // pop a, pop b, create frame, if (a != b) goto next
-    IF_LT, // pop a, pop b, create frame, if (a < b) goto next
-    IF_GT, // pop a, pop b, create frame, if (a > b) goto next
-    IF_LE, // pop a, pop b, create frame, if (a <= b) goto next
-    IF_GE, // pop a, pop b, create frame, if (a >= b) goto next
+    EQ, // pop a, pop b, push (a == b)
+    NE, // pop a, pop b, push (a != b)
+    LT, // pop a, pop b, push (a < b)
+    GT, // pop a, pop b, push (a > b)
+    LE, // pop a, pop b, push (a <= b)
+    GE, // pop a, pop b, push (a >= b)
+
     IF, // pop a, create frame, if a == true goto next
 
     ARR_ACC, // pop arr, pop ind,  push element
 };
-
 
 
 using Value = std::variant<std::string, int64_t, bool, std::vector<int64_t>, std::vector<std::string>>;
@@ -50,7 +50,7 @@ struct Frame {
     std::map<std::string, Value> localVariables = {}; // Локальные переменные
     std::stack<Value> operandStack              = {}; // Стек операндов
     Frame* parentFrame                          = nullptr; // Указатель на родительский фрейм
-    explicit Frame(Frame* parent) : parentFrame(parent) {}
+    explicit Frame(Frame* parent = nullptr) : parentFrame(parent) {}
 };
 
 struct FunctionInfo {
@@ -70,7 +70,7 @@ class CustomInterpreter {
 public:
     explicit CustomInterpreter(const std::vector<ValueOrInstr>& prog) : program(prog), pc(0) {
         // Создаем начальный фрейм
-        frameStack.emplace();
+        frameStack.push(new Frame(nullptr));
     }
     ~CustomInterpreter() {
         while (!frameStack.empty()) {
@@ -106,12 +106,12 @@ private:
     // Условные переходы
     void instr_call();
     void instr_ret();
-    void instr_if_eq();
-    void instr_if_ne();
-    void instr_if_lt();
-    void instr_if_gt();
-    void instr_if_le();
-    void instr_if_ge();
+    void instr_eq();
+    void instr_ne();
+    void instr_lt();
+    void instr_gt();
+    void instr_le();
+    void instr_ge();
     void instr_if();
     static bool fetch_operands(Frame* frame, Value& a, Value& b);
     static bool compare_values(const Value& a, const Value& b, bool& result, const std::string& op);

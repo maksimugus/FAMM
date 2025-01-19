@@ -54,23 +54,23 @@ void CustomInterpreter::run() {
             case RET:
                 instr_ret();
                 break;
-            case IF_EQ:
-                instr_if_eq();
+            case EQ:
+                instr_eq();
                 break;
-            case IF_NE:
-                instr_if_ne();
+            case NE:
+                instr_ne();
                 break;
-            case IF_LT:
-                instr_if_lt();
+            case LT:
+                instr_lt();
                 break;
-            case IF_GT:
-                instr_if_gt();
+            case GT:
+                instr_gt();
                 break;
-            case IF_LE:
-                instr_if_le();
+            case LE:
+                instr_le();
                 break;
-            case IF_GE:
-                instr_if_ge();
+            case GE:
+                instr_ge();
                 break;
             case IF:
                 instr_if();
@@ -512,10 +512,10 @@ void CustomInterpreter::instr_ret() {
     returnAddressStack.pop();
 }
 
-void CustomInterpreter::instr_if_eq() {
+void CustomInterpreter::instr_eq() {
     Frame* frame = current_frame();
     if (frame == nullptr) {
-        std::cerr << "Error: no current frame in instr_if_eq" << std::endl;
+        std::cerr << "Error: no current frame in instr_eq" << std::endl;
         return;
     }
 
@@ -529,13 +529,13 @@ void CustomInterpreter::instr_if_eq() {
         return;
     }
 
-    handle_conditional_jump(result);
+    current_frame()->operandStack.push(result);
 }
 
-void CustomInterpreter::instr_if_ne() {
+void CustomInterpreter::instr_ne() {
     Frame* frame = current_frame();
     if (frame == nullptr) {
-        std::cerr << "Error: no current frame in instr_if_ne" << std::endl;
+        std::cerr << "Error: no current frame in instr_ne" << std::endl;
         return;
     }
 
@@ -549,13 +549,13 @@ void CustomInterpreter::instr_if_ne() {
         return;
     }
 
-    handle_conditional_jump(result);
+    current_frame()->operandStack.push(result);
 }
 
-void CustomInterpreter::instr_if_lt() {
+void CustomInterpreter::instr_lt() {
     Frame* frame = current_frame();
     if (frame == nullptr) {
-        std::cerr << "Error: no current frame in instr_if_lt" << std::endl;
+        std::cerr << "Error: no current frame in instr_lt" << std::endl;
         return;
     }
 
@@ -569,13 +569,13 @@ void CustomInterpreter::instr_if_lt() {
         return;
     }
 
-    handle_conditional_jump(result);
+    current_frame()->operandStack.push(result);
 }
 
-void CustomInterpreter::instr_if_gt() {
+void CustomInterpreter::instr_gt() {
     Frame* frame = current_frame();
     if (frame == nullptr) {
-        std::cerr << "Error: no current frame in instr_if_gt" << std::endl;
+        std::cerr << "Error: no current frame in instr_gt" << std::endl;
         return;
     }
 
@@ -589,13 +589,13 @@ void CustomInterpreter::instr_if_gt() {
         return;
     }
 
-    handle_conditional_jump(result);
+    current_frame()->operandStack.push(result);
 }
 
-void CustomInterpreter::instr_if_le() {
+void CustomInterpreter::instr_le() {
     Frame* frame = current_frame();
     if (frame == nullptr) {
-        std::cerr << "Error: no current frame in instr_if_le" << std::endl;
+        std::cerr << "Error: no current frame in instr_le" << std::endl;
         return;
     }
 
@@ -609,13 +609,13 @@ void CustomInterpreter::instr_if_le() {
         return;
     }
 
-    handle_conditional_jump(result);
+    current_frame()->operandStack.push(result);
 }
 
-void CustomInterpreter::instr_if_ge() {
+void CustomInterpreter::instr_ge() {
     Frame* frame = current_frame();
     if (frame == nullptr) {
-        std::cerr << "Error: no current frame in instr_if_ge" << std::endl;
+        std::cerr << "Error: no current frame in instr_ge" << std::endl;
         return;
     }
 
@@ -629,12 +629,12 @@ void CustomInterpreter::instr_if_ge() {
         return;
     }
 
-    handle_conditional_jump(result);
+    current_frame()->operandStack.push(result);
 }
 void CustomInterpreter::instr_if() {
     Frame* frame = current_frame();
     if (frame == nullptr) {
-        std::cerr << "Error: no current frame in instr_if_ge" << std::endl;
+        std::cerr << "Error: no current frame in instr_ge" << std::endl;
         return;
     }
 
