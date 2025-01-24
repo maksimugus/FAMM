@@ -1,6 +1,9 @@
 
 #include "CustomInterpreter.h"
 
+#include <iostream>
+#include <utility>
+
 void CustomInterpreter::run() {
     while (pc < program.size()) {
 
@@ -106,7 +109,7 @@ void CustomInterpreter::run() {
     }
 }
 
-Frame* CustomInterpreter::current_frame() {
+std::shared_ptr<Frame> CustomInterpreter::current_frame() {
     if (frameStack.empty()) {
         return nullptr;
     }
@@ -114,34 +117,35 @@ Frame* CustomInterpreter::current_frame() {
 }
 
 void CustomInterpreter::push_sibling_frame() {
-    frameStack.push(new Frame());
+    frameStack.push(std::make_shared<Frame>(nullptr));
 }
 
+
 void CustomInterpreter::push_child_frame() {
-    Frame* parent = current_frame();
-    frameStack.push(new Frame(parent));
+    // Для дочернего фрейма родитель — текущий фрейм
+    auto parent = current_frame();
+    frameStack.push(std::make_shared<Frame>(parent));
 }
+
 
 void CustomInterpreter::frame_pop() {
     if (!frameStack.empty()) {
-        const Frame* top_frame = frameStack.top();
         frameStack.pop();
-        delete top_frame;
     } else {
         std::cerr << "Error: frame stack underflow on frame_pop" << std::endl;
     }
 }
 void CustomInterpreter::frame_pop_on_return() {
-    const Frame* frame = current_frame();
+    auto frame = current_frame();
     while (frame != nullptr) {
-        const Frame* parent = frame->parentFrame;
-        frame_pop(); // todo check ну ваще норм должно быть
+        const auto parent = frame->parentFrame.lock();
+        frame_pop();
         frame = parent;
     }
 }
 
 void CustomInterpreter::instr_add() {
-    Frame* frame = current_frame();
+    const auto frame = current_frame();
     if (frame == nullptr) {
         std::cerr << "Error: no current frame in instr_add" << std::endl;
         return;
@@ -168,7 +172,7 @@ void CustomInterpreter::instr_add() {
 }
 
 void CustomInterpreter::instr_sub() {
-    Frame* frame = current_frame();
+    const auto frame = current_frame();
     if (frame == nullptr) {
         std::cerr << "Error: no current frame in instr_sub" << std::endl;
         return;
@@ -195,7 +199,7 @@ void CustomInterpreter::instr_sub() {
 }
 
 void CustomInterpreter::instr_and() {
-    Frame* frame = current_frame();
+    const auto frame = current_frame();
     if (frame == nullptr) {
         std::cerr << "Error: no current frame in instr_and" << std::endl;
         return;
@@ -222,7 +226,7 @@ void CustomInterpreter::instr_and() {
 }
 
 void CustomInterpreter::instr_or() {
-    Frame* frame = current_frame();
+    const auto frame = current_frame();
     if (frame == nullptr) {
         std::cerr << "Error: no current frame in instr_or" << std::endl;
         return;
@@ -249,7 +253,7 @@ void CustomInterpreter::instr_or() {
 }
 
 void CustomInterpreter::instr_not() {
-    Frame* frame = current_frame();
+    const auto frame = current_frame();
     if (frame == nullptr) {
         std::cerr << "Error: no current frame in instr_not" << std::endl;
         return;
@@ -273,7 +277,7 @@ void CustomInterpreter::instr_not() {
     ++pc;
 }
 void CustomInterpreter::instr_mul() {
-    Frame* frame = current_frame();
+    const auto frame = current_frame();
     if (frame == nullptr) {
         std::cerr << "Error: no current frame in instr_sub" << std::endl;
         return;
@@ -299,7 +303,7 @@ void CustomInterpreter::instr_mul() {
     ++pc;
 }
 void CustomInterpreter::instr_div() {
-    Frame* frame = current_frame();
+    const auto frame = current_frame();
     if (frame == nullptr) {
         std::cerr << "Error: no current frame in instr_div" << std::endl;
         return;
@@ -325,7 +329,7 @@ void CustomInterpreter::instr_div() {
     ++pc;
 }
 void CustomInterpreter::instr_mod() {
-    Frame* frame = current_frame();
+    const auto frame = current_frame();
     if (frame == nullptr) {
         std::cerr << "Error: no current frame in instr_mod" << std::endl;
         return;
@@ -353,7 +357,7 @@ void CustomInterpreter::instr_mod() {
 
 
 void CustomInterpreter::instr_print() {
-    Frame* frame = current_frame();
+    const auto frame = current_frame();
     if (frame == nullptr) {
         std::cerr << "Error: no current frame in instr_print" << std::endl;
         return;
@@ -393,14 +397,14 @@ void CustomInterpreter::instr_load() {
     if (const auto address_value = std::get<Value>(token); std::holds_alternative<std::string>(address_value)) {
         const auto address = std::get<std::string>(address_value);
 
-        Frame* frame = current_frame();
+        auto frame = current_frame();
         while (frame != nullptr) {
             if (auto it = frame->localVariables.find(address); it != frame->localVariables.end()) {
                 current_frame()->operandStack.push(it->second);
                 ++pc;
                 return;
             }
-            frame = frame->parentFrame; // Move to the parent frame if not found
+            frame = frame->parentFrame.lock(); // Move to the parent frame if not found
         }
         ++pc;
         std::cerr << "Error: Address '" << address << "' not found in any frame!" << std::endl;
@@ -423,14 +427,14 @@ void CustomInterpreter::instr_store() {
     if (const auto address_value = std::get<Value>(token); std::holds_alternative<std::string>(address_value)) {
         const auto address = std::get<std::string>(address_value);
 
-        Frame* frame = current_frame();
+        auto frame = current_frame();
         while (frame != nullptr) {
             if (auto it = frame->localVariables.find(address); it != frame->localVariables.end()) {
                 it->second = value_to_store;
                 ++pc;
                 return;
             }
-            frame = frame->parentFrame;
+            frame = frame->parentFrame.lock();
         }
 
         current_frame()->localVariables.emplace(address, value_to_store);
@@ -474,7 +478,7 @@ void CustomInterpreter::instr_push() {
 
     if (const auto instr_or_value = program[pc]; std::holds_alternative<Value>(instr_or_value)) {
         const auto val = std::get<Value>(instr_or_value);
-        Frame* frame   = current_frame();
+        const auto frame   = current_frame();
         if (frame == nullptr) {
             std::cerr << "Error: no current frame in instr_push" << std::endl;
             return;
@@ -537,8 +541,7 @@ void CustomInterpreter::instr_decl_func() {
 // call "abas"
 
 void CustomInterpreter::instr_call() {
-    const Frame* frame = current_frame();
-    if (frame == nullptr) {
+    if (const auto frame = current_frame(); frame == nullptr) {
         std::cerr << "Error: no current frame in instr_call" << std::endl;
         return;
     }
@@ -557,7 +560,7 @@ void CustomInterpreter::instr_call() {
 
     const auto funcName = std::get<std::string>(value);
     if (const auto funcIter = globalFunctions.find(funcName); funcIter != globalFunctions.end()) {
-        const auto funcInfo = funcIter->second;
+        const auto funcInfo = funcIter->second.get();
 
         std::vector<Value> args;
         for (size_t i = 0; i < funcInfo->paramNames.size(); ++i) {
@@ -609,7 +612,7 @@ void CustomInterpreter::instr_ret() {
 }
 
 void CustomInterpreter::instr_eq() {
-    Frame* frame = current_frame();
+    const auto frame = current_frame();
     if (frame == nullptr) {
         std::cerr << "Error: no current frame in instr_eq" << std::endl;
         return;
@@ -626,11 +629,11 @@ void CustomInterpreter::instr_eq() {
     }
 
     ++pc;
-    current_frame()->operandStack.push(result);
+    current_frame()->operandStack.emplace(result);
 }
 
 void CustomInterpreter::instr_ne() {
-    Frame* frame = current_frame();
+    const auto frame = current_frame();
     if (frame == nullptr) {
         std::cerr << "Error: no current frame in instr_ne" << std::endl;
         return;
@@ -647,11 +650,11 @@ void CustomInterpreter::instr_ne() {
     }
 
     ++pc;
-    current_frame()->operandStack.push(result);
+    current_frame()->operandStack.emplace(result);
 }
 
 void CustomInterpreter::instr_lt() {
-    Frame* frame = current_frame();
+    const auto frame = current_frame();
     if (frame == nullptr) {
         std::cerr << "Error: no current frame in instr_lt" << std::endl;
         return;
@@ -668,11 +671,11 @@ void CustomInterpreter::instr_lt() {
     }
 
     ++pc;
-    current_frame()->operandStack.push(result);
+    current_frame()->operandStack.emplace(result);
 }
 
 void CustomInterpreter::instr_gt() {
-    Frame* frame = current_frame();
+    const auto frame = current_frame();
     if (frame == nullptr) {
         std::cerr << "Error: no current frame in instr_gt" << std::endl;
         return;
@@ -689,11 +692,11 @@ void CustomInterpreter::instr_gt() {
     }
 
     ++pc;
-    current_frame()->operandStack.push(result);
+    current_frame()->operandStack.emplace(result);
 }
 
 void CustomInterpreter::instr_le() {
-    Frame* frame = current_frame();
+    const auto frame = current_frame();
     if (frame == nullptr) {
         std::cerr << "Error: no current frame in instr_le" << std::endl;
         return;
@@ -710,11 +713,11 @@ void CustomInterpreter::instr_le() {
     }
 
     ++pc;
-    current_frame()->operandStack.push(result);
+    current_frame()->operandStack.emplace(result);
 }
 
 void CustomInterpreter::instr_ge() {
-    Frame* frame = current_frame();
+    const auto frame = current_frame();
     if (frame == nullptr) {
         std::cerr << "Error: no current frame in instr_ge" << std::endl;
         return;
@@ -731,10 +734,10 @@ void CustomInterpreter::instr_ge() {
     }
 
     ++pc;
-    current_frame()->operandStack.push(result);
+    current_frame()->operandStack.emplace(result);
 }
 void CustomInterpreter::instr_if() {
-    Frame* frame = current_frame();
+    const auto frame = current_frame();
     if (frame == nullptr) {
         std::cerr << "Error: no current frame in instr_ge" << std::endl;
         return;
@@ -748,7 +751,7 @@ void CustomInterpreter::instr_if() {
     handle_conditional_jump(result);
 }
 
-bool CustomInterpreter::fetch_operands(Frame* frame, Value& a, Value& b) {
+bool CustomInterpreter::fetch_operands(const std::shared_ptr<Frame>& frame, Value& a, Value& b) {
     if (frame->operandStack.size() < 2) {
         std::cerr << "Error: operand stack underflow" << std::endl;
         return false;
@@ -842,7 +845,7 @@ void CustomInterpreter::instr_arr_store_elem() {
 
     const auto address = std::get<std::string>(array_name);
 
-    Frame* frame = current_frame();
+    auto frame = current_frame();
     while (frame != nullptr) {
         if (auto it = frame->localVariables.find(address); it != frame->localVariables.end()) {
             if (std::holds_alternative<std::vector<int64_t>>(it->second)) {
@@ -857,7 +860,7 @@ void CustomInterpreter::instr_arr_store_elem() {
             }
             break;
         }
-        frame = frame->parentFrame;
+        frame = frame->parentFrame.lock();
     }
     ++pc;
 }

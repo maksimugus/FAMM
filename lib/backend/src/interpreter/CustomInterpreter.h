@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <iostream>
 #include <map>
+#include <memory>
 #include <stack>
 #include <variant>
 #include <vector>
@@ -47,17 +47,23 @@ enum Instr {
     ARR_MAKE, // next word array_size, pop array_size elements, create vector
 };
 
-
 using Value =
-    std::variant<std::string, int64_t, bool, std::vector<int64_t>, std::vector<std::string>, std::vector<bool>>; // todo add vector bool
+    std::variant<std::string, int64_t, bool, std::vector<int64_t>, std::vector<std::string>, std::vector<bool>>;
 
 using ValueOrInstr = std::variant<Instr, Value>;
 
 struct Frame {
-    std::map<std::string, Value> localVariables = {}; // Локальные переменные
-    std::stack<Value> operandStack              = {}; // Стек операндов
-    Frame* parentFrame                          = nullptr; // Указатель на родительский фрейм
-    explicit Frame(Frame* parent = nullptr) : parentFrame(parent) {}
+    std::map<std::string, Value> localVariables = {};
+    std::stack<Value> operandStack = {};
+    std::weak_ptr<Frame> parentFrame;
+
+    explicit Frame(const std::shared_ptr<Frame>& parentFrame) : parentFrame(parentFrame) {}
+
+    Frame(const Frame&) = delete;
+    Frame& operator=(const Frame&) = delete;
+
+    Frame(Frame&&) = default;
+    Frame& operator=(Frame&&) = default;
 };
 
 struct FunctionInfo {
@@ -68,34 +74,26 @@ struct FunctionInfo {
 };
 
 class CustomInterpreter {
-    std::stack<Frame*> frameStack{}; // Стек фреймов
+    std::stack<std::shared_ptr<Frame>> frameStack; // Стек фреймов
     std::vector<ValueOrInstr> program; // Программа
     size_t pc; // Счетчик команд
     std::stack<size_t> returnAddressStack; // стек адресов возврата
-    std::map<std::string, FunctionInfo*> globalFunctions;
+    std::map<std::string, std::unique_ptr<FunctionInfo>> globalFunctions; // Умные указатели
 
 public:
     explicit CustomInterpreter(const std::vector<ValueOrInstr>& prog) : program(prog), pc(0) {
-        // Создаем начальный фрейм
-        frameStack.push(new Frame(nullptr));
+        frameStack.emplace(std::make_shared<Frame>(nullptr)); // Инициализация корневого фрейма
     }
-    ~CustomInterpreter() {
-        while (!frameStack.empty()) {
-            delete frameStack.top();
-            frameStack.pop();
-        }
-    }
-
-
+    ~CustomInterpreter() = default; // Автоматическое управление памятью
 
     void run();
 
 private:
-    void push_sibling_frame(); // recurrent functions
+    void push_sibling_frame(); // рекурсивные функции
     void push_child_frame(); // while, for, if
     void frame_pop();
     void frame_pop_on_return();
-    Frame* current_frame();
+    std::shared_ptr<Frame> current_frame();
 
     void instr_add();
     void instr_sub();
@@ -125,7 +123,7 @@ private:
     void instr_le();
     void instr_ge();
     void instr_if();
-    static bool fetch_operands(Frame* frame, Value& a, Value& b);
+    static bool fetch_operands(const std::shared_ptr<Frame>& frame, Value& a, Value& b);
     static bool compare_values(const Value& a, const Value& b, bool& result, const std::string& op);
     void handle_conditional_jump(bool condition);
 
