@@ -1,4 +1,4 @@
-func itemCheck(a: [int, 300], i: int, size: int): int = {
+func itemCheck(a: [int, 5000], i: int, size: int): int = {
     var k: int = 2 * i + 1;
     if (k >= size) {
         return a[i];
@@ -6,7 +6,7 @@ func itemCheck(a: [int, 300], i: int, size: int): int = {
     return a[i] + itemCheck(a, k, size) - itemCheck(a, k + 1, size);
 };
 
-func bottomUpTree(a: [int, 300], i: int, value: int, depth: int): [int, 300] = {
+func bottomUpTree(a: [int, 5000], i: int, value: int, depth: int): [int, 5000] = {
     if (depth > 0) {
         var k: int = 2 * i + 1;
         a = bottomUpTree(a, k, 2 * value - 1, depth - 1);
@@ -31,11 +31,11 @@ func max(lhs: int, rhs: int): int = {
 
 
 
-var a: [int, 300];
-var longLivedTree: [int, 300];
+var a: [int, 5000];
+var longLivedTree: [int, 5000];
 var ret: int = 0;
 
-for (var n: int = 4 -> 9 by 1) {
+for (var n: int = 4 -> 8 by 1) {
     var minDepth: int = 4;
     var maxDepth: int = max(minDepth + 2, n);
     var stretchDepth: int = maxDepth + 1;
