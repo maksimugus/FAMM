@@ -1,0 +1,63 @@
+func itemCheck(a: [int, 300], i: int, size: int): int = {
+    var k: int = 2 * i + 1;
+    if (k >= size) {
+        return a[i];
+    };
+    return a[i] + itemCheck(a, k, size) - itemCheck(a, k + 1, size);
+};
+
+func bottomUpTree(a: [int, 300], i: int, value: int, depth: int): [int, 300] = {
+    if (depth > 0) {
+        var k: int = 2 * i + 1;
+        a = bottomUpTree(a, k, 2 * value - 1, depth - 1);
+        a = bottomUpTree(a, k + 1, 2 * value, depth - 1);
+        a[i] = value;
+    };
+    return a;
+};
+
+func pow(value: int): int = {
+    var result: int = 1;
+    while (value > 0) {
+        result *= 2;
+        value -= 1;
+    };
+    return result;
+};
+
+func max(lhs: int, rhs: int): int = {
+    if (lhs > rhs) { return lhs; }; return rhs;
+};
+
+
+
+var a: [int, 300];
+var longLivedTree: [int, 300];
+var ret: int = 0;
+
+for (var n: int = 4 -> 9 by 1) {
+    var minDepth: int = 4;
+    var maxDepth: int = max(minDepth + 2, n);
+    var stretchDepth: int = maxDepth + 1;
+
+
+    a = bottomUpTree(a, 0, 0, stretchDepth);
+    var check: int = itemCheck(a, 0, stretchDepth);
+
+    longLivedTree = bottomUpTree(longLivedTree, 0, 0, maxDepth);
+
+    for (var depth: int = minDepth -> maxDepth by 2) {
+        check = 0;
+        for (var i: int = 1 -> pow(maxDepth - depth + minDepth) by 2) {
+            a = bottomUpTree(a, 0, i, depth);
+            check += itemCheck(a, 0, n);
+            a = bottomUpTree(a, 0, -i, depth);
+            check += itemCheck(a, 0, n);
+        };
+    };
+
+    ret += itemCheck(longLivedTree, 0, maxDepth);
+};
+
+display(ret);
+display(n);
